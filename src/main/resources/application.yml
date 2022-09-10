@@ -1,0 +1,55 @@
+spring:
+  application:
+    #name: entity-upload-file
+    name: amsac-tramite-api
+
+#  datasource:
+#    url: jdbc:sqlserver://docker-host:1433;databaseName=scs
+#    username: USR_INTEGRADOR_VUCE
+#    password: xxx
+#
+#    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+
+  #MongoDB settings
+  data:
+    mongodb:
+      uri: "mongodb://${app.connectionMongo.user}:${app.connectionMongo.password}@${app.connectionMongo.host}:${app.connectionMongo.port}/amsac-tramite"
+
+
+#  jpa:
+#    hibernate:
+#      ddl-auto: none
+#    show-sql: false
+#    properties:
+#      hibernate:
+#        format_sql: false
+#        dialect: org.hibernate.dialect.SQLServer2008Dialect
+
+
+server:
+  port:
+    8280
+  servlet:
+    #context-path: /entity-vuce-middleware
+    context-path: /amsac-tramite-documentario
+
+##Properties
+app:
+  keycloak:
+    grant-type: password
+    url-create-user: http://localhost:8181/admin/realms/app-realm/users
+    url: http://localhost:8181/realms/app-realm/protocol/openid-connect/token
+    admin:
+      grant_type: client_credentials
+      client-secret: p4jNYSp2HTe04nIkGlHvTgfIJ46mmDgf
+      client-id: admin-cli
+
+
+  connectionMongo:
+    user: user-amsac-db
+    password: Evelyn123
+    #password: vvc33#t1ty
+    host: localhost
+    #host: 172.16.1.228
+    port: 27017
+    #port: 55025

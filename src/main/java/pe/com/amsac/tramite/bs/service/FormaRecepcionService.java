@@ -1,0 +1,29 @@
+package pe.com.amsac.tramite.bs.service;
+
+import org.dozer.Mapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import pe.com.amsac.tramite.api.request.body.bean.FormaRecepcionBodyRequest;
+import pe.com.amsac.tramite.bs.domain.FormaRecepcion;
+import pe.com.amsac.tramite.bs.repository.FormaRecepcionMongoRepository;
+
+@Service
+public class FormaRecepcionService {
+
+	@Autowired
+	private FormaRecepcionMongoRepository formaRecepcionMongoRepository;
+
+	@Autowired
+	private Mapper mapper;
+
+	public FormaRecepcion registrarFormaRecepcion(FormaRecepcionBodyRequest formaRecepcionBodyRequest) throws Exception {
+
+		FormaRecepcion formaRecepcion = mapper.map(formaRecepcionBodyRequest,FormaRecepcion.class);
+		formaRecepcion.setEstado("A");
+		formaRecepcionMongoRepository.save(formaRecepcion);
+		return formaRecepcion;
+
+	}
+		
+	
+}
