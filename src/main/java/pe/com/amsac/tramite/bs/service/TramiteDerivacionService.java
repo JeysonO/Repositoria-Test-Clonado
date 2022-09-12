@@ -14,6 +14,7 @@ import pe.com.amsac.tramite.bs.repository.TramiteDerivacionMongoRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class TramiteDerivacionService {
@@ -33,7 +34,8 @@ public class TramiteDerivacionService {
 		List<Criteria> andExpression =  new ArrayList<>();
 		Map<String, Object> parameters = mapper.map(tramiteDerivacionRequest,Map.class);
 		Criteria expression = new Criteria();
-		parameters.forEach((key, value) -> crearExpresion(expression,key,value));
+		parameters.values().removeIf(Objects::isNull);
+		parameters.forEach((key, value) -> expression.and(key).is(value));
 		andExpression.add(expression);
 		andQuery.addCriteria(andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()])));
 		List<TramiteDerivacion> tramiteList = mongoTemplate.find(andQuery, TramiteDerivacion.class);
@@ -49,10 +51,4 @@ public class TramiteDerivacionService {
 
 	}
 
-	public void crearExpresion(Criteria criterio, String key, Object value){
-		if (value!=null){
-			criterio.and(key).is(value);
-		}
-	}
-	
 }

@@ -6,10 +6,7 @@ import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import pe.com.amsac.tramite.api.request.body.bean.TramitePrioridadBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.api.response.bean.TramitePrioridadResponse;
@@ -20,6 +17,8 @@ import pe.com.amsac.tramite.bs.domain.TramitePrioridad;
 import pe.com.amsac.tramite.bs.service.TramitePrioridadService;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/tramites-prioridades")
@@ -31,6 +30,33 @@ public class TramitePrioridadController {
 
 	@Autowired
 	private Mapper mapper;
+
+	@GetMapping
+	public ResponseEntity<CommonResponse> buscarTipoDocumento(){
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.CREATED;
+
+		try {
+			List<TramitePrioridad> listaTramitePrioridad = tramitePrioridadService.findByAllTramitePrioridad();
+			List<TramitePrioridadResponse> obtenerTramitePrioridadList =  new ArrayList<>();
+			TramitePrioridadResponse tramitePrioridadResponse = null;
+			for (TramitePrioridad temp : listaTramitePrioridad) {
+				tramitePrioridadResponse = mapper.map(temp, TramitePrioridadResponse.class);
+				obtenerTramitePrioridadList.add(tramitePrioridadResponse);
+			}
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(obtenerTramitePrioridadList).build();
+
+		} catch (ServiceException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+	}
+
 
 	@PostMapping
 	public ResponseEntity<CommonResponse> registrarTramitesPrioridad(@Valid @RequestBody TramitePrioridadBodyRequest tramitePrioridadBodyrequest) throws Exception {

@@ -5,7 +5,7 @@ import pe.com.amsac.tramite.api.util.AmsacRequestBean;
 
 
 @Data
-public class TramiteDerivacionRequest extends AmsacRequestBean {
+public class TramiteDerivacionRequest{
 
 	private String usuarioInicio;
 	private String estado;
