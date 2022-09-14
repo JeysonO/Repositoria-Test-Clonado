@@ -5,7 +5,9 @@ import lombok.Data;
 @Data
 public class UsuarioCreateResponse {
 
-    private String username;
+
+    private String id;
+    private String usuario;
     private String nombre;
     private String apePaterno;
     private String apeMaterno;

@@ -54,7 +54,7 @@ public class TramiteDerivacionController {
 		}
 
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
-	};
+	}
 
 	@PostMapping
 	public ResponseEntity<CommonResponse> registrarTramitesDerivacion(@Valid @RequestBody TramiteDerivacionBodyRequest tramiteDerivacionBodyrequest) throws Exception {

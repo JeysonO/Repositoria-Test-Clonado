@@ -1,6 +1,7 @@
 package pe.com.amsac.tramite.bs.domain;
 
 import lombok.Data;
+import org.dozer.Mapping;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import pe.com.amsac.tramite.api.util.BaseAuditableEntity;
@@ -10,6 +11,7 @@ import javax.persistence.AttributeOverrides;
 import javax.persistence.Column;
 import javax.persistence.Id;
 import java.io.Serializable;
+import java.util.Date;
 
 @Data
 @Document(collection = "tramite")
@@ -26,12 +28,35 @@ public class Tramite extends BaseAuditableEntity<String> {
 	@Id
 	private String id;
 
-	private String numero;
+	//Datos de configuracion del tramite
+	private String mensajeTramite;
+	private String avisoConfidencial;
+	private String codigoEtica;
+
+	//Datos del documento
+	private Date fechaDocumento;
+	private String origenDocumento; //INTERNO, EXTERNO
+	private String numeroDocumento;
+	private String siglas;
+	private String folio;
+	private String asunto;
+	private String atencion;
+	private String deseaFactura;
+	private String nombreProyecto;
+	private String contratoOrden;
+
+	//Origen del documento
+	private String origen; //INTERNO, EXTERNO
+	private String tipoOrigen; //si es interno entonces va DOCUMENTO_PERSONAL.
 
 	private String estado;
 
 	@DBRef
-	private EstadoTramite estadoTramite;
+	private TipoDocumento tipoDocumento;
+
+	private EntidadInterna entidadInterna;
+
+	private EntidadExterna entidadExterna;
 
 	@DBRef
 	private FormaRecepcion formaRecepcion;

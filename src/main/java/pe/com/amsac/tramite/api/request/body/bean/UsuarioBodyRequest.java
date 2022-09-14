@@ -11,7 +11,7 @@ public class UsuarioBodyRequest {
 
 	private String id;
 	@NotNull
-	private String username;
+	private String usuario;
 	@NotNull
 	private String nombre;
 	@NotNull

@@ -26,7 +26,7 @@ public class Usuario extends BaseAuditableEntity<String> {
 
     @Id
     private String id;
-    private String username;
+    private String usuario;
     private String nombre;
     private String apePaterno;
     private String apeMaterno;
