@@ -6,24 +6,13 @@ import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoInternoBodyRequest;
-import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoExternoBodyRequest;
-import pe.com.amsac.tramite.api.response.bean.CommonResponse;
-import pe.com.amsac.tramite.api.response.bean.DocumentoAdjuntoInternoResponse;
-import pe.com.amsac.tramite.api.response.bean.DocumentoAdjuntoExternoResponse;
-import pe.com.amsac.tramite.api.response.bean.Meta;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoBodyRequest;
+import pe.com.amsac.tramite.api.response.bean.*;
 import pe.com.amsac.tramite.api.util.EstadoRespuestaConstant;
 import pe.com.amsac.tramite.api.util.ServiceException;
-import pe.com.amsac.tramite.bs.domain.DocumentoAdjuntoInterno;
-import pe.com.amsac.tramite.bs.service.DocumentoAdjuntoInternoService;
-import pe.com.amsac.tramite.bs.domain.DocumentoAdjuntoExterno;
-import pe.com.amsac.tramite.bs.service.DocumentoAdjuntoExternoService;
-
-import javax.validation.Valid;
+import pe.com.amsac.tramite.bs.service.DocumentoAdjuntoService;
 
 @RestController
 @RequestMapping("/documentos-adjuntos")
@@ -31,51 +20,32 @@ public class DocumentoAdjuntoController {
 	private static final Logger LOGGER = LogManager.getLogger(DocumentoAdjuntoController.class);
 
 	@Autowired
-	private DocumentoAdjuntoInternoService documentoAdjuntoInternoService;
-
-	@Autowired
-	private DocumentoAdjuntoExternoService documentoAdjuntoExternoService;
+	private DocumentoAdjuntoService documentoAdjuntoService;
 
 	@Autowired
 	private Mapper mapper;
 
-	@PostMapping("/internos")
-	public ResponseEntity<CommonResponse> registrarDocumentoAdjuntoInterno(@Valid @RequestBody DocumentoAdjuntoInternoBodyRequest documentoAdjuntoInternoBodyrequest) throws Exception {
+	@PostMapping
+	public ResponseEntity<CommonResponse> registrarDocumentoAdjunto(
+			@RequestParam(value = "tramiteId", required = true) String tramiteId,
+			@RequestParam(value = "descripcion", required = false) String descripcion,
+			@RequestParam(value = "tipoAdjunto", required = false) String tipoAdjunto,
+			@RequestParam(value = "file", required = true) MultipartFile file) throws Exception {
 
 		CommonResponse commonResponse = null;
 
 		HttpStatus httpStatus = HttpStatus.CREATED;
 
 		try {
-			DocumentoAdjuntoInterno documentoAdjuntoInterno = documentoAdjuntoInternoService.registrarDocumentoAdjuntoInterno(documentoAdjuntoInternoBodyrequest);
+			DocumentoAdjuntoBodyRequest documentoAdjuntoRequest = new DocumentoAdjuntoBodyRequest();
+			documentoAdjuntoRequest.setTramiteId(tramiteId);
+			documentoAdjuntoRequest.setDescripcion(descripcion);
+			documentoAdjuntoRequest.setFile(file);
+			documentoAdjuntoRequest.setTipoAdjunto(tipoAdjunto);
 
-			DocumentoAdjuntoInternoResponse documentoAdjuntoInternoResponse = mapper.map(documentoAdjuntoInterno, DocumentoAdjuntoInternoResponse.class);
+			DocumentoAdjuntoResponse documentoAdjuntoResponse = documentoAdjuntoService.registrarDocumentoAdjunto(documentoAdjuntoRequest);
 
-			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(documentoAdjuntoInternoResponse).build();
-
-
-		} catch (ServiceException se) {
-			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
-			httpStatus = HttpStatus.CONFLICT;
-		}
-
-		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
-
-	}
-
-	@PostMapping("/externos")
-	public ResponseEntity<CommonResponse> registrarDocumentoAdjuntoExterno(@Valid @RequestBody DocumentoAdjuntoExternoBodyRequest documentoAdjuntoExternoBodyrequest) throws Exception {
-
-		CommonResponse commonResponse = null;
-
-		HttpStatus httpStatus = HttpStatus.CREATED;
-
-		try {
-			DocumentoAdjuntoExterno documentoAdjuntoExterno = documentoAdjuntoExternoService.registrarDocumentoAdjuntoExterno(documentoAdjuntoExternoBodyrequest);
-
-			DocumentoAdjuntoExternoResponse documentoAdjuntoExternoResponse = mapper.map(documentoAdjuntoExterno, DocumentoAdjuntoExternoResponse.class);
-
-			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(documentoAdjuntoExternoResponse).build();
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(documentoAdjuntoResponse).build();
 
 
 		} catch (ServiceException se) {

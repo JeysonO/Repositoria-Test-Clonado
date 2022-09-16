@@ -53,3 +53,10 @@ app:
     #host: 172.16.1.228
     port: 27017
     #port: 55025
+
+  ruta:
+    adjuntos: C:\Users\sayhu\IdeaProjects\AMSAC\amsac-tramite\adjuntos
+
+## File Storage Properties
+file:
+  base-upload-dir: amsac/file/tramite
