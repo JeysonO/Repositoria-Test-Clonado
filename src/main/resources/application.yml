@@ -28,34 +28,33 @@ spring:
 
 server:
   port:
-    8280
+    8100
   servlet:
     #context-path: /entity-vuce-middleware
-    context-path: /amsac-tramite-documentario
+    context-path: /amsac-tramite
 
 ##Properties
-app:
-  keycloak:
-    grant-type: password
-    url-create-user: http://localhost:8181/admin/realms/app-realm/users
-    url: http://localhost:8181/realms/app-realm/protocol/openid-connect/token
-    admin:
-      grant_type: client_credentials
-      client-secret: p4jNYSp2HTe04nIkGlHvTgfIJ46mmDgf
-      client-id: admin-cli
+#app:
+  #keycloak:
+    #grant-type: password
+    #url-create-user: http://keycloack:8080/admin/realms/app-realm/users
+    #url: http://keycloack:8080/realms/app-realm/protocol/openid-connect/token
+    #grant_type: client_credentials
+    #client-secret: p4jNYSp2HTe04nIkGlHvTgfIJ46mmDgf
+    #client-id: admin-cli
 
 
   connectionMongo:
     user: user-amsac-db
-    password: Evelyn123
+    password: "%40ms%40c2022"
     #password: vvc33#t1ty
-    host: localhost
+    host: 190.119.248.132
     #host: 172.16.1.228
-    port: 27017
+    port: 57017
     #port: 55025
 
   ruta:
-    adjuntos: C:\Users\sayhu\IdeaProjects\AMSAC\amsac-tramite\adjuntos
+    adjuntos: tramite
 
 ## File Storage Properties
 file:
