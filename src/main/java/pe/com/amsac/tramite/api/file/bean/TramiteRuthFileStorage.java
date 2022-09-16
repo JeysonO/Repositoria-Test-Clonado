@@ -23,7 +23,7 @@ public class TramiteRuthFileStorage extends CreateRuthFileStorage<DocumentoAdjun
                 .concat(File.separator)
                 .concat(String.valueOf(documentoAdjunto.getTramite().getId())
                         .concat(File.separator)
-                        .concat(documentoAdjunto.getTipoAdjunto()));
+                        .concat("adjuntos"));
         return ruta;
     }
 
