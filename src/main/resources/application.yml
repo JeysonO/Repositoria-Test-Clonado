@@ -29,9 +29,9 @@ spring:
 server:
   port:
     8100
-  servlet:
+  #servlet:
     #context-path: /entity-vuce-middleware
-    context-path: /amsac-tramite
+    #context-path: /amsac-tramite
 
 ##Properties
 app:
