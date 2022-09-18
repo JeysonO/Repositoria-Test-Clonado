@@ -34,7 +34,7 @@ server:
     context-path: /amsac-tramite
 
 ##Properties
-#app:
+app:
   #keycloak:
     #grant-type: password
     #url-create-user: http://keycloack:8080/admin/realms/app-realm/users
