@@ -48,7 +48,7 @@ server:
     user: user-amsac-db
     password: "%40ms%40c2022"
     #password: vvc33#t1ty
-    host: 190.119.248.132
+    host: mongoservice
     #host: 172.16.1.228
     port: 57017
     #port: 55025
