@@ -1,5 +1,6 @@
 package pe.com.amsac.tramite.api.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dozer.Mapper;
@@ -21,10 +22,12 @@ import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/tramites")
+@CrossOrigin(origins = "*", methods= {RequestMethod.GET,RequestMethod.POST,RequestMethod.PUT,RequestMethod.DELETE})
 public class TramiteController {
-	private static final Logger LOGGER = LogManager.getLogger(TramiteController.class);
+	//private static final Logger LOGGER = LogManager.getLogger(TramiteController.class);
 
 	@Autowired
 	private TramiteService tramiteService;

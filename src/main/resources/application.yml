@@ -29,12 +29,12 @@ spring:
 server:
   port:
     8100
-  servlet:
+  #servlet:
     #context-path: /entity-vuce-middleware
-    context-path: /amsac-tramite
+    #context-path: /amsac-tramite
 
 ##Properties
-#app:
+app:
   #keycloak:
     #grant-type: password
     #url-create-user: http://keycloack:8080/admin/realms/app-realm/users
@@ -48,7 +48,7 @@ server:
     user: user-amsac-db
     password: "%40ms%40c2022"
     #password: vvc33#t1ty
-    host: 190.119.248.132
+    host: mongoservice
     #host: 172.16.1.228
     port: 57017
     #port: 55025

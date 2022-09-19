@@ -86,6 +86,7 @@ public class AmsacTramiteApplication {
 		return new SpringSecurityAuditorAware();
 	}
 
+	/*
 	@Bean
 	public MongoClient mongo() {
 		ConnectionString connectionString = new ConnectionString("mongodb://localhost:27017/amsac-tramite");
@@ -100,6 +101,7 @@ public class AmsacTramiteApplication {
 	public MongoTemplate mongoTemplate() throws Exception {
 		return new MongoTemplate(mongo(), "amsac-tramite");
 	}
+	*/
 
 }
 
