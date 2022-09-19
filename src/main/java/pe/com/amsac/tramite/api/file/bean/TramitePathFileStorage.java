@@ -8,7 +8,7 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 
 @Component
-public class TramiteRuthFileStorage extends CreateRuthFileStorage<DocumentoAdjunto>{
+public class TramitePathFileStorage extends CreatePathFileStorage<DocumentoAdjunto> {
     @Autowired
     private FileTxProperties fileTxProperties;
 
@@ -27,7 +27,7 @@ public class TramiteRuthFileStorage extends CreateRuthFileStorage<DocumentoAdjun
         return ruta;
     }
 
-    public TramiteRuthFileStorage setObject(DocumentoAdjunto documentoAdjunto) {
+    public TramitePathFileStorage setObject(DocumentoAdjunto documentoAdjunto) {
         this.documentoAdjunto = documentoAdjunto;
         return this;
     }

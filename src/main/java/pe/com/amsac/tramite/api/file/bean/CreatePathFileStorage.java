@@ -1,13 +1,13 @@
 package pe.com.amsac.tramite.api.file.bean;
 
-public abstract class CreateRuthFileStorage<T> {
+public abstract class CreatePathFileStorage<T> {
 
     private T object;
 
-    public CreateRuthFileStorage() {
+    public CreatePathFileStorage() {
     }
 
-    public CreateRuthFileStorage setObject(T object) {
+    public CreatePathFileStorage setObject(T object) {
         this.object = object;
         return this;
     }

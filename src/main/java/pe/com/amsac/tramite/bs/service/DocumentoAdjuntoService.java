@@ -1,7 +1,5 @@
 package pe.com.amsac.tramite.bs.service;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -10,26 +8,21 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import pe.com.amsac.tramite.api.file.bean.TramiteRuthFileStorage;
+import pe.com.amsac.tramite.api.file.bean.TramitePathFileStorage;
 import pe.com.amsac.tramite.api.file.bean.UploadFileResponse;
 import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
-import pe.com.amsac.tramite.api.request.bean.TramiteDerivacionRequest;
 import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.DocumentoAdjuntoResponse;
 import pe.com.amsac.tramite.api.file.bean.FileStorageService;
 import pe.com.amsac.tramite.api.util.FileUtils;
 import pe.com.amsac.tramite.bs.domain.DocumentoAdjunto;
 import pe.com.amsac.tramite.bs.domain.Tramite;
-import pe.com.amsac.tramite.bs.domain.TramiteDerivacion;
 import pe.com.amsac.tramite.bs.repository.DocumentoAdjuntoMongoRepository;
 import pe.com.amsac.tramite.bs.repository.TramiteMongoRepository;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class DocumentoAdjuntoService {
@@ -41,7 +34,7 @@ public class DocumentoAdjuntoService {
 	private DocumentoAdjuntoMongoRepository documentoAdjuntoMongoRepository;
 
 	@Autowired
-	private TramiteRuthFileStorage tramiteRuthFileStorage;
+	private TramitePathFileStorage tramiteRuthFileStorage;
 
 	@Autowired
 	private Mapper mapper;
