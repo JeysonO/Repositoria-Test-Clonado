@@ -52,3 +52,10 @@ app:
     #host: 172.16.1.228
     port: 57017
     #port: 55025
+
+  ruta:
+    adjuntos: tramite
+
+## File Storage Properties
+file:
+  base-upload-dir: amsac/file/tramite

@@ -4,26 +4,27 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoInternoBodyRequest;
-import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoExternoBodyRequest;
-import pe.com.amsac.tramite.api.response.bean.CommonResponse;
-import pe.com.amsac.tramite.api.response.bean.DocumentoAdjuntoInternoResponse;
-import pe.com.amsac.tramite.api.response.bean.DocumentoAdjuntoExternoResponse;
-import pe.com.amsac.tramite.api.response.bean.Meta;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
+import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoBodyRequest;
+import pe.com.amsac.tramite.api.response.bean.*;
 import pe.com.amsac.tramite.api.util.EstadoRespuestaConstant;
 import pe.com.amsac.tramite.api.util.ServiceException;
-import pe.com.amsac.tramite.bs.domain.DocumentoAdjuntoInterno;
-import pe.com.amsac.tramite.bs.service.DocumentoAdjuntoInternoService;
-import pe.com.amsac.tramite.bs.domain.DocumentoAdjuntoExterno;
-import pe.com.amsac.tramite.bs.service.DocumentoAdjuntoExternoService;
+import pe.com.amsac.tramite.bs.domain.DocumentoAdjunto;
+import pe.com.amsac.tramite.bs.domain.TramiteDerivacion;
+import pe.com.amsac.tramite.bs.service.DocumentoAdjuntoService;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/documentos-adjuntos")
@@ -31,27 +32,50 @@ public class DocumentoAdjuntoController {
 	private static final Logger LOGGER = LogManager.getLogger(DocumentoAdjuntoController.class);
 
 	@Autowired
-	private DocumentoAdjuntoInternoService documentoAdjuntoInternoService;
-
-	@Autowired
-	private DocumentoAdjuntoExternoService documentoAdjuntoExternoService;
+	private DocumentoAdjuntoService documentoAdjuntoService;
 
 	@Autowired
 	private Mapper mapper;
 
-	@PostMapping("/internos")
-	public ResponseEntity<CommonResponse> registrarDocumentoAdjuntoInterno(@Valid @RequestBody DocumentoAdjuntoInternoBodyRequest documentoAdjuntoInternoBodyrequest) throws Exception {
+	@GetMapping
+	public ResponseEntity<CommonResponse> obtenerDocumentoAdjunto(@Valid DocumentoAdjuntoRequest documentoAdjuntoRequest) throws Exception {
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.CREATED;
+
+		try {
+			List<DocumentoAdjuntoResponse> documentoAdjuntoList =  documentoAdjuntoService.obtenerDocumentoAdjuntoList(documentoAdjuntoRequest);
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(documentoAdjuntoList).build();
+
+		} catch (ServiceException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+	}
+
+	@PostMapping
+	public ResponseEntity<CommonResponse> registrarDocumentoAdjunto(
+			@RequestParam(value = "tramiteId", required = true) String tramiteId,
+			@RequestParam(value = "descripcion", required = false) String descripcion,
+			@RequestParam(value = "tipoAdjunto", required = false) String tipoAdjunto,
+			@RequestParam(value = "file", required = true) MultipartFile file) throws Exception {
 
 		CommonResponse commonResponse = null;
 
 		HttpStatus httpStatus = HttpStatus.CREATED;
 
 		try {
-			DocumentoAdjuntoInterno documentoAdjuntoInterno = documentoAdjuntoInternoService.registrarDocumentoAdjuntoInterno(documentoAdjuntoInternoBodyrequest);
+			DocumentoAdjuntoBodyRequest documentoAdjuntoRequest = new DocumentoAdjuntoBodyRequest();
+			documentoAdjuntoRequest.setTramiteId(tramiteId);
+			documentoAdjuntoRequest.setDescripcion(descripcion);
+			documentoAdjuntoRequest.setFile(file);
+			documentoAdjuntoRequest.setTipoAdjunto(tipoAdjunto);
 
-			DocumentoAdjuntoInternoResponse documentoAdjuntoInternoResponse = mapper.map(documentoAdjuntoInterno, DocumentoAdjuntoInternoResponse.class);
+			DocumentoAdjuntoResponse documentoAdjuntoResponse = documentoAdjuntoService.registrarDocumentoAdjunto(documentoAdjuntoRequest);
 
-			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(documentoAdjuntoInternoResponse).build();
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(documentoAdjuntoResponse).build();
 
 
 		} catch (ServiceException se) {
@@ -63,27 +87,32 @@ public class DocumentoAdjuntoController {
 
 	}
 
-	@PostMapping("/externos")
-	public ResponseEntity<CommonResponse> registrarDocumentoAdjuntoExterno(@Valid @RequestBody DocumentoAdjuntoExternoBodyRequest documentoAdjuntoExternoBodyrequest) throws Exception {
-
-		CommonResponse commonResponse = null;
-
-		HttpStatus httpStatus = HttpStatus.CREATED;
-
+	@GetMapping("/downloadFile/{documentoAdjuntoId}")
+	public ResponseEntity<Resource> downloadFileEscala(@PathVariable String documentoAdjuntoId, HttpServletRequest request)
+			throws Exception {
 		try {
-			DocumentoAdjuntoExterno documentoAdjuntoExterno = documentoAdjuntoExternoService.registrarDocumentoAdjuntoExterno(documentoAdjuntoExternoBodyrequest);
+			DocumentoAdjuntoRequest documentoAdjuntoRequest = new DocumentoAdjuntoRequest();
+			documentoAdjuntoRequest.setId(documentoAdjuntoId);
 
-			DocumentoAdjuntoExternoResponse documentoAdjuntoExternoResponse = mapper.map(documentoAdjuntoExterno, DocumentoAdjuntoExternoResponse.class);
+			Resource resource = documentoAdjuntoService.obtenerDocumentoAdjunto(documentoAdjuntoRequest);
 
-			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(documentoAdjuntoExternoResponse).build();
+			String contentType = null;
+			try {
+				contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
+			} catch (IOException ex) {
+				LOGGER.info("No se puede determinar el MimeType.");
+			}
 
+			if (contentType == null) {
+				contentType = "application/octet-stream";
+			}
 
-		} catch (ServiceException se) {
-			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
-			httpStatus = HttpStatus.CONFLICT;
+			return ResponseEntity.ok().contentType(MediaType.parseMediaType(contentType))
+					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+					.body(resource);
+
+		} catch (Exception e) {
+			throw e;
 		}
-
-		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
-
 	}
 }
