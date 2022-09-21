@@ -55,6 +55,8 @@ app:
 
   ruta:
     adjuntos: tramite
+  url:
+    seguridad: http://localhost:8480/amsac-seguridad
 
 ## File Storage Properties
 file:

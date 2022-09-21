@@ -81,13 +81,87 @@ public class TramiteDerivacionController {
 
 	}
 
-	@PutMapping
+	@PutMapping("/atender-tramite-derivacion")
 	public ResponseEntity<CommonResponse> atenderTramiteDerivacion(@Valid @RequestBody AtencionTramiteDerivacionBodyRequest atenciontramiteDerivacionBodyrequest) throws Exception {
 		CommonResponse commonResponse = null;
 
 		HttpStatus httpStatus = HttpStatus.CREATED;
 
 		try {
+			TramiteDerivacion tramiteDerivacion = tramiteDerivacionService.registrarAtencionTramiteDerivacion(atenciontramiteDerivacionBodyrequest);
+
+			TramiteDerivacionResponse tramiteDerivacionResponse = mapper.map(tramiteDerivacion, TramiteDerivacionResponse.class);
+
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(tramiteDerivacionResponse).build();
+
+
+		} catch (ServiceException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+	}
+
+	@PutMapping("/recepcionar-tramite-derivacion")
+	public ResponseEntity<CommonResponse> recepcionarTramiteDerivacion(@Valid @RequestBody AtencionTramiteDerivacionBodyRequest atenciontramiteDerivacionBodyrequest) throws Exception {
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.CREATED;
+
+		try {
+
+			/*
+			1. Tomar el tramite derivacion actual y actualizarlo con los siguientes valores:
+			estadoFin: RECEPCIONADO
+			fechaFin: fecha actual
+			estado: A
+			comentario: TRAMITE RECEPCIONADO
+
+			Va a crear otro registro, con la secuencia siguiente, pasa saber la siguiente secuencia, hacar una consulta
+			a la tabla tramite_derivacion con el id del tramite, lo ordenaras de forma descendente para obtener la ultima secuencia, le suma 1
+			y generas una copia del tramite _derivacion que estas atendiendo:
+			actualizas los valores:
+			estadoInicio: RECEPCIONADO
+			fechaInicio: fecha actuak
+			fechaFin: nulo
+			estadoFin: nulo
+			estado: P
+			secuencia: secuencia anterior + 1.
+
+
+			*/
+
+
+			TramiteDerivacion tramiteDerivacion = tramiteDerivacionService.registrarAtencionTramiteDerivacion(atenciontramiteDerivacionBodyrequest);
+
+			TramiteDerivacionResponse tramiteDerivacionResponse = mapper.map(tramiteDerivacion, TramiteDerivacionResponse.class);
+
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(tramiteDerivacionResponse).build();
+
+
+		} catch (ServiceException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+	}
+
+	@PutMapping("/derivacion-tramite-derivacion")
+	public ResponseEntity<CommonResponse> derivarTramiteDerivacion(@Valid @RequestBody AtencionTramiteDerivacionBodyRequest atenciontramiteDerivacionBodyrequest) throws Exception {
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.CREATED;
+
+		try {
+
+			/*
+
+
+			*/
+
+
 			TramiteDerivacion tramiteDerivacion = tramiteDerivacionService.registrarAtencionTramiteDerivacion(atenciontramiteDerivacionBodyrequest);
 
 			TramiteDerivacionResponse tramiteDerivacionResponse = mapper.map(tramiteDerivacion, TramiteDerivacionResponse.class);
