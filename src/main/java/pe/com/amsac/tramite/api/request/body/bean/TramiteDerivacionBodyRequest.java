@@ -9,11 +9,14 @@ import java.util.Date;
 public class TramiteDerivacionBodyRequest {
 
 	private String id;
-	private String secuencia;
+	private int secuencia;
 	private String usuarioInicio;
 	private String usuarioFin;
+	private String estadoInicio;
 	private String estadoFin;
 	private String comentario;
+	private Date fechaInicio;
+	private Date fechaFin;
 	private Date fechaMaximaAtencion;
 	private String proveidoAtencion;
 	private String forma;

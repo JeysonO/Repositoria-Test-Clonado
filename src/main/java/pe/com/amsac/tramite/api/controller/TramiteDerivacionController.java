@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pe.com.amsac.tramite.api.request.bean.TramiteDerivacionRequest;
+import pe.com.amsac.tramite.api.request.body.bean.AtencionTramiteDerivacionBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TramiteDerivacionBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.api.response.bean.Meta;
@@ -78,5 +79,27 @@ public class TramiteDerivacionController {
 
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 
+	}
+
+	@PutMapping
+	public ResponseEntity<CommonResponse> atenderTramiteDerivacion(@Valid @RequestBody AtencionTramiteDerivacionBodyRequest atenciontramiteDerivacionBodyrequest) throws Exception {
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.CREATED;
+
+		try {
+			TramiteDerivacion tramiteDerivacion = tramiteDerivacionService.registrarAtencionTramiteDerivacion(atenciontramiteDerivacionBodyrequest);
+
+			TramiteDerivacionResponse tramiteDerivacionResponse = mapper.map(tramiteDerivacion, TramiteDerivacionResponse.class);
+
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(tramiteDerivacionResponse).build();
+
+
+		} catch (ServiceException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 	}
 }

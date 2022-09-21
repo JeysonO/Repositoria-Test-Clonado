@@ -16,6 +16,7 @@ import pe.com.amsac.tramite.api.response.bean.TramiteResponse;
 import pe.com.amsac.tramite.api.util.EstadoRespuestaConstant;
 import pe.com.amsac.tramite.api.util.ServiceException;
 import pe.com.amsac.tramite.bs.domain.Tramite;
+import pe.com.amsac.tramite.bs.service.TramiteDerivacionService;
 import pe.com.amsac.tramite.bs.service.TramiteService;
 
 import javax.validation.Valid;

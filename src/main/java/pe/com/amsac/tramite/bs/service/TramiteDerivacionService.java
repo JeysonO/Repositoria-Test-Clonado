@@ -7,14 +7,13 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import pe.com.amsac.tramite.api.request.bean.TramiteDerivacionRequest;
+import pe.com.amsac.tramite.api.request.body.bean.AtencionTramiteDerivacionBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TramiteDerivacionBodyRequest;
 import pe.com.amsac.tramite.bs.domain.TramiteDerivacion;
 import pe.com.amsac.tramite.bs.repository.TramiteDerivacionMongoRepository;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Service
 public class TramiteDerivacionService {
@@ -45,10 +44,19 @@ public class TramiteDerivacionService {
 	public TramiteDerivacion registrarTramiteDerivacion(TramiteDerivacionBodyRequest tramiteDerivacionBodyRequest) throws Exception {
 
 		TramiteDerivacion tramiteDerivacion = mapper.map(tramiteDerivacionBodyRequest,TramiteDerivacion.class);
-		tramiteDerivacion.setEstado("A");
+		tramiteDerivacion.setEstado("P");
 		tramiteDerivacionMongoRepository.save(tramiteDerivacion);
 		return tramiteDerivacion;
 
+	}
+
+	public TramiteDerivacion registrarAtencionTramiteDerivacion(AtencionTramiteDerivacionBodyRequest atenciontramiteDerivacionBodyrequest) throws Exception {
+		TramiteDerivacion atencionTramiteDerivacion = mapper.map(atenciontramiteDerivacionBodyrequest, TramiteDerivacion.class);
+		atencionTramiteDerivacion.setFechaFin(new Date());
+		atencionTramiteDerivacion.setEstado("A");
+		tramiteDerivacionMongoRepository.save(atencionTramiteDerivacion);
+
+		return atencionTramiteDerivacion;
 	}
 
 }
