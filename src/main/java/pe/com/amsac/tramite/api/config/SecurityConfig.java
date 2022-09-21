@@ -18,6 +18,13 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
         prePostEnabled = true
 )
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+	private static final String[] AUTH_WHITE_LIST = {
+			"/v3/api-docs/**",
+			"/swagger-ui/**",
+			"/v2/api-docs/**",
+			"/swagger-resources/**"
+	};
 	
 	@Autowired
     private JwtAuthenticationEntryPoint unauthorizedHandler;
@@ -85,10 +92,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             //    .permitAll()
             //.antMatchers("/ws/**")
             //    .permitAll()
-            //.antMatchers("/v2/api-docs/**")
+			//.antMatchers("/swagger-ui/**")
+			//	.permitAll()
+			//.antMatchers("/api/v2/api-docs/**")
             //    .permitAll()
-			.antMatchers("/signin/**")
-				.permitAll()
+			.antMatchers(AUTH_WHITE_LIST).permitAll()
+			//.antMatchers("/signin/**")
+			//	.permitAll()
             //.antMatchers("/security/api/user/checkUsernameAvailability", "/api/user/checkEmailAvailability")
             //    .permitAll()
             //.antMatchers(HttpMethod.GET, "/api/polls/**", "/api/users/**")
