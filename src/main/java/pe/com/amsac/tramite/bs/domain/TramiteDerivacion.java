@@ -27,7 +27,7 @@ public class TramiteDerivacion extends BaseAuditableEntity<String> {
 	@Id
 	private String id;
 
-	private String secuencia;
+	private int secuencia;
 
 	private String usuarioInicio;
 
@@ -37,7 +37,9 @@ public class TramiteDerivacion extends BaseAuditableEntity<String> {
 
 	private String estadoFin;
 
-	private String comentario;
+	private String comentarioInicio;
+
+	private String comentarioFin;
 
 	private Date fechaInicio;
 

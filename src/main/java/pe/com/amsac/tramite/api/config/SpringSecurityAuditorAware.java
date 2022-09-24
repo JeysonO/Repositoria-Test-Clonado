@@ -19,8 +19,6 @@ public class SpringSecurityAuditorAware implements AuditorAware<String> {
 
         DatosToken datosToken = (DatosToken)authentication.getPrincipal();
         //UserDetails usuarioPrincipal = (UserDetails)authentication.getPrincipal();
-        return Optional.of(datosToken.getUserName());
-
+        return Optional.of(datosToken.getIdUser());
     }
-
 }

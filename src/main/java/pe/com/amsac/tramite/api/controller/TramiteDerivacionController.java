@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pe.com.amsac.tramite.api.request.bean.TramiteDerivacionRequest;
 import pe.com.amsac.tramite.api.request.body.bean.AtencionTramiteDerivacionBodyRequest;
+import pe.com.amsac.tramite.api.request.body.bean.DerivarTramiteBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TramiteDerivacionBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.api.response.bean.Meta;
@@ -33,7 +34,54 @@ public class TramiteDerivacionController {
 	@Autowired
 	private Mapper mapper;
 
+	@GetMapping("{id}")
+	public ResponseEntity<CommonResponse> obtenerTramiteDerivacionById(@PathVariable String id) throws Exception {
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.CREATED;
+
+		try {
+
+			TramiteDerivacion tramiteDerivacion = tramiteDerivacionService.obtenerTramiteDerivacionById(id);
+
+			TramiteDerivacionResponse tramiteDerivacionResponse = mapper.map(tramiteDerivacion, TramiteDerivacionResponse.class);
+
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(tramiteDerivacionResponse).build();
+
+
+		} catch (ServiceException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+	}
+
 	@GetMapping
+	public ResponseEntity<CommonResponse> obtenerTramiteDerivacionPendientes() throws Exception {
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.CREATED;
+
+		try {
+			List<TramiteDerivacion> listaTramiteDerivacionPendiente = tramiteDerivacionService.obtenerTramiteDerivacionPendientes();
+			List<TramiteDerivacionResponse> obtenerTramiteDerivacionPendienteList =  new ArrayList<>();
+			TramiteDerivacionResponse tramiteDerivacionResponse = null;
+			for (TramiteDerivacion temp : listaTramiteDerivacionPendiente) {
+				tramiteDerivacionResponse = mapper.map(temp, TramiteDerivacionResponse.class);
+				obtenerTramiteDerivacionPendienteList.add(tramiteDerivacionResponse);
+			}
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(obtenerTramiteDerivacionPendienteList).build();
+
+		} catch (ServiceException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+	}
+
+	@GetMapping("/buscar-By-Params")
 	public ResponseEntity<CommonResponse> buscarTramiteDerivacionParams(@Valid TramiteDerivacionRequest tramiteDerivacionRequest) throws Exception {
 		CommonResponse commonResponse = null;
 
@@ -81,6 +129,52 @@ public class TramiteDerivacionController {
 
 	}
 
+	@PostMapping("/derivacion-tramite")
+	public ResponseEntity<CommonResponse> derivarTramiteDerivacion(@Valid @RequestBody DerivarTramiteBodyRequest derivartramiteBodyrequest) throws Exception {
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.CREATED;
+
+		try {
+
+			TramiteDerivacion tramiteDerivacion = tramiteDerivacionService.registrarDerivacionTramite(derivartramiteBodyrequest);
+
+			TramiteDerivacionResponse tramiteDerivacionResponse = mapper.map(tramiteDerivacion, TramiteDerivacionResponse.class);
+
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(tramiteDerivacionResponse).build();
+
+
+		} catch (ServiceException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+	}
+
+	@PostMapping("/recepcionar-tramite-derivacion/{idTramiteDerivacion}")
+	public ResponseEntity<CommonResponse> recepcionarTramiteDerivacion(@PathVariable String idTramiteDerivacion) throws Exception {
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.CREATED;
+
+		try {
+
+			TramiteDerivacion tramiteDerivacion = tramiteDerivacionService.registrarRecepcionTramiteDerivacion(idTramiteDerivacion);
+
+			TramiteDerivacionResponse tramiteDerivacionResponse = mapper.map(tramiteDerivacion, TramiteDerivacionResponse.class);
+
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(tramiteDerivacionResponse).build();
+
+
+		} catch (ServiceException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+	}
+
 	@PutMapping("/atender-tramite-derivacion")
 	public ResponseEntity<CommonResponse> atenderTramiteDerivacion(@Valid @RequestBody AtencionTramiteDerivacionBodyRequest atenciontramiteDerivacionBodyrequest) throws Exception {
 		CommonResponse commonResponse = null;
@@ -103,77 +197,4 @@ public class TramiteDerivacionController {
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 	}
 
-	@PutMapping("/recepcionar-tramite-derivacion")
-	public ResponseEntity<CommonResponse> recepcionarTramiteDerivacion(@Valid @RequestBody AtencionTramiteDerivacionBodyRequest atenciontramiteDerivacionBodyrequest) throws Exception {
-		CommonResponse commonResponse = null;
-
-		HttpStatus httpStatus = HttpStatus.CREATED;
-
-		try {
-
-			/*
-			1. Tomar el tramite derivacion actual y actualizarlo con los siguientes valores:
-			estadoFin: RECEPCIONADO
-			fechaFin: fecha actual
-			estado: A
-			comentario: TRAMITE RECEPCIONADO
-
-			Va a crear otro registro, con la secuencia siguiente, pasa saber la siguiente secuencia, hacar una consulta
-			a la tabla tramite_derivacion con el id del tramite, lo ordenaras de forma descendente para obtener la ultima secuencia, le suma 1
-			y generas una copia del tramite _derivacion que estas atendiendo:
-			actualizas los valores:
-			estadoInicio: RECEPCIONADO
-			fechaInicio: fecha actuak
-			fechaFin: nulo
-			estadoFin: nulo
-			estado: P
-			secuencia: secuencia anterior + 1.
-
-
-			*/
-
-
-			TramiteDerivacion tramiteDerivacion = tramiteDerivacionService.registrarAtencionTramiteDerivacion(atenciontramiteDerivacionBodyrequest);
-
-			TramiteDerivacionResponse tramiteDerivacionResponse = mapper.map(tramiteDerivacion, TramiteDerivacionResponse.class);
-
-			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(tramiteDerivacionResponse).build();
-
-
-		} catch (ServiceException se) {
-			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
-			httpStatus = HttpStatus.CONFLICT;
-		}
-
-		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
-	}
-
-	@PutMapping("/derivacion-tramite-derivacion")
-	public ResponseEntity<CommonResponse> derivarTramiteDerivacion(@Valid @RequestBody AtencionTramiteDerivacionBodyRequest atenciontramiteDerivacionBodyrequest) throws Exception {
-		CommonResponse commonResponse = null;
-
-		HttpStatus httpStatus = HttpStatus.CREATED;
-
-		try {
-
-			/*
-
-
-			*/
-
-
-			TramiteDerivacion tramiteDerivacion = tramiteDerivacionService.registrarAtencionTramiteDerivacion(atenciontramiteDerivacionBodyrequest);
-
-			TramiteDerivacionResponse tramiteDerivacionResponse = mapper.map(tramiteDerivacion, TramiteDerivacionResponse.class);
-
-			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(tramiteDerivacionResponse).build();
-
-
-		} catch (ServiceException se) {
-			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
-			httpStatus = HttpStatus.CONFLICT;
-		}
-
-		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
-	}
 }

@@ -7,6 +7,6 @@ public class AtencionTramiteDerivacionBodyRequest {
 
 	private String id;
 	private String estadoFin;
-	private String comentario;
+	private String comentarioFin;
 	
 }

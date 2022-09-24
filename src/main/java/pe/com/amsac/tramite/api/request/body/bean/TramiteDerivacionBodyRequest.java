@@ -14,7 +14,8 @@ public class TramiteDerivacionBodyRequest {
 	private String usuarioFin;
 	private String estadoInicio;
 	private String estadoFin;
-	private String comentario;
+	private String comentarioInicio;
+	private String comentarioFin;
 	private Date fechaInicio;
 	private Date fechaFin;
 	private Date fechaMaximaAtencion;
