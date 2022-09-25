@@ -10,6 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import pe.com.amsac.tramite.api.config.DatosToken;
+import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.request.bean.TramiteDerivacionRequest;
 import pe.com.amsac.tramite.api.request.body.bean.AtencionTramiteDerivacionBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.DerivarTramiteBodyRequest;
@@ -31,8 +32,12 @@ public class TramiteDerivacionService {
 	@Autowired
 	private Mapper mapper;
 
+	@Autowired
+	private SecurityHelper securityHelper;
+
 	public List<TramiteDerivacion> obtenerTramiteDerivacionPendientes() throws Exception {
 		//Obtener Usuario
+		/*
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (authentication == null || !authentication.isAuthenticated()) {
 			return null;
@@ -40,6 +45,8 @@ public class TramiteDerivacionService {
 		DatosToken datosToken = (DatosToken)authentication.getPrincipal();
 
 		String idUser =  datosToken.getIdUser();
+		*/
+		String idUser =  securityHelper.obtenerUserIdSession();
 
 		Query query = new Query();
 		Criteria criteria = Criteria.where("usuarioFin").is(idUser).and("estado").is("P");
@@ -74,6 +81,8 @@ public class TramiteDerivacionService {
 		TramiteDerivacion registrotramiteDerivacion = mapper.map(tramiteDerivacionBodyRequest,TramiteDerivacion.class);
 		registrotramiteDerivacion.setEstado("P");
 		tramiteDerivacionMongoRepository.save(registrotramiteDerivacion);
+		//Colocamos un evento de tramite derivado
+
 		return registrotramiteDerivacion;
 
 	}

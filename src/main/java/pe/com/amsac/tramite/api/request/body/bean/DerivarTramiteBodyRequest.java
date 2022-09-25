@@ -14,6 +14,7 @@ public class DerivarTramiteBodyRequest {
 	private String usuarioFin;
 	private String comentarioFin;
 	private String proveidoAtencion;
+	private String forma; //COPIA, ORIGINAL
 	private Date fechaMaximaAtencion;
 	
 }

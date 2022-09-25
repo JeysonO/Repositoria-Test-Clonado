@@ -13,6 +13,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.request.bean.TramiteRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TramiteBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TramiteDerivacionBodyRequest;
@@ -39,6 +40,9 @@ public class TramiteService {
 
 	@Autowired
 	private Environment env;
+
+	@Autowired
+	private SecurityHelper securityHelper;
 
 	public List<Tramite> buscarTramiteParams(TramiteRequest tramiteRequest) throws Exception {
 		Query andQuery = new Query();
@@ -69,7 +73,7 @@ public class TramiteService {
 		RestTemplate restTemplate = new RestTemplate();
 		String uri = env.getProperty("app.url.seguridad") + "/usuario-cargo/recepcion_mesa_partes";
 		HttpHeaders headers = new HttpHeaders();
-		headers.add("Authorization", String.format("%s %s", "Bearer", "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJjcnE1emEtZjVJTlNEdWlmXzU4V3BKdGhpS2dHZGE4ZnpqUElOODBSa1Q0In0.eyJleHAiOjE2NjI1MTYyMDIsImlhdCI6MTY2MjUxNTkwMiwianRpIjoiMWFhODBlYTktOTc5OC00ZWUzLTk0ZDktYjFlZDg5MTgyNjYyIiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MTgxL3JlYWxtcy9hcHAtcmVhbG0iLCJhdWQiOiJhY2NvdW50Iiwic3ViIjoiOWI1ZjRjNjUtYTgzNy00NWU4LTgwMmUtMjk5OWI0OGE3ZWUwIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoic2FvbmEtaW50ZWdyYXRvciIsInNlc3Npb25fc3RhdGUiOiI2YjI3MTVhYS0xNmM5LTQ3NTAtYjNjZC05YjY3Zjg0ZjIwZDIiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbIiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsib2ZmbGluZV9hY2Nlc3MiLCJ1bWFfYXV0aG9yaXphdGlvbiIsImRlZmF1bHQtcm9sZXMtYXBwLXJlYWxtIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsic2FvbmEtaW50ZWdyYXRvciI6eyJyb2xlcyI6WyJpbnRlZ3JhdG9yLXJvbGUiXX0sImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsInNpZCI6IjZiMjcxNWFhLTE2YzktNDc1MC1iM2NkLTliNjdmODRmMjBkMiIsImVtYWlsX3ZlcmlmaWVkIjpmYWxzZSwibmFtZSI6ImZ1bmN0ZXN0IGZ1bmN0ZXN0IiwicHJlZmVycmVkX3VzZXJuYW1lIjoiZnVuY3Rlc3Q2IiwiZ2l2ZW5fbmFtZSI6ImZ1bmN0ZXN0IiwiZmFtaWx5X25hbWUiOiJmdW5jdGVzdCIsImVtYWlsIjoibWU2QGdtYWlsLmNvbSJ9.EcJHHAHlLcKS8SBBprIVTWi1LkebZnvTzanKNnnm6Rm9jRlTwLfRfNOQi28ovfPcbb0lXy0GzQo9dDswS8OARdL36Wc3rKXHUaZTvcKXOfLlrtY5nqsEhRXx7W8V6OQBVk9JPg29H3FhetOb8mL1TyqD4rxQUsypAktUr37ZdV8yfaL0wij3uin25gsa_pyJEXNcDY0BJChyy5lsOYBiRCyrvFPcEXJIU2XS8t6TX_prCEEY0cUNgdY_qYdrgDVwmcUiWIqv4QaxX8b6Wnxw-gyLlfjxPQLXuO7bDqloe0egGV6-PGBqX5UDw3QVN9tMzJJIAwFIXupKPm-C7d9WUA"));
+		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
 		HttpEntity entity = new HttpEntity<>(null, headers);
 		ResponseEntity<CommonResponse> response = restTemplate.exchange(uri,HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
 
