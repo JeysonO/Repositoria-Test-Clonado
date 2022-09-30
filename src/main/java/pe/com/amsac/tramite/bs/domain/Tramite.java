@@ -29,6 +29,7 @@ public class Tramite extends BaseAuditableEntity<String> {
 	private String id;
 
 	//Datos de configuracion del tramite
+	private int numeroTramite;
 	private String mensajeTramite;
 	private String avisoConfidencial;
 	private String codigoEtica;

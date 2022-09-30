@@ -4,6 +4,7 @@ import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.env.Environment;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -19,6 +20,7 @@ import pe.com.amsac.tramite.api.request.body.bean.TramiteBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TramiteDerivacionBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.bs.domain.Tramite;
+import pe.com.amsac.tramite.bs.domain.TramiteDerivacion;
 import pe.com.amsac.tramite.bs.repository.TramiteMongoRepository;
 
 import java.util.*;
@@ -61,6 +63,8 @@ public class TramiteService {
 	public Tramite registrarTramite(TramiteBodyRequest tramiteBodyRequest) throws Exception {
 
 		Tramite tramite = mapper.map(tramiteBodyRequest,Tramite.class);
+		int numeroTramite = obtenerNumeroTramite().get(0).getNumeroTramite()+1;
+		tramite.setNumeroTramite(numeroTramite);
 		tramite.setEstado("A");
 		tramiteMongoRepository.save(tramite);
 		registrarDerivacion(tramite);
@@ -86,6 +90,17 @@ public class TramiteService {
 		tramiteDerivacionBodyRequest.setTramiteId(tramite.getId());
 		tramiteDerivacionBodyRequest.setComentarioInicio("Se inicia registro del Tramite");
 		tramiteDerivacionService.registrarTramiteDerivacion(tramiteDerivacionBodyRequest);
+	}
+
+	public List<Tramite> obtenerNumeroTramite(){
+		Query query = new Query();
+		Criteria criteria = Criteria.where("estado").is("A");
+		query.addCriteria(criteria);
+		query.with(Sort.by(
+				Sort.Order.desc("numeroTramite")
+		));
+		List<Tramite> tramiteList = mongoTemplate.find(query, Tramite.class);
+		return tramiteList;
 	}
 	
 }
