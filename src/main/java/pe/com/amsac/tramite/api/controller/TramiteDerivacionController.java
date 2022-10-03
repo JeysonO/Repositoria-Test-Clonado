@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.request.bean.TramiteDerivacionRequest;
 import pe.com.amsac.tramite.api.request.body.bean.AtencionTramiteDerivacionBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.DerivarTramiteBodyRequest;
@@ -33,6 +34,9 @@ public class TramiteDerivacionController {
 
 	@Autowired
 	private Mapper mapper;
+
+	@Autowired
+	private SecurityHelper securityHelper;
 
 	@GetMapping("{id}")
 	public ResponseEntity<CommonResponse> obtenerTramiteDerivacionById(@PathVariable String id) throws Exception {
@@ -113,6 +117,10 @@ public class TramiteDerivacionController {
 		HttpStatus httpStatus = HttpStatus.CREATED;
 
 		try {
+
+			String usuarioInicioId = securityHelper.obtenerUserIdSession();
+			tramiteDerivacionBodyrequest.setUsuarioInicio(usuarioInicioId);
+
 			TramiteDerivacion tramiteDerivacion = tramiteDerivacionService.registrarTramiteDerivacion(tramiteDerivacionBodyrequest);
 
 			TramiteDerivacionResponse tramiteDerivacionResponse = mapper.map(tramiteDerivacion, TramiteDerivacionResponse.class);

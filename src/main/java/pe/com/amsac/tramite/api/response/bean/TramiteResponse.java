@@ -52,6 +52,11 @@ public class TramiteResponse {
 	private String email;
 	private String direccion;
 
+	//Otros datos
+	private String formaRecepcionNombre;
+	private String tipoDocumentoNombre;
+	private String estado;
+
 	@Mapping("tipoDocumento.id")
 	public String getTipoDocumentoId(){return tipoDocumentoId;}
 
@@ -96,5 +101,11 @@ public class TramiteResponse {
 
 	@Mapping("tramitePrioridad.id")
 	public String getTramitePrioridadId(){return tramitePrioridadId;}
+
+	@Mapping("formaRecepcion.nombre")
+	public String getFormaRecepcionNombre(){return formaRecepcionNombre;}
+
+	@Mapping("tipoDocumento.descripcion")
+	public String getTipoDocumentoNombre(){return tipoDocumentoNombre;}
 
 }

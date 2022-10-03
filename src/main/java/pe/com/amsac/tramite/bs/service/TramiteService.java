@@ -103,5 +103,16 @@ public class TramiteService {
 		List<Tramite> tramiteList = mongoTemplate.find(query, Tramite.class);
 		return tramiteList;
 	}
+
+	public List<Tramite> buscarTramiteParamsByUsuarioId(String usuarioId){
+		Query query = new Query();
+		Criteria criteria = Criteria.where("createdByUser").is(usuarioId);
+		query.addCriteria(criteria);
+		query.with(Sort.by(
+				Sort.Order.desc("createdDate")
+		));
+		List<Tramite> tramiteList = mongoTemplate.find(query, Tramite.class);
+		return tramiteList;
+	}
 	
 }

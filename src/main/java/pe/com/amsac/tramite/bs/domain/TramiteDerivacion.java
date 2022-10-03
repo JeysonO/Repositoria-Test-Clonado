@@ -5,10 +5,7 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import pe.com.amsac.tramite.api.util.BaseAuditableEntity;
 
-import javax.persistence.AttributeOverride;
-import javax.persistence.AttributeOverrides;
-import javax.persistence.Column;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -29,9 +26,13 @@ public class TramiteDerivacion extends BaseAuditableEntity<String> {
 
 	private int secuencia;
 
-	private String usuarioInicio;
+	//private String usuarioInicio;
+	@DBRef(db = "amsac-seguridad")
+	private Usuario usuarioInicio;
 
-	private String usuarioFin;
+	//private String usuarioFin;
+	@DBRef(db = "amsac-seguridad")
+	private Usuario usuarioFin;
 
 	private String estadoInicio;
 
@@ -55,6 +56,24 @@ public class TramiteDerivacion extends BaseAuditableEntity<String> {
 
 	@DBRef
 	private Tramite tramite;
+
+	@Transient
+	private String dependenciaNombreUsuarioInicio;
+
+	@Transient
+	private String cargoNombreUsuarioInicio;
+
+	@Transient
+	private String dependenciaNombreUsuarioFin;
+
+	@Transient
+	private String cargoNombreUsuarioFin;
+
+	@Transient
+	private String usuarioInicioNombreCompleto;
+
+	@Transient
+	private String usuarioFinNombreCompleto;
 
 	@Override
 	public Serializable getEntityId() {

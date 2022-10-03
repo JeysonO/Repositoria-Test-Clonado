@@ -26,5 +26,11 @@ public class TramiteDerivacionBodyRequest {
 
 	@Mapping("tramite.id")
 	public String getTramiteId(){return tramiteId;}
+
+	@Mapping("usuarioFin.id")
+	public String getUsuarioFin(){return usuarioFin;}
+
+	@Mapping("usuarioInicio.id")
+	public String getUsuarioInicio(){return usuarioInicio;}
 	
 }

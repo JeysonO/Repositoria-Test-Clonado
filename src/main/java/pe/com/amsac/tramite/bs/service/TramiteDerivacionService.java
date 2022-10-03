@@ -2,19 +2,27 @@ package pe.com.amsac.tramite.bs.service;
 
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import pe.com.amsac.tramite.api.config.DatosToken;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.request.bean.TramiteDerivacionRequest;
 import pe.com.amsac.tramite.api.request.body.bean.AtencionTramiteDerivacionBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.DerivarTramiteBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TramiteDerivacionBodyRequest;
+import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.bs.domain.TramiteDerivacion;
 import pe.com.amsac.tramite.bs.repository.TramiteDerivacionMongoRepository;
 
@@ -35,6 +43,9 @@ public class TramiteDerivacionService {
 	@Autowired
 	private SecurityHelper securityHelper;
 
+	@Autowired
+	private Environment env;
+
 	public List<TramiteDerivacion> obtenerTramiteDerivacionPendientes() throws Exception {
 		//Obtener Usuario
 		/*
@@ -49,9 +60,37 @@ public class TramiteDerivacionService {
 		String idUser =  securityHelper.obtenerUserIdSession();
 
 		Query query = new Query();
-		Criteria criteria = Criteria.where("usuarioFin").is(idUser).and("estado").is("P");
+		Criteria criteria = Criteria.where("usuarioFin.id").is(idUser).and("estado").is("P");
 		query.addCriteria(criteria);
 		List<TramiteDerivacion> tramitePendienteList = mongoTemplate.find(query, TramiteDerivacion.class);
+
+		//Por cada usuario origen y fin, obtener la dependencia y cargo
+		RestTemplate restTemplate = new RestTemplate();
+		String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/";
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
+		HttpEntity entity = new HttpEntity<>(null, headers);
+		ResponseEntity<CommonResponse> response = null;
+		String uriBusqueda;
+		String nombreCompleto;
+		for(TramiteDerivacion tramiteDerivacion : tramitePendienteList){
+			//Se completan datos de usuario inicio
+			uriBusqueda = uri + tramiteDerivacion.getUsuarioInicio().getId();
+			response = restTemplate.exchange(uriBusqueda, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+			tramiteDerivacion.setCargoNombreUsuarioInicio(((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("cargoNombre").toString());
+			tramiteDerivacion.setDependenciaNombreUsuarioInicio(((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("dependenciaNombre").toString());
+			nombreCompleto = ((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("nombre").toString() + " " + ((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("apePaterno").toString() + ((((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("apeMaterno")!=null)?" "+((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("apeMaterno").toString():"");
+			tramiteDerivacion.setUsuarioInicioNombreCompleto(nombreCompleto);
+
+			//Se completan datos de usuario inicio
+			uriBusqueda = uri + tramiteDerivacion.getUsuarioFin().getId();
+			response = restTemplate.exchange(uriBusqueda, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+			tramiteDerivacion.setCargoNombreUsuarioFin(((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("cargoNombre").toString());
+			tramiteDerivacion.setDependenciaNombreUsuarioFin(((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("dependenciaNombre").toString());
+			nombreCompleto = ((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("nombre").toString() + " " + ((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("apePaterno").toString() + ((((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("apeMaterno")!=null)?" "+((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("apeMaterno").toString():"");
+			tramiteDerivacion.setUsuarioFinNombreCompleto(nombreCompleto);
+
+		}
 
 		return tramitePendienteList;
 	}
@@ -89,6 +128,8 @@ public class TramiteDerivacionService {
 
 	public TramiteDerivacion registrarDerivacionTramite(DerivarTramiteBodyRequest derivartramiteBodyrequest) throws Exception {
 
+		String usuarioId = securityHelper.obtenerUserIdSession();
+
 		TramiteDerivacion derivacionTramiteActual = tramiteDerivacionMongoRepository.findById(derivartramiteBodyrequest.getId()).get();
 		derivacionTramiteActual.setEstadoFin("DERIVADO");
 		derivacionTramiteActual.setFechaFin(new Date());
@@ -101,7 +142,7 @@ public class TramiteDerivacionService {
 
 		TramiteDerivacionBodyRequest derivacionTramiteBodyRequest = mapper.map(derivacionTramiteActual, TramiteDerivacionBodyRequest.class);
 		derivacionTramiteBodyRequest.setSecuencia(sec+1);
-		derivacionTramiteBodyRequest.setUsuarioInicio(derivacionTramiteActual.getUsuarioFin());
+		derivacionTramiteBodyRequest.setUsuarioInicio(usuarioId);
 		derivacionTramiteBodyRequest.setUsuarioFin(derivartramiteBodyrequest.getUsuarioFin());
 		derivacionTramiteBodyRequest.setEstadoInicio(derivacionTramiteActual.getEstadoFin());
 		derivacionTramiteBodyRequest.setFechaInicio(new Date());
@@ -130,8 +171,8 @@ public class TramiteDerivacionService {
 
 		TramiteDerivacionBodyRequest recepcionTramiteBodyRequest = mapper.map(recepcionTramiteActual, TramiteDerivacionBodyRequest.class);
 		recepcionTramiteBodyRequest.setSecuencia(sec+1);
-		recepcionTramiteBodyRequest.setUsuarioInicio(recepcionTramiteActual.getUsuarioFin());
-		recepcionTramiteBodyRequest.setUsuarioFin(recepcionTramiteActual.getUsuarioFin());
+		recepcionTramiteBodyRequest.setUsuarioInicio(recepcionTramiteActual.getUsuarioFin().getId());
+		recepcionTramiteBodyRequest.setUsuarioFin(recepcionTramiteActual.getUsuarioFin().getId());
 		recepcionTramiteBodyRequest.setEstadoInicio(recepcionTramiteActual.getEstadoFin());
 		recepcionTramiteBodyRequest.setFechaInicio(new Date());
 		recepcionTramiteBodyRequest.setComentarioInicio(recepcionTramiteActual.getComentarioFin());
