@@ -1,5 +1,6 @@
 package pe.com.amsac.tramite.bs.service;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
@@ -119,6 +120,10 @@ public class TramiteDerivacionService {
 
 		TramiteDerivacion registrotramiteDerivacion = mapper.map(tramiteDerivacionBodyRequest,TramiteDerivacion.class);
 		registrotramiteDerivacion.setEstado("P");
+
+		int sec = obtenerSecuencia(tramiteDerivacionBodyRequest.getTramiteId());
+		registrotramiteDerivacion.setSecuencia(sec+1);
+
 		tramiteDerivacionMongoRepository.save(registrotramiteDerivacion);
 		//Colocamos un evento de tramite derivado
 
@@ -138,7 +143,8 @@ public class TramiteDerivacionService {
 		derivacionTramiteActual.setEstado("A");
 		tramiteDerivacionMongoRepository.save(derivacionTramiteActual);
 
-		int sec = obtenerSecuencia(derivacionTramiteActual.getId()).get(0).getSecuencia();
+		//int sec = obtenerSecuencia(derivacionTramiteActual.getId()).get(0).getSecuencia();
+		int sec = obtenerSecuencia(derivacionTramiteActual.getTramite().getId());
 
 		TramiteDerivacionBodyRequest derivacionTramiteBodyRequest = mapper.map(derivacionTramiteActual, TramiteDerivacionBodyRequest.class);
 		derivacionTramiteBodyRequest.setSecuencia(sec+1);
@@ -167,7 +173,8 @@ public class TramiteDerivacionService {
 		recepcionTramiteActual.setEstado("A");
 		tramiteDerivacionMongoRepository.save(recepcionTramiteActual);
 
-		int sec = obtenerSecuencia(recepcionTramiteActual.getId()).get(0).getSecuencia();
+		//int sec = obtenerSecuencia(recepcionTramiteActual.getId()).get(0).getSecuencia();
+		int sec = obtenerSecuencia(recepcionTramiteActual.getTramite().getId());
 
 		TramiteDerivacionBodyRequest recepcionTramiteBodyRequest = mapper.map(recepcionTramiteActual, TramiteDerivacionBodyRequest.class);
 		recepcionTramiteBodyRequest.setSecuencia(sec+1);
@@ -197,14 +204,21 @@ public class TramiteDerivacionService {
 		return atenderTramiteDerivacion;
 	}
 
-	public List<TramiteDerivacion> obtenerSecuencia(String id){
+	//public List<TramiteDerivacion> obtenerSecuencia(String id){
+	public int obtenerSecuencia(String id){
+		int secuencia = 1;
 		Query query = new Query();
-		Criteria criteria = Criteria.where("id").is(id).and("estado").is("A");
+		//Criteria criteria = Criteria.where("tramite.id").is(id).and("estado").is("A");
+		Criteria criteria = Criteria.where("tramite.id").is(id);//.and("estado").is("A");
 		query.addCriteria(criteria);
 		query.with(Sort.by(
 				Sort.Order.desc("secuencia")
 		));
 		List<TramiteDerivacion> tramiteList = mongoTemplate.find(query, TramiteDerivacion.class);
-		return tramiteList;
+
+		if(!CollectionUtils.isEmpty(tramiteList))
+			secuencia = tramiteList.get(0).getSecuencia() + 1;
+
+		return secuencia;
 	}
 }
