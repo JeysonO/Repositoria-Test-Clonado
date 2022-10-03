@@ -67,7 +67,8 @@ public class TramiteService {
 		tramite.setNumeroTramite(numeroTramite);
 		tramite.setEstado("A");
 		tramiteMongoRepository.save(tramite);
-		registrarDerivacion(tramite);
+		if(tramiteBodyRequest.getOrigenDocumento().equals("EXTERNO"))
+			registrarDerivacion(tramite);
 		return tramite;
 
 	}

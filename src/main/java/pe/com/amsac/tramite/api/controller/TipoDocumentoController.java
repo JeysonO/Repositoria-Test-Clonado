@@ -56,7 +56,7 @@ public class TipoDocumentoController {
 	}
 
 	@GetMapping
-	public ResponseEntity<CommonResponse> registrarTipoDocumento() throws Exception {
+	public ResponseEntity<CommonResponse> obtenerTipoDocumento() throws Exception {
 
 		CommonResponse commonResponse = null;
 
