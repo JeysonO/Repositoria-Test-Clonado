@@ -21,4 +21,6 @@ public class DatosToken {
     private String email;
 
     private String idUser;
+
+    private String token;
 }

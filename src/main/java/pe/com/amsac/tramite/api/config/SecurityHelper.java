@@ -30,7 +30,7 @@ public class SecurityHelper {
             return null;
         }
 
-        UserPrincipal usuarioPrincipal = (UserPrincipal)authentication.getPrincipal();
-        return usuarioPrincipal.getToken();
+        DatosToken datosToken = (DatosToken)authentication.getPrincipal();
+        return datosToken.getToken();
     }
 }
