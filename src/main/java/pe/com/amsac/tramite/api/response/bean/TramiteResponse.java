@@ -102,10 +102,10 @@ public class TramiteResponse {
 	@Mapping("tramitePrioridad.id")
 	public String getTramitePrioridadId(){return tramitePrioridadId;}
 
-	@Mapping("formaRecepcion.nombre")
+	@Mapping("formaRecepcion.formaRecepcion")
 	public String getFormaRecepcionNombre(){return formaRecepcionNombre;}
 
-	@Mapping("tipoDocumento.descripcion")
+	@Mapping("tipoDocumento.tipoDocumento")
 	public String getTipoDocumentoNombre(){return tipoDocumentoNombre;}
 
 }
