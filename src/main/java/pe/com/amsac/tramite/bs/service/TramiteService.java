@@ -114,5 +114,13 @@ public class TramiteService {
 		List<Tramite> tramiteList = mongoTemplate.find(query, Tramite.class);
 		return tramiteList;
 	}
+
+	public Tramite findById(String id){
+		return tramiteMongoRepository.findById(id).get();
+	}
+
+	public Tramite save(Tramite tramite){
+		return tramiteMongoRepository.save(tramite);
+	}
 	
 }
