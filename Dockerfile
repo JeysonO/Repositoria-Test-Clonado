@@ -7,6 +7,7 @@ EXPOSE 8100
 COPY ./target/amsac-tramite-api-1.0.jar /app/application.jar
 RUN mkdir -p tramite/logs
 RUN mkdir -p tramite/resource/reporte
+RUN mkdir -p tramite/file
 #ENTRYPOINT ["java", "-Xms256m", "-Xmx512m", "-Duser.timezone=America/Lima", "-Dfile.encoding=UTF-8", "-jar", "-Dspring.profiles.active=${profile}", "-Dsiops.cloud.config.host=${siopscloudhost}", "-Dsiops.cloud.config.port=${siopscloudport}", "/app/application.jar", "server"]
 
 ENTRYPOINT ["java", "-Xms256m", "-Xmx512m", "-Duser.timezone=America/Lima", "-Dfile.encoding=UTF-8", "-jar", "/app/application.jar", "server"]

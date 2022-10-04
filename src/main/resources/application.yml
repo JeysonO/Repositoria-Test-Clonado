@@ -49,6 +49,7 @@ app:
     password: "%40ms%40c2022"
     #password: vvc33#t1ty
     host: mongoservice
+    #host: 190.119.248.132
     #host: 172.16.1.228
     port: 57017
     #port: 55025
@@ -57,7 +58,8 @@ app:
     adjuntos: tramite
   url:
     seguridad: http://amsac-security-api:8100/amsac-seguridad
+    #seguridad: http://190.119.248.132:8180/amsac-seguridad
 
 ## File Storage Properties
 file:
-  base-upload-dir: amsac/file/tramite
+  base-upload-dir: tramite/file
