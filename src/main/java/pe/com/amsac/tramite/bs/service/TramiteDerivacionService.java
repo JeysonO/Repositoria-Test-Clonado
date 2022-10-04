@@ -125,7 +125,8 @@ public class TramiteDerivacionService {
 		registrotramiteDerivacion.setSecuencia(sec+1);
 
 		tramiteDerivacionMongoRepository.save(registrotramiteDerivacion);
-		//Colocamos un evento de tramite derivado
+		//Invocar a servicio para envio de correo
+		envioCorreoDerivacion(registrotramiteDerivacion);
 
 		return registrotramiteDerivacion;
 
@@ -220,5 +221,13 @@ public class TramiteDerivacionService {
 			secuencia = tramiteList.get(0).getSecuencia() + 1;
 
 		return secuencia;
+	}
+
+	public void envioCorreoDerivacion(TramiteDerivacion registrotramiteDerivacion){
+		//TODO Armar mensaje del cuerpo de correo, obteniendo la plantillaDerivacion.html
+		//Si la forma es ORIGINAL, se envia como pendientes, pero si es COPIA entonces que el mensaje indique que le ha llegago tramite como copia
+
+		//TODO Enviar al destinatario que se esta derivando.
+
 	}
 }
