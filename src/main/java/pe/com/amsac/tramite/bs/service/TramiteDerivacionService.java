@@ -78,17 +78,17 @@ public class TramiteDerivacionService {
 			//Se completan datos de usuario inicio
 			uriBusqueda = uri + tramiteDerivacion.getUsuarioInicio().getId();
 			response = restTemplate.exchange(uriBusqueda, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
-			tramiteDerivacion.setCargoNombreUsuarioInicio(((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("cargoNombre").toString());
-			tramiteDerivacion.setDependenciaNombreUsuarioInicio(((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("dependenciaNombre").toString());
-			nombreCompleto = ((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("nombre").toString() + " " + ((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("apePaterno").toString() + ((((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("apeMaterno")!=null)?" "+((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("apeMaterno").toString():"");
+			tramiteDerivacion.setCargoNombreUsuarioInicio(((LinkedHashMap)response.getBody().getData()).get("cargoNombre").toString());
+			tramiteDerivacion.setDependenciaNombreUsuarioInicio(((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre").toString());
+			nombreCompleto = ((LinkedHashMap)response.getBody().getData()).get("nombre").toString() + " " + ((LinkedHashMap)response.getBody().getData()).get("apePaterno").toString() + ((((LinkedHashMap)response.getBody().getData()).get("apeMaterno")!=null)?" "+((LinkedHashMap)response.getBody().getData()).get("apeMaterno").toString():"");
 			tramiteDerivacion.setUsuarioInicioNombreCompleto(nombreCompleto);
 
-			//Se completan datos de usuario inicio
+			//Se completan datos de usuario Fin
 			uriBusqueda = uri + tramiteDerivacion.getUsuarioFin().getId();
 			response = restTemplate.exchange(uriBusqueda, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
-			tramiteDerivacion.setCargoNombreUsuarioFin(((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("cargoNombre").toString());
-			tramiteDerivacion.setDependenciaNombreUsuarioFin(((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("dependenciaNombre").toString());
-			nombreCompleto = ((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("nombre").toString() + " " + ((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("apePaterno").toString() + ((((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("apeMaterno")!=null)?" "+((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("apeMaterno").toString():"");
+			tramiteDerivacion.setCargoNombreUsuarioFin(((LinkedHashMap)response.getBody().getData()).get("cargoNombre").toString());
+			tramiteDerivacion.setDependenciaNombreUsuarioFin(((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre").toString());
+			nombreCompleto = ((LinkedHashMap)response.getBody().getData()).get("nombre").toString() + " " + ((LinkedHashMap)response.getBody().getData()).get("apePaterno").toString() + ((((LinkedHashMap)response.getBody().getData()).get("apeMaterno")!=null)?" "+((LinkedHashMap)response.getBody().getData()).get("apeMaterno").toString():"");
 			tramiteDerivacion.setUsuarioFinNombreCompleto(nombreCompleto);
 
 		}
