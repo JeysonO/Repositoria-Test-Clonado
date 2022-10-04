@@ -40,6 +40,10 @@ public class TramiteDerivacionResponse {
 
 	private String tipoDocumentoNombre;
 
+	private int numeroTramite;
+
+	private String numeroDocumento;
+
 	@Mapping("tramite.id")
 	public String getTramiteId(){return tramiteId;}
 
@@ -54,5 +58,11 @@ public class TramiteDerivacionResponse {
 
 	@Mapping("tramite.tipoDocumento.tipoDocumento")
 	public String getTipoDocumentoNombre(){return tipoDocumentoNombre;}
+
+	@Mapping("tramite.numeroTramite")
+	public int getNumeroTramite(){return numeroTramite;}
+
+	@Mapping("tramite.numeroDocumento")
+	public String getNumeroDocumento(){return numeroDocumento;}
 
 }
