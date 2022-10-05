@@ -13,11 +13,9 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import pe.com.amsac.tramite.api.config.DatosToken;
+import pe.com.amsac.security.bs.domain.Persona;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.request.bean.TramiteDerivacionRequest;
 import pe.com.amsac.tramite.api.request.body.bean.AtencionTramiteDerivacionBodyRequest;
@@ -25,8 +23,16 @@ import pe.com.amsac.tramite.api.request.body.bean.DerivarTramiteBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TramiteDerivacionBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.bs.domain.TramiteDerivacion;
+import pe.com.amsac.tramite.bs.domain.Usuario;
 import pe.com.amsac.tramite.bs.repository.TramiteDerivacionMongoRepository;
+import pe.com.amsac.tramite.bs.repository.TramiteMongoRepository;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service
@@ -34,6 +40,9 @@ public class TramiteDerivacionService {
 
 	@Autowired
 	private TramiteDerivacionMongoRepository tramiteDerivacionMongoRepository;
+
+	@Autowired
+	private TramiteMongoRepository tramiteMongoRepository;
 
 	@Autowired
 	private MongoTemplate mongoTemplate;
@@ -118,7 +127,28 @@ public class TramiteDerivacionService {
 
 	public TramiteDerivacion registrarTramiteDerivacion(TramiteDerivacionBodyRequest tramiteDerivacionBodyRequest) throws Exception {
 
+		//Obtener Usuario Inicio
+		RestTemplate restTemplate = new RestTemplate();
+		String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/"+tramiteDerivacionBodyRequest.getUsuarioInicio();
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
+		HttpEntity entity = new HttpEntity<>(null, headers);
+		ResponseEntity<CommonResponse> response = restTemplate.exchange(uri,HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+
+		//Mapear Persona de Usuario Inicio
+		LinkedHashMap<Object, Object> usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
+		LinkedHashMap<String, String> personaL = (LinkedHashMap<String, String>) usuario.get("persona");
+		personaL.remove("createdDate");
+		personaL.remove("lastModifiedDate");
+		personaL.remove("tipoDocumento");
+		personaL.remove("entityId");
+		Persona persona = mapper.map(personaL,Persona.class);
+		usuario.replace("persona",persona);
+		Usuario userInicio = mapper.map(usuario,Usuario.class);
+
 		TramiteDerivacion registrotramiteDerivacion = mapper.map(tramiteDerivacionBodyRequest,TramiteDerivacion.class);
+		registrotramiteDerivacion.setUsuarioInicio(userInicio);
+		registrotramiteDerivacion.setTramite(tramiteMongoRepository.findById(tramiteDerivacionBodyRequest.getTramiteId()).get());
 		registrotramiteDerivacion.setEstado("P");
 
 		int sec = obtenerSecuencia(tramiteDerivacionBodyRequest.getTramiteId());
@@ -207,7 +237,7 @@ public class TramiteDerivacionService {
 
 	//public List<TramiteDerivacion> obtenerSecuencia(String id){
 	public int obtenerSecuencia(String id){
-		int secuencia = 1;
+		int secuencia = 0;
 		Query query = new Query();
 		//Criteria criteria = Criteria.where("tramite.id").is(id).and("estado").is("A");
 		Criteria criteria = Criteria.where("tramite.id").is(id);//.and("estado").is("A");
@@ -223,9 +253,58 @@ public class TramiteDerivacionService {
 		return secuencia;
 	}
 
-	public void envioCorreoDerivacion(TramiteDerivacion registrotramiteDerivacion){
+	public void envioCorreoDerivacion(TramiteDerivacion registrotramiteDerivacion) throws IOException {
 		//TODO Armar mensaje del cuerpo de correo, obteniendo la plantillaDerivacion.html
 		//Si la forma es ORIGINAL, se envia como pendientes, pero si es COPIA entonces que el mensaje indique que le ha llegago tramite como copia
+		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+		InputStream is = classloader.getResourceAsStream("plantillaDerivacion.html");
+		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
+		String strLine;
+		StringBuffer msjHTML = new StringBuffer();
+		while ((strLine = bufferedReader.readLine()) != null) {
+			msjHTML.append(strLine);
+		}
+		//Asunto: Segun Forma
+		String forma;
+		if(registrotramiteDerivacion.getForma().equals("ORIGINAL"))
+			forma = "PENDIENTE DE ATENCION";
+		else
+			forma = "TRAMITE - PARA SU CONOCIMIENTO";
+
+		//Correo: Destinatario
+		//String correoDestinatario = registrotramiteDerivacion.getUsuarioFin().getEmail();
+
+		DateFormat hourFormat = new SimpleDateFormat("HH:mm:ss");
+		DateFormat Formato = new SimpleDateFormat("dd/mm/yyyy");
+		DateFormat fechaa = new SimpleDateFormat("dd/mm/yyyy HH:mm:ss");
+
+		//Armar el body del Email
+		String urlTramite = "linkdeprueba";
+		String numTramite = String.valueOf(registrotramiteDerivacion.getTramite().getNumeroTramite());
+		String fecha = fechaa.format(registrotramiteDerivacion.getCreatedDate());
+		String asunto = registrotramiteDerivacion.getTramite().getAsunto();
+		String razonSocialEmisor = registrotramiteDerivacion.getUsuarioInicio().getPersona().getRazonSocialNombre();
+		String correoEmisor = registrotramiteDerivacion.getUsuarioInicio().getEmail();
+		String proveido = registrotramiteDerivacion.getProveidoAtencion();
+		String plazoMaximo = fechaa.format(registrotramiteDerivacion.getFechaMaximaAtencion());
+		String horaRecepcion = hourFormat.format(registrotramiteDerivacion.getCreatedDate());
+		String avisoConfidencialidad = registrotramiteDerivacion.getTramite().getAvisoConfidencial();
+		String codigoEtica = registrotramiteDerivacion.getTramite().getCodigoEtica();
+		String desde = Formato.format(registrotramiteDerivacion.getCreatedDate());
+		String hasta = Formato.format(registrotramiteDerivacion.getFechaMaximaAtencion());
+
+		String bodyHtmlFinal = String.format(msjHTML.toString(), urlTramite, numTramite, fecha, asunto, razonSocialEmisor,
+				correoEmisor, proveido, plazoMaximo, horaRecepcion, avisoConfidencialidad, codigoEtica, desde, hasta);
+
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("to", "evelyn.flores@bitall.com.pe");
+		params.put("subject", forma);
+		params.put("text", bodyHtmlFinal);
+
+		RestTemplate restTemplate = new RestTemplate();
+		String uri = env.getProperty("app.url.mail") + "/api/mail/sendMail";
+		restTemplate.postForEntity( uri, params, null);
+
 
 		//TODO Enviar al destinatario que se esta derivando.
 

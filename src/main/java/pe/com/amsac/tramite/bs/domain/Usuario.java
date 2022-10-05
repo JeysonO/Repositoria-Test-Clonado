@@ -32,6 +32,7 @@ public class Usuario extends BaseAuditableEntity<String> {
     private String apeMaterno;
     private String email;
     private String estado;
+    private String tokenActivacion;
 
     @DBRef
     private Persona persona;
