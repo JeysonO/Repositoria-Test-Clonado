@@ -22,6 +22,7 @@ import pe.com.amsac.tramite.api.request.body.bean.AtencionTramiteDerivacionBodyR
 import pe.com.amsac.tramite.api.request.body.bean.DerivarTramiteBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TramiteDerivacionBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
+import pe.com.amsac.tramite.bs.domain.Tramite;
 import pe.com.amsac.tramite.bs.domain.TramiteDerivacion;
 import pe.com.amsac.tramite.bs.domain.Usuario;
 import pe.com.amsac.tramite.bs.repository.TramiteDerivacionMongoRepository;
@@ -52,6 +53,9 @@ public class TramiteDerivacionService {
 
 	@Autowired
 	private SecurityHelper securityHelper;
+
+	@Autowired
+	private TramiteService tramiteService;
 
 	@Autowired
 	private Environment env;
@@ -231,6 +235,11 @@ public class TramiteDerivacionService {
 		atenderTramiteDerivacion.setComentarioFin(atenciontramiteDerivacionBodyrequest.getComentarioFin());
 		atenderTramiteDerivacion.setEstado("A");
 		tramiteDerivacionMongoRepository.save(atenderTramiteDerivacion);
+
+		//Ahora se actualiza el estado del tramite
+		Tramite tramite = tramiteService.findById(atenderTramiteDerivacion.getTramite().getId());
+		tramite.setEstado(atenciontramiteDerivacionBodyrequest.getEstadoFin());
+		tramiteService.save(tramite);
 
 		return atenderTramiteDerivacion;
 	}
