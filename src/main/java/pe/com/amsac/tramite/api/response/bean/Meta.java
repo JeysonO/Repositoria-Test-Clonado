@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,4 +19,11 @@ public class Meta {
     @JsonProperty("mensajes")
     private List<Mensaje> mensajes;
 
+    @JsonProperty("atributos")
+    private Map atributos;
+
+    public Meta(String result, List<Mensaje> mensajes) {
+        this.result = result;
+        this.mensajes = mensajes;
+    }
 }

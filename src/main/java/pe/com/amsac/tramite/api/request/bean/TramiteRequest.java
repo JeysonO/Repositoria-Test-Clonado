@@ -9,5 +9,4 @@ public class TramiteRequest {
 	private String createdByUser;
 	private String estado;
 	private String id;
-
 }

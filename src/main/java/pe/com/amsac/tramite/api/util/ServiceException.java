@@ -4,6 +4,7 @@ import lombok.Data;
 import pe.com.amsac.tramite.api.response.bean.Mensaje;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class ServiceException extends Exception {
@@ -18,6 +19,11 @@ public class ServiceException extends Exception {
 		this.mensajes = mensajes;
 	}
 
-	private List<Mensaje> mensajes;
+	public ServiceException(List<Mensaje> mensajes, Map atributos) {
+		this.mensajes = mensajes;
+		this.atributos=atributos;
+	}
 
+	private List<Mensaje> mensajes;
+	private Map atributos;
 }

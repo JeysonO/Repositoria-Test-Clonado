@@ -15,8 +15,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-//import pe.com.amsac.security.bs.domain.Persona;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
+import pe.com.amsac.tramite.api.request.body.bean.SubsanacionTramiteDerivacionBodyRequest;
 import pe.com.amsac.tramite.api.request.bean.TramiteDerivacionRequest;
 import pe.com.amsac.tramite.api.request.body.bean.AtencionTramiteDerivacionBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.DerivarTramiteBodyRequest;
@@ -120,8 +120,27 @@ public class TramiteDerivacionService {
 		Criteria andCriteria = new Criteria();
 		List<Criteria> andExpression =  new ArrayList<>();
 		Map<String, Object> parameters = mapper.map(tramiteDerivacionRequest,Map.class);
-		Criteria expression = new Criteria();
 		parameters.values().removeIf(Objects::isNull);
+		if(parameters.get("numeroTramite").equals(0)){
+			parameters.remove("numeroTramite");
+		}
+		List<Criteria> listCriteria =  new ArrayList<>();
+		if(parameters.containsKey("tramiteId"))
+			listCriteria.add(Criteria.where("tramite.id").is(parameters.get("tramiteId")));
+		if(parameters.containsKey("numeroTramite"))
+			listCriteria.add(Criteria.where("tramite.numeroTramite").is(parameters.get("numeroTramite")));
+		if(parameters.containsKey("emailEmisor"))
+			listCriteria.add(Criteria.where("usuarioInicio.email").is(parameters.get("emailEmisor")));
+		if(parameters.containsKey("tipoDocumentoId"))
+			listCriteria.add(Criteria.where("tramite.tipoDocumento.id").is(parameters.get("tipoDocumentoId")));
+		if(parameters.containsKey("fechaDocumentoDesde") && parameters.containsKey("fechaDocumentoHasta"))
+			listCriteria.add(Criteria.where("tramite.fechaDocumento").gte(parameters.get("fechaDocumentoDesde")).lte(parameters.get("fechaDocumentoHasta")));
+		if(parameters.containsKey("fechaCreacionDesde") && parameters.containsKey("fechaCreaciontoHasta"))
+			listCriteria.add(Criteria.where("tramite.createdDate").gte(parameters.get("fechaCreacionDesde")).lte(parameters.get("fechaCreaciontoHasta")));
+		if(!listCriteria.isEmpty()) {
+			andExpression.add(new Criteria().andOperator(listCriteria.toArray(new Criteria[listCriteria.size()])));
+		}
+		Criteria expression = new Criteria();
 		parameters.forEach((key, value) -> expression.and(key).is(value));
 		andExpression.add(expression);
 		andQuery.addCriteria(andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()])));
@@ -161,10 +180,43 @@ public class TramiteDerivacionService {
 
 		tramiteDerivacionMongoRepository.save(registrotramiteDerivacion);
 		//Invocar a servicio para envio de correo
+		//modificar susbanacion
 		envioCorreoDerivacion(registrotramiteDerivacion);
 
 		return registrotramiteDerivacion;
 
+	}
+
+	public TramiteDerivacion subsanarTramiteDerivacion(SubsanacionTramiteDerivacionBodyRequest subsanartramiteDerivacionBodyrequest) throws Exception {
+		String usuarioId = securityHelper.obtenerUserIdSession();
+
+		TramiteDerivacion subsanarTramiteActual = tramiteDerivacionMongoRepository.findById(subsanartramiteDerivacionBodyrequest.getId()).get();
+		subsanarTramiteActual.setComentarioInicio(subsanartramiteDerivacionBodyrequest.getComentarioInicial());
+		subsanarTramiteActual.setEstadoFin("SUBSANACION");
+		subsanarTramiteActual.setFechaFin(new Date());
+		subsanarTramiteActual.setEstado("A");
+		tramiteDerivacionMongoRepository.save(subsanarTramiteActual);
+
+		int sec = obtenerSecuencia(subsanarTramiteActual.getTramite().getId());
+
+		TramiteDerivacionBodyRequest subsanarTramiteBodyRequest = mapper.map(subsanarTramiteActual, TramiteDerivacionBodyRequest.class);
+		subsanarTramiteBodyRequest.setSecuencia(sec);
+		subsanarTramiteBodyRequest.setUsuarioInicio(usuarioId);
+		subsanarTramiteBodyRequest.setUsuarioFin(subsanarTramiteActual.getUsuarioInicio().getId());
+		subsanarTramiteBodyRequest.setEstadoInicio(subsanarTramiteActual.getEstadoFin());
+		subsanarTramiteBodyRequest.setFechaInicio(new Date());
+		subsanarTramiteBodyRequest.setForma("ORIGINAL");
+		subsanarTramiteBodyRequest.setId(null);
+		subsanarTramiteBodyRequest.setEstadoFin(null);
+		subsanarTramiteBodyRequest.setFechaFin(null);
+		subsanarTramiteBodyRequest.setComentarioFin(null);
+
+		TramiteDerivacion nuevoDerivacionTramite = registrarTramiteDerivacion(subsanarTramiteBodyRequest);
+
+		//Enviar correo para subsanacion
+		//envioCorreoSubsanacion(nuevoDerivacionTramite);
+
+		return nuevoDerivacionTramite;
 	}
 
 	public TramiteDerivacion registrarDerivacionTramite(DerivarTramiteBodyRequest derivartramiteBodyrequest) throws Exception {
@@ -183,7 +235,7 @@ public class TramiteDerivacionService {
 		int sec = obtenerSecuencia(derivacionTramiteActual.getTramite().getId());
 
 		TramiteDerivacionBodyRequest derivacionTramiteBodyRequest = mapper.map(derivacionTramiteActual, TramiteDerivacionBodyRequest.class);
-		derivacionTramiteBodyRequest.setSecuencia(sec+1);
+		derivacionTramiteBodyRequest.setSecuencia(sec);
 		derivacionTramiteBodyRequest.setUsuarioInicio(usuarioId);
 		derivacionTramiteBodyRequest.setUsuarioFin(derivartramiteBodyrequest.getUsuarioFin());
 		derivacionTramiteBodyRequest.setEstadoInicio(derivacionTramiteActual.getEstadoFin());
@@ -213,7 +265,7 @@ public class TramiteDerivacionService {
 		int sec = obtenerSecuencia(recepcionTramiteActual.getTramite().getId());
 
 		TramiteDerivacionBodyRequest recepcionTramiteBodyRequest = mapper.map(recepcionTramiteActual, TramiteDerivacionBodyRequest.class);
-		recepcionTramiteBodyRequest.setSecuencia(sec+1);
+		recepcionTramiteBodyRequest.setSecuencia(sec);
 		recepcionTramiteBodyRequest.setUsuarioInicio(recepcionTramiteActual.getUsuarioFin().getId());
 		recepcionTramiteBodyRequest.setUsuarioFin(recepcionTramiteActual.getUsuarioFin().getId());
 		recepcionTramiteBodyRequest.setEstadoInicio(recepcionTramiteActual.getEstadoFin());
@@ -247,7 +299,7 @@ public class TramiteDerivacionService {
 
 	//public List<TramiteDerivacion> obtenerSecuencia(String id){
 	public int obtenerSecuencia(String id){
-		int secuencia = 0;
+		int secuencia = 1;
 		Query query = new Query();
 		//Criteria criteria = Criteria.where("tramite.id").is(id).and("estado").is("A");
 		Criteria criteria = Criteria.where("tramite.id").is(id);//.and("estado").is("A");
@@ -261,6 +313,62 @@ public class TramiteDerivacionService {
 			secuencia = tramiteList.get(0).getSecuencia() + 1;
 
 		return secuencia;
+	}
+
+	public void envioCorreoSubsanacion(TramiteDerivacion subsanartramiteDerivacion) throws IOException {
+		//TODO Armar mensaje del cuerpo de correo, obteniendo la plantillaSubsanar.html
+		//Si la forma es ORIGINAL, se envia como pendientes, pero si es COPIA entonces que el mensaje indique que le ha llegago tramite como copia
+		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+		InputStream is = classloader.getResourceAsStream("plantillaSubsanacion.html");
+		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
+		String strLine;
+		StringBuffer msjHTML = new StringBuffer();
+		while ((strLine = bufferedReader.readLine()) != null) {
+			msjHTML.append(strLine);
+		}
+		//Asunto: Segun Forma
+		String forma;
+		if(subsanartramiteDerivacion.getForma().equals("ORIGINAL"))
+			forma = "PENDIENTE DE ATENCION";
+		else
+			forma = "TRAMITE - PARA SU CONOCIMIENTO";
+
+		//Correo: Destinatario
+		String correoDestinatario = subsanartramiteDerivacion.getUsuarioFin().getEmail();
+
+		DateFormat hourFormat = new SimpleDateFormat("HH:mm:ss");
+		DateFormat Formato = new SimpleDateFormat("dd/mm/yyyy");
+		DateFormat fechaa = new SimpleDateFormat("dd/mm/yyyy HH:mm:ss");
+
+		//Armar el body del Email
+		String numTramite = String.valueOf(subsanartramiteDerivacion.getTramite().getNumeroTramite());
+		String fecha = fechaa.format(subsanartramiteDerivacion.getCreatedDate());
+		String asunto = subsanartramiteDerivacion.getTramite().getAsunto();
+		String razonSocialEmisor = subsanartramiteDerivacion.getUsuarioInicio().getPersona().getRazonSocialNombre();
+		String correoEmisor = subsanartramiteDerivacion.getUsuarioInicio().getEmail();
+		String proveido = subsanartramiteDerivacion.getProveidoAtencion();
+		String plazoMaximo = fechaa.format(subsanartramiteDerivacion.getFechaMaximaAtencion());
+		String horaRecepcion = hourFormat.format(subsanartramiteDerivacion.getCreatedDate());
+		String avisoConfidencialidad = subsanartramiteDerivacion.getTramite().getAvisoConfidencial();
+		String codigoEtica = subsanartramiteDerivacion.getTramite().getCodigoEtica();
+		String desde = Formato.format(subsanartramiteDerivacion.getCreatedDate());
+		String hasta = Formato.format(subsanartramiteDerivacion.getFechaMaximaAtencion());
+
+		String bodyHtmlFinal = String.format(msjHTML.toString(), numTramite, fecha, asunto, razonSocialEmisor,
+				correoEmisor, proveido, plazoMaximo, horaRecepcion, avisoConfidencialidad, codigoEtica, desde, hasta);
+
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("to", correoDestinatario);
+		params.put("subject", forma);
+		params.put("text", "bodyHtmlFinal");
+
+		RestTemplate restTemplate = new RestTemplate();
+		String uri = env.getProperty("app.url.mail") + "/api/mail/sendMail";
+		restTemplate.postForEntity( uri, params, null);
+
+
+		//TODO Enviar al destinatario que se esta derivando.
+
 	}
 
 	public void envioCorreoDerivacion(TramiteDerivacion registrotramiteDerivacion) throws IOException {
@@ -282,7 +390,7 @@ public class TramiteDerivacionService {
 			forma = "TRAMITE - PARA SU CONOCIMIENTO";
 
 		//Correo: Destinatario
-		//String correoDestinatario = registrotramiteDerivacion.getUsuarioFin().getEmail();
+		String correoDestinatario = registrotramiteDerivacion.getUsuarioFin().getEmail();
 
 		DateFormat hourFormat = new SimpleDateFormat("HH:mm:ss");
 		DateFormat Formato = new SimpleDateFormat("dd/mm/yyyy");
@@ -307,7 +415,7 @@ public class TramiteDerivacionService {
 				correoEmisor, proveido, plazoMaximo, horaRecepcion, avisoConfidencialidad, codigoEtica, desde, hasta);
 
 		Map<String, String> params = new HashMap<String, String>();
-		params.put("to", "evelyn.flores@bitall.com.pe");
+		params.put("to", correoDestinatario);
 		params.put("subject", forma);
 		params.put("text", bodyHtmlFinal);
 
