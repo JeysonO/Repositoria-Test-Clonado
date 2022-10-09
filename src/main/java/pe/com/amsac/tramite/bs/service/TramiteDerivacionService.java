@@ -397,6 +397,8 @@ public class TramiteDerivacionService {
 		DateFormat fechaa = new SimpleDateFormat("dd/mm/yyyy HH:mm:ss");
 
 		//Armar el body del Email
+		String plazoMaximo = "";
+		String hasta = "";
 		String urlTramite = "linkdeprueba";
 		String numTramite = String.valueOf(registrotramiteDerivacion.getTramite().getNumeroTramite());
 		String fecha = fechaa.format(registrotramiteDerivacion.getCreatedDate());
@@ -404,12 +406,15 @@ public class TramiteDerivacionService {
 		String razonSocialEmisor = registrotramiteDerivacion.getUsuarioInicio().getPersona().getRazonSocialNombre();
 		String correoEmisor = registrotramiteDerivacion.getUsuarioInicio().getEmail();
 		String proveido = registrotramiteDerivacion.getProveidoAtencion();
-		String plazoMaximo = fechaa.format(registrotramiteDerivacion.getFechaMaximaAtencion());
+		if(registrotramiteDerivacion.getFechaMaximaAtencion()!=null)
+			plazoMaximo = fechaa.format(registrotramiteDerivacion.getFechaMaximaAtencion());
+
 		String horaRecepcion = hourFormat.format(registrotramiteDerivacion.getCreatedDate());
 		String avisoConfidencialidad = registrotramiteDerivacion.getTramite().getAvisoConfidencial();
 		String codigoEtica = registrotramiteDerivacion.getTramite().getCodigoEtica();
 		String desde = Formato.format(registrotramiteDerivacion.getCreatedDate());
-		String hasta = Formato.format(registrotramiteDerivacion.getFechaMaximaAtencion());
+		if(registrotramiteDerivacion.getFechaMaximaAtencion()!=null)
+			hasta = Formato.format(registrotramiteDerivacion.getFechaMaximaAtencion());
 
 		String bodyHtmlFinal = String.format(msjHTML.toString(), urlTramite, numTramite, fecha, asunto, razonSocialEmisor,
 				correoEmisor, proveido, plazoMaximo, horaRecepcion, avisoConfidencialidad, codigoEtica, desde, hasta);
