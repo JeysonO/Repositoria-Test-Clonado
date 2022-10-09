@@ -170,8 +170,23 @@ public class TramiteDerivacionService {
 		usuario.replace("persona",persona);
 		Usuario userInicio = mapper.map(usuario,Usuario.class);
 
+		//Mapear Usuario Fin
+		uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/"+tramiteDerivacionBodyRequest.getUsuarioFin();
+		response = restTemplate.exchange(uri,HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+		usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
+		personaL = (LinkedHashMap<String, String>) usuario.get("persona");
+		personaL.remove("createdDate");
+		personaL.remove("lastModifiedDate");
+		personaL.remove("tipoDocumento");
+		personaL.remove("entityId");
+		persona = mapper.map(personaL,Persona.class);
+		usuario.replace("persona",persona);
+		Usuario userFin = mapper.map(usuario,Usuario.class);
+
+
 		TramiteDerivacion registrotramiteDerivacion = mapper.map(tramiteDerivacionBodyRequest,TramiteDerivacion.class);
 		registrotramiteDerivacion.setUsuarioInicio(userInicio);
+		registrotramiteDerivacion.setUsuarioInicio(userFin);
 		registrotramiteDerivacion.setTramite(tramiteMongoRepository.findById(tramiteDerivacionBodyRequest.getTramiteId()).get());
 		registrotramiteDerivacion.setEstado("P");
 
