@@ -60,6 +60,7 @@ app:
     seguridad: http://amsac-security-api:8100/amsac-seguridad
     #seguridad: http://190.119.248.132:8180/amsac-seguridad
     mail: http://amsac-mail-api:8100
+    linkTramite: http://tramitedocumentario.amsac.pe/
 
 ## File Storage Properties
 file:

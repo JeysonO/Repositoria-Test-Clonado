@@ -356,6 +356,7 @@ public class TramiteDerivacionService {
 		DateFormat fechaa = new SimpleDateFormat("dd/mm/yyyy HH:mm:ss");
 
 		//Armar el body del Email
+		/*
 		String numTramite = String.valueOf(subsanartramiteDerivacion.getTramite().getNumeroTramite());
 		String fecha = fechaa.format(subsanartramiteDerivacion.getCreatedDate());
 		String asunto = subsanartramiteDerivacion.getTramite().getAsunto();
@@ -372,17 +373,50 @@ public class TramiteDerivacionService {
 		String bodyHtmlFinal = String.format(msjHTML.toString(), numTramite, fecha, asunto, razonSocialEmisor,
 				correoEmisor, proveido, plazoMaximo, horaRecepcion, avisoConfidencialidad, codigoEtica, desde, hasta);
 
+		*/
+
+		String plazoMaximo = "-";
+		String hasta = "-";
+		String avisoConfidencialidad = "-";
+		String codigoEtica = "-";
+		String proveido = "-";
+
+		String urlTramite = env.getProperty("app.url.linkTramite");
+		String numTramite = String.valueOf(subsanartramiteDerivacion.getTramite().getNumeroTramite());
+		String fecha = fechaa.format(subsanartramiteDerivacion.getCreatedDate());
+		String asunto = subsanartramiteDerivacion.getTramite().getAsunto();
+		String razonSocialEmisor = subsanartramiteDerivacion.getUsuarioInicio().getPersona().getRazonSocialNombre();
+		String correoEmisor = subsanartramiteDerivacion.getUsuarioInicio().getEmail();
+
+		if(subsanartramiteDerivacion.getProveidoAtencion()!=null)
+			proveido = subsanartramiteDerivacion.getProveidoAtencion();
+
+		if(subsanartramiteDerivacion.getFechaMaximaAtencion()!=null)
+			plazoMaximo = fechaa.format(subsanartramiteDerivacion.getFechaMaximaAtencion());
+
+		String horaRecepcion = hourFormat.format(subsanartramiteDerivacion.getCreatedDate());
+
+		if(subsanartramiteDerivacion.getTramite().getAvisoConfidencial()!=null)
+			avisoConfidencialidad = subsanartramiteDerivacion.getTramite().getAvisoConfidencial();
+
+		if(subsanartramiteDerivacion.getTramite().getCodigoEtica()!=null)
+			codigoEtica = subsanartramiteDerivacion.getTramite().getCodigoEtica();
+
+		String desde = Formato.format(subsanartramiteDerivacion.getCreatedDate());
+		if(subsanartramiteDerivacion.getFechaMaximaAtencion()!=null)
+			hasta = Formato.format(subsanartramiteDerivacion.getFechaMaximaAtencion());
+
+		String bodyHtmlFinal = String.format(msjHTML.toString(), urlTramite, numTramite, fecha, asunto, razonSocialEmisor,
+				correoEmisor, proveido, plazoMaximo, horaRecepcion, avisoConfidencialidad, codigoEtica, desde, hasta);
+
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("to", correoDestinatario);
 		params.put("subject", forma);
-		params.put("text", "bodyHtmlFinal");
+		params.put("text", bodyHtmlFinal);
 
 		RestTemplate restTemplate = new RestTemplate();
 		String uri = env.getProperty("app.url.mail") + "/api/mail/sendMail";
 		restTemplate.postForEntity( uri, params, null);
-
-
-		//TODO Enviar al destinatario que se esta derivando.
 
 	}
 
@@ -412,21 +446,33 @@ public class TramiteDerivacionService {
 		DateFormat fechaa = new SimpleDateFormat("dd/mm/yyyy HH:mm:ss");
 
 		//Armar el body del Email
-		String plazoMaximo = "";
-		String hasta = "";
-		String urlTramite = "linkdeprueba";
+		String plazoMaximo = "-";
+		String hasta = "-";
+		String avisoConfidencialidad = "-";
+		String codigoEtica = "-";
+		String proveido = "-";
+
+		String urlTramite = env.getProperty("app.url.linkTramite");
 		String numTramite = String.valueOf(registrotramiteDerivacion.getTramite().getNumeroTramite());
 		String fecha = fechaa.format(registrotramiteDerivacion.getCreatedDate());
 		String asunto = registrotramiteDerivacion.getTramite().getAsunto();
 		String razonSocialEmisor = registrotramiteDerivacion.getUsuarioInicio().getPersona().getRazonSocialNombre();
 		String correoEmisor = registrotramiteDerivacion.getUsuarioInicio().getEmail();
-		String proveido = registrotramiteDerivacion.getProveidoAtencion();
+
+		if(registrotramiteDerivacion.getProveidoAtencion()!=null)
+			proveido = registrotramiteDerivacion.getProveidoAtencion();
+
 		if(registrotramiteDerivacion.getFechaMaximaAtencion()!=null)
 			plazoMaximo = fechaa.format(registrotramiteDerivacion.getFechaMaximaAtencion());
 
 		String horaRecepcion = hourFormat.format(registrotramiteDerivacion.getCreatedDate());
-		String avisoConfidencialidad = registrotramiteDerivacion.getTramite().getAvisoConfidencial();
-		String codigoEtica = registrotramiteDerivacion.getTramite().getCodigoEtica();
+
+		if(registrotramiteDerivacion.getTramite().getAvisoConfidencial()!=null)
+			avisoConfidencialidad = registrotramiteDerivacion.getTramite().getAvisoConfidencial();
+
+		if(registrotramiteDerivacion.getTramite().getCodigoEtica()!=null)
+			codigoEtica = registrotramiteDerivacion.getTramite().getCodigoEtica();
+
 		String desde = Formato.format(registrotramiteDerivacion.getCreatedDate());
 		if(registrotramiteDerivacion.getFechaMaximaAtencion()!=null)
 			hasta = Formato.format(registrotramiteDerivacion.getFechaMaximaAtencion());
@@ -442,9 +488,6 @@ public class TramiteDerivacionService {
 		RestTemplate restTemplate = new RestTemplate();
 		String uri = env.getProperty("app.url.mail") + "/api/mail/sendMail";
 		restTemplate.postForEntity( uri, params, null);
-
-
-		//TODO Enviar al destinatario que se esta derivando.
 
 	}
 }
