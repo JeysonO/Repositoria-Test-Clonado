@@ -129,6 +129,7 @@ public class TramiteService {
 		tramiteDerivacionBodyRequest.setFechaInicio(tramite.getCreatedDate());
 		tramiteDerivacionBodyRequest.setTramiteId(tramite.getId());
 		tramiteDerivacionBodyRequest.setComentarioInicio("Se inicia registro del Tramite");
+		tramiteDerivacionBodyRequest.setForma("ORIGINAL");
 		tramiteDerivacionService.registrarTramiteDerivacion(tramiteDerivacionBodyRequest);
 	}
 
