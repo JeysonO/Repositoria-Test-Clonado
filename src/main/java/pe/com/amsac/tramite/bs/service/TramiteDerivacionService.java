@@ -186,7 +186,7 @@ public class TramiteDerivacionService {
 
 		TramiteDerivacion registrotramiteDerivacion = mapper.map(tramiteDerivacionBodyRequest,TramiteDerivacion.class);
 		registrotramiteDerivacion.setUsuarioInicio(userInicio);
-		registrotramiteDerivacion.setUsuarioInicio(userFin);
+		registrotramiteDerivacion.setUsuarioFin(userFin);
 		registrotramiteDerivacion.setTramite(tramiteMongoRepository.findById(tramiteDerivacionBodyRequest.getTramiteId()).get());
 		registrotramiteDerivacion.setEstado("P");
 
