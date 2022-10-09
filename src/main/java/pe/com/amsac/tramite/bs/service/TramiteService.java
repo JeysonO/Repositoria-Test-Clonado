@@ -169,7 +169,24 @@ public class TramiteService {
 		param.put("numeroDocumento",tramiteBodyRequest.getNumeroDocumento());
 		if(!StringUtils.isBlank(tramiteBodyRequest.getSiglas()))
 			param.put("siglas",tramiteBodyRequest.getSiglas());
-		Tramite tramiteRelacionado = buscarHistorialTramite(param).get(0);
+
+		if(!CollectionUtils.isEmpty(buscarHistorialTramite(param))){
+			Tramite tramiteRelacionado = buscarHistorialTramite(param).get(0);
+
+			DateFormat Formato = new SimpleDateFormat("dd/mm/yyyy");
+			String fechaRegistro = Formato.format(tramiteRelacionado.getCreatedDate());
+
+			List<Mensaje> mensajes = new ArrayList<>();
+
+			if(tramiteRelacionado!=null ){
+				mensajes.add(new Mensaje("E001","ERROR","Ya existe un tramite con el mismo número con fecha de registro "+fechaRegistro+", desea relacionar los 2 tramites?"));
+				Map<String, Object> atributoMap = new HashMap<>();
+				atributoMap.put("idTramiteRelacionado",tramiteRelacionado.getId());
+				mapRetorno.put("errores",mensajes);
+				mapRetorno.put("atributos",atributoMap);
+			}
+		}
+
 		/*
 		//Obtener Persona de historialTramite
 		String persona;
@@ -188,18 +205,7 @@ public class TramiteService {
 		}
 		*/
 
-		DateFormat Formato = new SimpleDateFormat("dd/mm/yyyy");
-		String fechaRegistro = Formato.format(tramiteRelacionado.getCreatedDate());
 
-		List<Mensaje> mensajes = new ArrayList<>();
-
-		if(tramiteRelacionado!=null ){
-			mensajes.add(new Mensaje("E001","ERROR","Ya existe un tramite con el mismo número con fecha de registro "+fechaRegistro+", desea relacionar los 2 tramites?"));
-			Map<String, Object> atributoMap = new HashMap<>();
-			atributoMap.put("idTramiteRelacionado",tramiteRelacionado.getId());
-			mapRetorno.put("errores",mensajes);
-			mapRetorno.put("atributos",atributoMap);
-		}
 
 		return mapRetorno;
 
