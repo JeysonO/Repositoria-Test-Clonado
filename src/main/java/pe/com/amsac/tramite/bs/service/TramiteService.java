@@ -187,6 +187,7 @@ public class TramiteService {
 				mensajes.add(new Mensaje("E001","ERROR","Ya existe un tramite con el mismo número con fecha de registro "+fechaRegistro+", desea relacionar los 2 tramites?"));
 				Map<String, Object> atributoMap = new HashMap<>();
 				atributoMap.put("idTramiteRelacionado",tramiteRelacionado.getId());
+				mapRetorno = new HashMap<>();
 				mapRetorno.put("errores",mensajes);
 				mapRetorno.put("atributos",atributoMap);
 			}
