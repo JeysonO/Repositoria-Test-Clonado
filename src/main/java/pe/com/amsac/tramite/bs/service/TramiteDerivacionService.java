@@ -176,7 +176,7 @@ public class TramiteDerivacionService {
 		registrotramiteDerivacion.setEstado("P");
 
 		int sec = obtenerSecuencia(tramiteDerivacionBodyRequest.getTramiteId());
-		registrotramiteDerivacion.setSecuencia(sec+1);
+		registrotramiteDerivacion.setSecuencia(sec);
 
 		tramiteDerivacionMongoRepository.save(registrotramiteDerivacion);
 		//Invocar a servicio para envio de correo
