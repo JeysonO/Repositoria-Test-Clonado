@@ -51,6 +51,9 @@ public class TramiteBodyRequest {
 	private String email;
 	private String direccion;
 
+	//Id tramite referencia
+	private String idTramiteRelacionado;
+
 	@Mapping("tipoDocumento.id")
 	public String getTipoDocumentoId(){return tipoDocumentoId;}
 

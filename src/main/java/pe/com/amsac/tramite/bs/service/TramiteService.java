@@ -91,11 +91,12 @@ public class TramiteService {
 
 	public Tramite registrarTramite(TramiteBodyRequest tramiteBodyRequest) throws Exception {
 
-		Map<String, Object> mapaRetorno = numeroDocumentoRepetido(tramiteBodyRequest);
-		if(mapaRetorno!=null){
-			throw new ServiceException((List<Mensaje>) mapaRetorno.get("errores"), (Map) mapaRetorno.get("atributos"));
+		if(StringUtils.isBlank(tramiteBodyRequest.getIdTramiteRelacionado())){
+			Map<String, Object> mapaRetorno = numeroDocumentoRepetido(tramiteBodyRequest);
+			if(mapaRetorno!=null){
+				throw new ServiceException((List<Mensaje>) mapaRetorno.get("errores"), (Map) mapaRetorno.get("atributos"));
+			}
 		}
-
 
 		Tramite tramite = mapper.map(tramiteBodyRequest,Tramite.class);
 

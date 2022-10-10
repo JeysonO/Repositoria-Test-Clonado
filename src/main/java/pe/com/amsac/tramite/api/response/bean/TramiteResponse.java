@@ -57,6 +57,9 @@ public class TramiteResponse {
 	private String tipoDocumentoNombre;
 	private String estado;
 
+	//Id tramite referencia
+	private String idTramiteRelacionado;
+
 	@Mapping("tipoDocumento.id")
 	public String getTipoDocumentoId(){return tipoDocumentoId;}
 

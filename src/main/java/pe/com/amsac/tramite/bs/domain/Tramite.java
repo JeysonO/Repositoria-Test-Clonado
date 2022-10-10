@@ -52,6 +52,8 @@ public class Tramite extends BaseAuditableEntity<String> {
 
 	private String estado;
 
+	private String idTramiteRelacionado;
+
 	@DBRef
 	private TipoDocumento tipoDocumento;
 
