@@ -98,7 +98,14 @@ public class TramiteService {
 
 
 		Tramite tramite = mapper.map(tramiteBodyRequest,Tramite.class);
-		int numeroTramite = obtenerNumeroTramite().get(0).getNumeroTramite()+1;
+
+		List<Tramite> tramiteList = obtenerNumeroTramite();
+
+		int numeroTramite = 1;
+
+		if(!CollectionUtils.isEmpty(tramiteList))
+			numeroTramite = obtenerNumeroTramite().get(0).getNumeroTramite()+1;
+
 		tramite.setNumeroTramite(numeroTramite);
 		tramite.setEstado("A");
 		if(tramiteBodyRequest.getOrigenDocumento().equals("EXTERNO")){
