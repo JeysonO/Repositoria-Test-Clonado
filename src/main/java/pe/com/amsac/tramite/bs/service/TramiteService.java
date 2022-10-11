@@ -1,6 +1,5 @@
 package pe.com.amsac.tramite.bs.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dozer.Mapper;
@@ -17,7 +16,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import pe.com.amsac.tramite.api.request.body.bean.UsuarioBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.Mensaje;
 import pe.com.amsac.tramite.api.util.ServiceException;
 import pe.com.amsac.tramite.bs.domain.Usuario;
@@ -62,7 +60,18 @@ public class TramiteService {
 		Query andQuery = new Query();
 		Criteria andCriteria = new Criteria();
 		List<Criteria> andExpression =  new ArrayList<>();
-			Map<String, Object> parameters = mapper.map(tramiteRequest,Map.class);
+		Map<String, Object> parameters = mapper.map(tramiteRequest,Map.class);
+		List<Criteria> listCriteria =  new ArrayList<>();
+		/*if(parameters.containsKey("emailEmisor"))
+			listCriteria.add(Criteria.where("usuarioInicio.email").is(parameters.get("emailEmisor")));
+		*/
+		if(parameters.containsKey("fechaDocumentoDesde") && parameters.containsKey("fechaDocumentoHasta"))
+			listCriteria.add(Criteria.where("fechaDocumento").gte(parameters.get("fechaDocumentoDesde")).lte(parameters.get("fechaDocumentoHasta")));
+		if(parameters.containsKey("fechaCreacionDesde") && parameters.containsKey("fechaCreaciontoHasta"))
+			listCriteria.add(Criteria.where("createdDate").gte(parameters.get("fechaCreacionDesde")).lte(parameters.get("fechaCreaciontoHasta")));
+		if(!listCriteria.isEmpty()) {
+			andExpression.add(new Criteria().andOperator(listCriteria.toArray(new Criteria[listCriteria.size()])));
+		}
 		Criteria expression = new Criteria();
 		parameters.values().removeIf(Objects::isNull);
 		parameters.forEach((key, value) -> expression.and(key).is(value));
@@ -73,13 +82,22 @@ public class TramiteService {
 	}
 
 	public List<Tramite> buscarHistorialTramite(Map<String, Object> param) throws Exception {
-		//Buscar Historico y ordenar por fecha mas receinte
+
+		//Buscar Historico y ordenar por fecha mas reciente
 		Query andQuery = new Query();
 		Criteria andCriteria = new Criteria();
 		List<Criteria> andExpression =  new ArrayList<>();
 		Criteria expression = new Criteria();
 		param.values().removeIf(Objects::isNull);
 		param.forEach((key, value) -> expression.and(key).is(value));
+		/*for (Map.Entry<String,Object> paramTMP : param.entrySet()) {
+			if((paramTMP.getValue() instanceof List))
+				//Agregar el criterio con in
+				expression.and(paramTMP.getKey()).in(paramTMP.getValue());
+			else
+				//Agregar el criterio con is
+				expression.and(paramTMP.getKey()).is(paramTMP.getValue());
+		}*/
 		andExpression.add(expression);
 		andQuery.addCriteria(andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()])));
 		andQuery.with(Sort.by(
@@ -173,20 +191,62 @@ public class TramiteService {
 
 	public Map numeroDocumentoRepetido(TramiteBodyRequest tramiteBodyRequest) throws Exception {
 		//Obtener persona del Usuario creador de Tramite
+		String usuarioId = securityHelper.obtenerUserIdSession();
+		RestTemplate restTemplate = new RestTemplate();
+		String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id";
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
+		HttpEntity entity = new HttpEntity<>(null, headers);
+		ResponseEntity<CommonResponse> response = restTemplate.exchange(uri,HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+
+		//Mapear Persona de Usuario Creador Tramite
+		LinkedHashMap<Object, Object> usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
+		LinkedHashMap<String, String> personaL = (LinkedHashMap<String, String>) usuario.get("persona");
+
 		//Obtener todos los usuarios relacionados a Persona encontrada
-		//Pasar la lista de Usuarios para buscarHistorial
-		Map<String, Object> mapRetorno = null;
+		String uri1 = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-persona-id/"+personaL.get("id");
+		ResponseEntity<CommonResponse> response1 = restTemplate.exchange(uri1,HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+
+		ArrayList listaUsuario = (ArrayList) response1.getBody().getData();
+
+		List<String> idsUsuariosByPersona = new ArrayList<>();
+
+		for (Object cadena : listaUsuario) {
+			LinkedHashMap<Object, Object> usuarios = (LinkedHashMap<Object, Object>) cadena;
+			idsUsuariosByPersona.add((String) usuarios.get("id"));
+		}
 
 		//Validar historial de Tramite
 		Map<String, Object> param = new HashMap<>();
+		//param.put("createdByUser",idsUsuariosByPersona);
 		param.put("numeroDocumento",tramiteBodyRequest.getNumeroDocumento());
 		if(!StringUtils.isBlank(tramiteBodyRequest.getSiglas()))
 			param.put("siglas",tramiteBodyRequest.getSiglas());
 
-		if(!CollectionUtils.isEmpty(buscarHistorialTramite(param))){
-			Tramite tramiteRelacionado = buscarHistorialTramite(param).get(0);
+		List<Tramite> primeraLista = buscarHistorialTramite(param);
+		List<Tramite> tramiteList = new ArrayList<>();
 
-			DateFormat Formato = new SimpleDateFormat("dd/mm/yyyy");
+		for(String usuarioTmp : idsUsuariosByPersona){
+			for(Tramite tramiteTmp : primeraLista){
+				if(tramiteTmp.getCreatedByUser().equals(usuarioTmp))
+					tramiteList.add(tramiteTmp);
+			}
+		}
+		Collections.sort(tramiteList, new Comparator<Tramite>(){
+			@Override
+			public int compare(Tramite o1, Tramite o2) {
+				return o1.getCreatedDate().compareTo(o2.getCreatedDate());
+			}
+		});
+
+		Map<String, Object> mapRetorno = null;
+
+		//if(!CollectionUtils.isEmpty(buscarHistorialTramite(param))){
+			//Tramite tramiteRelacionado = buscarHistorialTramite(param).get(0);
+		if(!CollectionUtils.isEmpty(tramiteList)){
+			Tramite tramiteRelacionado = tramiteList.get(0);
+
+			DateFormat Formato = new SimpleDateFormat("dd/MM/yyyy");
 			String fechaRegistro = Formato.format(tramiteRelacionado.getCreatedDate());
 
 			List<Mensaje> mensajes = new ArrayList<>();
@@ -200,26 +260,6 @@ public class TramiteService {
 				mapRetorno.put("atributos",atributoMap);
 			}
 		}
-
-		/*
-		//Obtener Persona de historialTramite
-		String persona;
-		if(tramiteRelacionado.getEntidadExterna().getRazonSocial()!=null)
-			persona = tramiteRelacionado.getEntidadExterna().getRazonSocial();
-		else
-			persona = tramiteRelacionado.getEntidadInterna().getUsuario().getPersona().getRazonSocialNombre();
-
-		//Obtener Persona de Tramite por registrar
-		String nuevaPersona;
-		if(tramiteBodyRequest.getRazonSocial()!=null)
-			nuevaPersona = tramiteBodyRequest.getRazonSocial();
-		else{
-			Optional<Usuario> usuario = usuarioMongoRepository.findById(tramiteBodyRequest.getUsuarioId());
-			nuevaPersona = usuario.get().getPersona().getRazonSocialNombre();
-		}
-		*/
-
-
 
 		return mapRetorno;
 
