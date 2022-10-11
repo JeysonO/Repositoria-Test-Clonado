@@ -1,5 +1,6 @@
 package pe.com.amsac.tramite.bs.service;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -15,7 +16,9 @@ import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
 import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.DocumentoAdjuntoResponse;
 import pe.com.amsac.tramite.api.file.bean.FileStorageService;
+import pe.com.amsac.tramite.api.response.bean.Mensaje;
 import pe.com.amsac.tramite.api.util.FileUtils;
+import pe.com.amsac.tramite.api.util.ServiceException;
 import pe.com.amsac.tramite.bs.domain.DocumentoAdjunto;
 import pe.com.amsac.tramite.bs.domain.Tramite;
 import pe.com.amsac.tramite.bs.repository.DocumentoAdjuntoMongoRepository;
@@ -23,6 +26,7 @@ import pe.com.amsac.tramite.bs.repository.TramiteMongoRepository;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Pattern;
 
 @Service
 public class DocumentoAdjuntoService {
@@ -80,6 +84,13 @@ public class DocumentoAdjuntoService {
 	}
 
 	public DocumentoAdjuntoResponse registrarDocumentoAdjunto(DocumentoAdjuntoBodyRequest documentoAdjuntoRequest) throws Exception {
+
+		//Validar suma de adjuntos
+		List<Mensaje> mensajesError = validarAdjuntos(documentoAdjuntoRequest);
+		if(!CollectionUtils.isEmpty(mensajesError)){
+			throw new ServiceException(mensajesError);
+		}
+
 		String fileName = fileStorageService.getFileName(documentoAdjuntoRequest.getFile().getOriginalFilename());
 
 		DocumentoAdjunto documentoAdjunto = mapper.map(documentoAdjuntoRequest, DocumentoAdjunto.class);
@@ -167,5 +178,37 @@ public class DocumentoAdjuntoService {
 		UploadFileResponse uploadFileResponse = new UploadFileResponse(file.getFilename(), fileDownloadUri,
 				documentoAdjunto.getExtension(), FileUtils.getFileSize(file.contentLength()));
 		return uploadFileResponse;
+	}
+
+	private List<Mensaje> validarAdjuntos(DocumentoAdjuntoBodyRequest documentoAdjuntoBodyRequest) throws Exception {
+		Double suma = 0.0;
+		Map<String, String> parameters = new HashMap<String, String>();
+		parameters.put("tramiteId",documentoAdjuntoBodyRequest.getTramiteId());
+		DocumentoAdjuntoRequest documentoAdjuntoRequest = mapper.map(parameters,DocumentoAdjuntoRequest.class);
+		List<Mensaje> mensajes = new ArrayList<>();
+		if(!obtenerDocumentoAdjuntoList(documentoAdjuntoRequest).isEmpty()){
+			List<DocumentoAdjuntoResponse> adjuntos = obtenerDocumentoAdjuntoList(documentoAdjuntoRequest);
+			if(!CollectionUtils.isEmpty(Arrays.asList(adjuntos))){
+				for (DocumentoAdjuntoResponse tmp : adjuntos) {
+					String[] textoSeparado = tmp.getUploadFileResponse().getSize().split("\\s");
+					String unidad = textoSeparado[1];
+					double tamaño = Double.parseDouble(textoSeparado[0]);
+					if(unidad.equals("KB"))
+						suma = suma + (tamaño/1024);
+					else
+						suma = suma + tamaño;
+				}
+			}
+			double tamañoFileActual = documentoAdjuntoBodyRequest.getFile().getSize()/1048576;
+			suma = suma + tamañoFileActual;
+			String regEx="[^0-9]+";
+			Pattern pattern = Pattern.compile(regEx);
+			String[] cs = pattern.split(env.getProperty("spring.servlet.multipart.max-file-size"));
+			double sumTotal = Double.parseDouble(cs[0]);
+			if(suma>sumTotal){
+				mensajes.add(new Mensaje("E001","ERROR","La suma total de los archivos adjuntos para este Tramite excede el tamaño permitido. El archivo a adjuntar debe tener un tamaño menor a:" + Math. round((sumTotal-suma)*100.0)/100.0));
+			}
+		}
+		return mensajes;
 	}
 }
