@@ -129,18 +129,12 @@ public class TramiteDerivacionService {
 			parameters.remove("numeroTramite");
 		}
 		List<Criteria> listCriteria =  new ArrayList<>();
-		if(parameters.containsKey("tramiteId"))
-			listCriteria.add(Criteria.where("tramite.id").is(parameters.get("tramiteId")));
+		//TODO: Verificar busqueda por parametro tramite.numeroTramite
 		if(parameters.containsKey("numeroTramite"))
 			listCriteria.add(Criteria.where("tramite.numeroTramite").is(parameters.get("numeroTramite")));
-		if(parameters.containsKey("emailEmisor"))
-			listCriteria.add(Criteria.where("usuarioInicio.email").is(parameters.get("emailEmisor")));
-		if(parameters.containsKey("tipoDocumentoId"))
-			listCriteria.add(Criteria.where("tramite.tipoDocumento.id").is(parameters.get("tipoDocumentoId")));
-		if(parameters.containsKey("fechaDocumentoDesde") && parameters.containsKey("fechaDocumentoHasta"))
-			listCriteria.add(Criteria.where("tramite.fechaDocumento").gte(parameters.get("fechaDocumentoDesde")).lte(parameters.get("fechaDocumentoHasta")));
-		if(parameters.containsKey("fechaCreacionDesde") && parameters.containsKey("fechaCreaciontoHasta"))
-			listCriteria.add(Criteria.where("tramite.createdDate").gte(parameters.get("fechaCreacionDesde")).lte(parameters.get("fechaCreaciontoHasta")));
+		if(parameters.containsKey("fechaDerivacionDesde") && parameters.containsKey("fechaDerivacionHasta"))
+			listCriteria.add(Criteria.where("fechaInicio").gte(parameters.get("fechaDerivacionDesde")).lte(parameters.get("fechaDerivacionHasta")));
+
 		if(!listCriteria.isEmpty()) {
 			andExpression.add(new Criteria().andOperator(listCriteria.toArray(new Criteria[listCriteria.size()])));
 		}
@@ -149,6 +143,39 @@ public class TramiteDerivacionService {
 		andExpression.add(expression);
 		andQuery.addCriteria(andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()])));
 		List<TramiteDerivacion> tramiteList = mongoTemplate.find(andQuery, TramiteDerivacion.class);
+
+		//Por cada usuario origen y fin, obtener la dependencia y cargo
+		RestTemplate restTemplate = new RestTemplate();
+		String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/";
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
+		HttpEntity entity = new HttpEntity<>(null, headers);
+		ResponseEntity<CommonResponse> response = null;
+		String uriBusqueda;
+		String nombreCompleto;
+		for(TramiteDerivacion tramiteDerivacion : tramiteList){
+			//Se completan datos de usuario inicio
+			uriBusqueda = uri + tramiteDerivacion.getUsuarioInicio().getId();
+			response = restTemplate.exchange(uriBusqueda, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+			if(((LinkedHashMap)response.getBody().getData()).get("cargoNombre")!=null)
+				tramiteDerivacion.setCargoNombreUsuarioInicio(((LinkedHashMap)response.getBody().getData()).get("cargoNombre").toString());
+			if(((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre")!=null)
+				tramiteDerivacion.setDependenciaNombreUsuarioInicio(((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre").toString());
+			nombreCompleto = ((LinkedHashMap)response.getBody().getData()).get("nombre").toString() + " " + ((LinkedHashMap)response.getBody().getData()).get("apePaterno").toString() + ((((LinkedHashMap)response.getBody().getData()).get("apeMaterno")!=null)?" "+((LinkedHashMap)response.getBody().getData()).get("apeMaterno").toString():"");
+			tramiteDerivacion.setUsuarioInicioNombreCompleto(nombreCompleto);
+
+			//Se completan datos de usuario Fin
+			uriBusqueda = uri + tramiteDerivacion.getUsuarioFin().getId();
+			response = restTemplate.exchange(uriBusqueda, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+			if(((LinkedHashMap)response.getBody().getData()).get("cargoNombre")!=null)
+				tramiteDerivacion.setCargoNombreUsuarioFin(((LinkedHashMap)response.getBody().getData()).get("cargoNombre").toString());
+			if(((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre")!=null)
+				tramiteDerivacion.setDependenciaNombreUsuarioFin(((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre").toString());
+			nombreCompleto = ((LinkedHashMap)response.getBody().getData()).get("nombre").toString() + " " + ((LinkedHashMap)response.getBody().getData()).get("apePaterno").toString() + ((((LinkedHashMap)response.getBody().getData()).get("apeMaterno")!=null)?" "+((LinkedHashMap)response.getBody().getData()).get("apeMaterno").toString():"");
+			tramiteDerivacion.setUsuarioFinNombreCompleto(nombreCompleto);
+
+		}
+
 		return tramiteList;
 	}
 
@@ -210,7 +237,7 @@ public class TramiteDerivacionService {
 		String usuarioId = securityHelper.obtenerUserIdSession();
 
 		TramiteDerivacion subsanarTramiteActual = tramiteDerivacionMongoRepository.findById(subsanartramiteDerivacionBodyrequest.getId()).get();
-		subsanarTramiteActual.setComentarioInicio(subsanartramiteDerivacionBodyrequest.getComentarioInicial());
+		subsanarTramiteActual.setComentarioFin(subsanartramiteDerivacionBodyrequest.getComentarioInicial());
 		subsanarTramiteActual.setEstadoFin("SUBSANACION");
 		subsanarTramiteActual.setFechaFin(new Date());
 		subsanarTramiteActual.setEstado("A");
@@ -222,6 +249,7 @@ public class TramiteDerivacionService {
 		subsanarTramiteBodyRequest.setSecuencia(sec);
 		subsanarTramiteBodyRequest.setUsuarioInicio(usuarioId);
 		subsanarTramiteBodyRequest.setUsuarioFin(subsanarTramiteActual.getUsuarioInicio().getId());
+		subsanarTramiteBodyRequest.setComentarioInicio(subsanarTramiteActual.getComentarioFin());
 		subsanarTramiteBodyRequest.setEstadoInicio(subsanarTramiteActual.getEstadoFin());
 		subsanarTramiteBodyRequest.setFechaInicio(new Date());
 		subsanarTramiteBodyRequest.setForma("ORIGINAL");
@@ -494,4 +522,17 @@ public class TramiteDerivacionService {
 		restTemplate.postForEntity( uri, params, null);
 
 	}
+
+	//TODO: Crear un metodo que obtenga aquellas derivaciones que esten en estado "P" y cuya fecha maxima de atencion >= fecha de hoy
+	// Con esa lista, obtener usuario fin y su correo. Enviar alerta
+	// plantilla: asunto-> Tramite pendiente de atencion - N° Tramite[Mayu],
+	// cuerpo (tabla) -> Estimado(a) Usted tiene un tramite pendiente de atencion con el siguiente detalle:
+	// N° Tramite, fecha derivacion, fecha maxima de atencion, dias de atraso.
+	// Para dar atencion al tramite, ingrese al siguiente link: link. Firma AMSAC.
+
+	//TODO: Crear clase Schedule dentro de api (Guiarse de SIOPS) Crear metodo alertar-tramites-fuera-plazo-atencion para invocar la
+	// funcion a crear. Ejecutar 12h
+	// fixedDelay:
+	//  consulta-rce:
+	//    milliseconds: 300000
 }
