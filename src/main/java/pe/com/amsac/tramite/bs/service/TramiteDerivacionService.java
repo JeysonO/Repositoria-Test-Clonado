@@ -36,6 +36,7 @@ import java.io.InputStreamReader;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class TramiteDerivacionService {
@@ -214,22 +215,27 @@ public class TramiteDerivacionService {
 		usuario.replace("persona",persona);
 		Usuario userFin = mapper.map(usuario,Usuario.class);
 
-
-		TramiteDerivacion registrotramiteDerivacion = mapper.map(tramiteDerivacionBodyRequest,TramiteDerivacion.class);
-		registrotramiteDerivacion.setUsuarioInicio(userInicio);
-		registrotramiteDerivacion.setUsuarioFin(userFin);
-		registrotramiteDerivacion.setTramite(tramiteMongoRepository.findById(tramiteDerivacionBodyRequest.getTramiteId()).get());
-		registrotramiteDerivacion.setEstado("P");
+		//Registrar Tramite Derivacion
+		//TODO: Por ajustar formato de fechaMaxima
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
+		String fechaTexto = formatter.format(tramiteDerivacionBodyRequest.getFechaMaximaAtencion());
+		Date fechaMaxima = formatter.parse(fechaTexto);
+		tramiteDerivacionBodyRequest.setFechaMaximaAtencion(fechaMaxima);
+		TramiteDerivacion registroTramiteDerivacion = mapper.map(tramiteDerivacionBodyRequest,TramiteDerivacion.class);
+		registroTramiteDerivacion.setUsuarioInicio(userInicio);
+		registroTramiteDerivacion.setUsuarioFin(userFin);
+		registroTramiteDerivacion.setTramite(tramiteMongoRepository.findById(tramiteDerivacionBodyRequest.getTramiteId()).get());
+		registroTramiteDerivacion.setEstado("P");
 
 		int sec = obtenerSecuencia(tramiteDerivacionBodyRequest.getTramiteId());
-		registrotramiteDerivacion.setSecuencia(sec);
+		registroTramiteDerivacion.setSecuencia(sec);
 
-		tramiteDerivacionMongoRepository.save(registrotramiteDerivacion);
+		tramiteDerivacionMongoRepository.save(registroTramiteDerivacion);
 		//Invocar a servicio para envio de correo
 		//modificar susbanacion
-		envioCorreoDerivacion(registrotramiteDerivacion);
+		envioCorreoDerivacion(registroTramiteDerivacion);
 
-		return registrotramiteDerivacion;
+		return registroTramiteDerivacion;
 
 	}
 
@@ -454,7 +460,6 @@ public class TramiteDerivacionService {
 
 	public void envioCorreoDerivacion(TramiteDerivacion registrotramiteDerivacion) throws IOException {
 		//TODO Armar mensaje del cuerpo de correo, obteniendo la plantillaDerivacion.html
-		//Si la forma es ORIGINAL, se envia como pendientes, pero si es COPIA entonces que el mensaje indique que le ha llegago tramite como copia
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 		InputStream is = classloader.getResourceAsStream("plantillaDerivacion.html");
 		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
@@ -463,6 +468,7 @@ public class TramiteDerivacionService {
 		while ((strLine = bufferedReader.readLine()) != null) {
 			msjHTML.append(strLine);
 		}
+		//Si la forma es ORIGINAL, se envia como pendientes, pero si es COPIA entonces que el mensaje indique que le ha llegago tramite como copia
 		//Asunto: Segun Forma
 		String forma;
 		if(registrotramiteDerivacion.getForma().equals("ORIGINAL"))
@@ -513,6 +519,7 @@ public class TramiteDerivacionService {
 				correoEmisor, proveido, plazoMaximo, horaRecepcion, avisoConfidencialidad, codigoEtica, desde, hasta);
 
 		Map<String, String> params = new HashMap<String, String>();
+		//params.put("to", "evelyn.flores@bitall.com.pe");
 		params.put("to", correoDestinatario);
 		params.put("subject", forma);
 		params.put("text", bodyHtmlFinal);
@@ -530,9 +537,60 @@ public class TramiteDerivacionService {
 	// N° Tramite, fecha derivacion, fecha maxima de atencion, dias de atraso.
 	// Para dar atencion al tramite, ingrese al siguiente link: link. Firma AMSAC.
 
-	//TODO: Crear clase Schedule dentro de api (Guiarse de SIOPS) Crear metodo alertar-tramites-fuera-plazo-atencion para invocar la
-	// funcion a crear. Ejecutar 12h
-	// fixedDelay:
-	//  consulta-rce:
-	//    milliseconds: 300000
+	public void alertaTramiteFueraPlazoAtencion () throws IOException {
+		//Obtener Lista de Tramites Derivacion, condiciones: estado->P y fechaMaxima>=Hoy
+		Date todaysDate = new Date();
+		Query query = new Query();
+		Criteria criteria = Criteria.where("fechaMaximaAtencion").gte(todaysDate).and("estado").is("P");
+		query.addCriteria(criteria);
+		List<TramiteDerivacion> tramitePendienteList = mongoTemplate.find(query, TramiteDerivacion.class);
+		//Obtener correo de cada usuarioFin de la lista de Tramite Derivacion Pendiente
+		for(TramiteDerivacion usuarioTmp : tramitePendienteList){
+			String correoUsuarioFin = usuarioTmp.getUsuarioFin().getEmail();
+			//Enviar correo de alerta a cada usuarioFin
+			enviarCorreoAlerta(correoUsuarioFin,usuarioTmp);
+		}
+	}
+
+	public void enviarCorreoAlerta(String correoDestino,TramiteDerivacion tramiteDerivacion) throws IOException {
+		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+		InputStream is = classloader.getResourceAsStream("plantillaAlerta.html");
+		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
+		String strLine;
+		StringBuffer msjHTML = new StringBuffer();
+		while ((strLine = bufferedReader.readLine()) != null) {
+			msjHTML.append(strLine);
+		}
+
+		DateFormat Formato = new SimpleDateFormat("dd/MM/yyyy");
+		Date fechaHoy = new Date();
+
+		//Armar el body del Email
+		String numTramite = String.valueOf(tramiteDerivacion.getTramite().getNumeroTramite());
+		String fechaDerivacion = Formato.format(tramiteDerivacion.getCreatedDate());
+		String fechaMaximaAtencion = "";
+		String diasAtraso = "";
+		if(tramiteDerivacion.getFechaMaximaAtencion()!=null){
+			fechaMaximaAtencion = Formato.format(tramiteDerivacion.getFechaMaximaAtencion());
+			//Calcular Dias de atraso
+			long diff = fechaHoy.getTime() - tramiteDerivacion.getFechaMaximaAtencion().getTime();
+			TimeUnit time = TimeUnit.DAYS;
+			diasAtraso = String.valueOf(time.convert(diff, TimeUnit.MILLISECONDS)).replace("-","");
+		}
+
+		String urlTramite = env.getProperty("app.url.linkTramite");
+
+		String bodyHtmlFinal = String.format(msjHTML.toString(),numTramite,fechaDerivacion,fechaMaximaAtencion,diasAtraso,urlTramite);
+
+		Map<String, String> params = new HashMap<String, String>();
+		//params.put("to", "evelyn.flores@bitall.com.pe");
+		params.put("to", correoDestino);
+		params.put("subject", "TRAMITE PENDIENTE DE ATENCION - N° TRAMITE: "+numTramite);
+		params.put("text", bodyHtmlFinal);
+
+		RestTemplate restTemplate = new RestTemplate();
+		String uri = env.getProperty("app.url.mail") + "/api/mail/sendMail";
+		restTemplate.postForEntity( uri, params, null);
+	}
+
 }
