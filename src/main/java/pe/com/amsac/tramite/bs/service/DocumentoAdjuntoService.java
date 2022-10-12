@@ -205,8 +205,9 @@ public class DocumentoAdjuntoService {
 			Pattern pattern = Pattern.compile(regEx);
 			String[] cs = pattern.split(env.getProperty("spring.servlet.multipart.max-file-size"));
 			double sumTotal = Double.parseDouble(cs[0]);
+			String tamañoArchivo = String.valueOf(Math.round((sumTotal-suma)*100.0)/100.0).replace("-","");
 			if(suma>sumTotal){
-				mensajes.add(new Mensaje("E001","ERROR","La suma total de los archivos adjuntos para este Tramite excede el tamaño permitido. El archivo a adjuntar debe tener un tamaño menor a:" + Math. round((sumTotal-suma)*100.0)/100.0));
+				mensajes.add(new Mensaje("E001","ERROR","La suma total de los archivos adjuntos para este Tramite excede el tamaño permitido. El archivo a adjuntar debe tener un tamaño menor a:" + tamañoArchivo));
 			}
 		}
 		return mensajes;
