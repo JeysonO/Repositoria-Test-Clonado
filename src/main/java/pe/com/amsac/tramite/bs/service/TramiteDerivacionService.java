@@ -384,8 +384,8 @@ public class TramiteDerivacionService {
 		String correoDestinatario = subsanartramiteDerivacion.getUsuarioFin().getEmail();
 
 		DateFormat hourFormat = new SimpleDateFormat("HH:mm:ss");
-		DateFormat Formato = new SimpleDateFormat("dd/mm/yyyy");
-		DateFormat fechaa = new SimpleDateFormat("dd/mm/yyyy HH:mm:ss");
+		DateFormat Formato = new SimpleDateFormat("dd/MM/yyyy");
+		DateFormat fechaa = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 
 		//Armar el body del Email
 		/*
@@ -474,8 +474,8 @@ public class TramiteDerivacionService {
 		String correoDestinatario = registrotramiteDerivacion.getUsuarioFin().getEmail();
 
 		DateFormat hourFormat = new SimpleDateFormat("HH:mm:ss");
-		DateFormat Formato = new SimpleDateFormat("dd/mm/yyyy");
-		DateFormat fechaa = new SimpleDateFormat("dd/mm/yyyy HH:mm:ss");
+		DateFormat Formato = new SimpleDateFormat("dd/MM/yyyy");
+		DateFormat fechaa = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 
 		//Armar el body del Email
 		String plazoMaximo = "-";
