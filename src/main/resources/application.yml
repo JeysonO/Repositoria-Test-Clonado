@@ -38,6 +38,7 @@ spring:
 server:
   port:
     8100
+    #8280
   #servlet:
     #context-path: /entity-vuce-middleware
     #context-path: /amsac-tramite
@@ -55,22 +56,31 @@ app:
 
   connectionMongo:
     user: user-amsac-db
+    #password: Evelyn123
     password: "%40ms%40c2022"
     #password: vvc33#t1ty
+    #host: localhost
     host: mongoservice
     #host: 190.119.248.132
     #host: 172.16.1.228
+    #port: 27017
     port: 57017
     #port: 55025
 
   ruta:
     adjuntos: tramite
   url:
+    #seguridad: http://localhost:8480/amsac-seguridad
     seguridad: http://amsac-security-api:8100/amsac-seguridad
     #seguridad: http://190.119.248.132:8180/amsac-seguridad
+    #mail: http://localhost:8400
     mail: http://amsac-mail-api:8100
     linkTramite: http://tramitedocumentario.amsac.pe/
 
 ## File Storage Properties
 file:
   base-upload-dir: tramite/file
+
+fixedDelay:
+  evaluar-tramite-derivacion:
+    milliseconds: 100000
