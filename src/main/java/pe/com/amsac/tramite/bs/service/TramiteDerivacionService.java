@@ -35,8 +35,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
+import static java.time.temporal.ChronoUnit.DAYS;
 
 @Service
 public class TramiteDerivacionService {
@@ -216,12 +218,12 @@ public class TramiteDerivacionService {
 		Usuario userFin = mapper.map(usuario,Usuario.class);
 
 		//Registrar Tramite Derivacion
-		//TODO: Por ajustar formato de fechaMaxima
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
-		String fechaTexto = formatter.format(tramiteDerivacionBodyRequest.getFechaMaximaAtencion());
-		Date fechaMaxima = formatter.parse(fechaTexto);
-		tramiteDerivacionBodyRequest.setFechaMaximaAtencion(fechaMaxima);
+		ZoneId defaultZoneId = ZoneId.systemDefault();
+		LocalDate localDate = tramiteDerivacionBodyRequest.getFechaMaximaAtencion();
+		tramiteDerivacionBodyRequest.setFechaMaximaAtencion(null);
+
 		TramiteDerivacion registroTramiteDerivacion = mapper.map(tramiteDerivacionBodyRequest,TramiteDerivacion.class);
+		registroTramiteDerivacion.setFechaMaximaAtencion(Date.from(localDate.atStartOfDay(defaultZoneId).toInstant()));
 		registroTramiteDerivacion.setUsuarioInicio(userInicio);
 		registroTramiteDerivacion.setUsuarioFin(userFin);
 		registroTramiteDerivacion.setTramite(tramiteMongoRepository.findById(tramiteDerivacionBodyRequest.getTramiteId()).get());
@@ -501,7 +503,7 @@ public class TramiteDerivacionService {
 			proveido = registrotramiteDerivacion.getProveidoAtencion();
 
 		if(registrotramiteDerivacion.getFechaMaximaAtencion()!=null)
-			plazoMaximo = fechaa.format(registrotramiteDerivacion.getFechaMaximaAtencion());
+			plazoMaximo = Formato.format(registrotramiteDerivacion.getFechaMaximaAtencion());
 
 		String horaRecepcion = hourFormat.format(registrotramiteDerivacion.getCreatedDate());
 
@@ -563,7 +565,6 @@ public class TramiteDerivacionService {
 		}
 
 		DateFormat Formato = new SimpleDateFormat("dd/MM/yyyy");
-		Date fechaHoy = new Date();
 
 		//Armar el body del Email
 		String numTramite = String.valueOf(tramiteDerivacion.getTramite().getNumeroTramite());
@@ -572,10 +573,10 @@ public class TramiteDerivacionService {
 		String diasAtraso = "";
 		if(tramiteDerivacion.getFechaMaximaAtencion()!=null){
 			fechaMaximaAtencion = Formato.format(tramiteDerivacion.getFechaMaximaAtencion());
-			//Calcular Dias de atraso
-			long diff = fechaHoy.getTime() - tramiteDerivacion.getFechaMaximaAtencion().getTime();
-			TimeUnit time = TimeUnit.DAYS;
-			diasAtraso = String.valueOf(time.convert(diff, TimeUnit.MILLISECONDS)).replace("-","");
+			LocalDate fechahoy = LocalDate.now();
+			LocalDate fechaMaxima = tramiteDerivacion.getFechaMaximaAtencion().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+			long dias = DAYS.between(fechaMaxima, fechahoy);
+			diasAtraso = String.valueOf(dias).replace("-","");
 		}
 
 		String urlTramite = env.getProperty("app.url.linkTramite");
