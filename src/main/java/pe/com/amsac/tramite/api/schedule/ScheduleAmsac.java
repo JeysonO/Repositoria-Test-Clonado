@@ -19,8 +19,9 @@ public class ScheduleAmsac {
     @Autowired
     private TramiteDerivacionService tramiteDerivacionService;
 
-    //@Scheduled(cron = "0 0 12 ? * * ")
+    //@Scheduled(cron = "0 0 12 * * * ")
     //@Scheduled(fixedDelayString = "${fixedDelay.evaluar-tramite-derivacion.milliseconds}")
+    @Scheduled(cron = "${cron.evaluar-vencimiento-tramite-derivacion}", zone = "America/Lima")
     public void scheduleEvaluarEventosTask() throws Exception {
         //TODO: Crear clase Schedule dentro de api (Guiarse de SIOPS) Crear metodo alertar-tramites-fuera-plazo-atencion para invocar la
         // funcion a crear. Ejecutar c/12h
