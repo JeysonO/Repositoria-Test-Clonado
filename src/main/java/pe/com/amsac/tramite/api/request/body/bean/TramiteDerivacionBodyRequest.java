@@ -3,6 +3,7 @@ package pe.com.amsac.tramite.api.request.body.bean;
 import lombok.Data;
 import org.dozer.Mapping;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Data
@@ -18,7 +19,7 @@ public class TramiteDerivacionBodyRequest {
 	private String comentarioFin;
 	private Date fechaInicio;
 	private Date fechaFin;
-	private Date fechaMaximaAtencion;
+	private LocalDate fechaMaximaAtencion;
 	private String proveidoAtencion;
 	private String forma;
 

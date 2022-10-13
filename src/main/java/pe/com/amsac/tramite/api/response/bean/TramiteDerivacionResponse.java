@@ -3,8 +3,7 @@ package pe.com.amsac.tramite.api.response.bean;
 import lombok.Data;
 import org.dozer.Mapping;
 
-import javax.persistence.Transient;
-import java.util.Date;
+import java.time.LocalDate;
 
 @Data
 public class TramiteDerivacionResponse {
@@ -17,7 +16,7 @@ public class TramiteDerivacionResponse {
 	private String estadoFin;
 	private String comentarioInicio;
 	private String comentarioFin;
-	private Date fechaMaximaAtencion;
+	private LocalDate fechaMaximaAtencion;
 	private String proveidoAtencion;
 	private String estado;
 	private String forma;

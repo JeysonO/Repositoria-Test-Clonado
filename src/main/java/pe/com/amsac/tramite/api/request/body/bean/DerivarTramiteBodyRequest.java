@@ -4,7 +4,7 @@ import lombok.Data;
 import org.dozer.Mapping;
 
 import javax.validation.constraints.NotNull;
-import java.util.Date;
+import java.time.LocalDate;
 
 @Data
 public class DerivarTramiteBodyRequest {
@@ -16,7 +16,7 @@ public class DerivarTramiteBodyRequest {
 	private String comentarioFin;
 	private String proveidoAtencion;
 	private String forma; //COPIA, ORIGINAL
-	private Date fechaMaximaAtencion;
+	private LocalDate fechaMaximaAtencion;
 
 	@Mapping("usuarioFin.id")
 	public String getUsuarioFin(){return usuarioFin;}
