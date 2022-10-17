@@ -5,6 +5,7 @@ import org.dozer.Mapping;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
+import java.util.Date;
 
 @Data
 public class DerivarTramiteBodyRequest {
@@ -16,7 +17,8 @@ public class DerivarTramiteBodyRequest {
 	private String comentarioFin;
 	private String proveidoAtencion;
 	private String forma; //COPIA, ORIGINAL
-	private LocalDate fechaMaximaAtencion;
+	//private LocalDate fechaMaximaAtencion;
+	private Date fechaMaximaAtencion;
 
 	@Mapping("usuarioFin.id")
 	public String getUsuarioFin(){return usuarioFin;}

@@ -19,7 +19,8 @@ public class TramiteDerivacionBodyRequest {
 	private String comentarioFin;
 	private Date fechaInicio;
 	private Date fechaFin;
-	private LocalDate fechaMaximaAtencion;
+	//private LocalDate fechaMaximaAtencion;
+	private Date fechaMaximaAtencion;
 	private String proveidoAtencion;
 	private String forma;
 

@@ -220,12 +220,14 @@ public class TramiteDerivacionService {
 		Usuario userFin = mapper.map(usuario,Usuario.class);
 
 		TramiteDerivacion registroTramiteDerivacion = mapper.map(tramiteDerivacionBodyRequest,TramiteDerivacion.class);
+		/*
 		if(tramiteDerivacionBodyRequest.getFechaMaximaAtencion()!=null){
 			ZoneId defaultZoneId = ZoneId.systemDefault();
 			LocalDate localDate = tramiteDerivacionBodyRequest.getFechaMaximaAtencion();
 			tramiteDerivacionBodyRequest.setFechaMaximaAtencion(null);
 			registroTramiteDerivacion.setFechaMaximaAtencion(Date.from(localDate.atStartOfDay(defaultZoneId).toInstant()));
 		}
+		*/
 
 		registroTramiteDerivacion.setUsuarioInicio(userInicio);
 		registroTramiteDerivacion.setUsuarioFin(userFin);
