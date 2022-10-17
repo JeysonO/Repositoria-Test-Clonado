@@ -14,6 +14,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.request.body.bean.SubsanacionTramiteDerivacionBodyRequest;
@@ -182,7 +184,7 @@ public class TramiteDerivacionService {
 		return tramiteList;
 	}
 
-
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
 	public TramiteDerivacion registrarTramiteDerivacion(TramiteDerivacionBodyRequest tramiteDerivacionBodyRequest) throws Exception {
 
 		//Obtener Usuario Inicio
@@ -217,13 +219,14 @@ public class TramiteDerivacionService {
 		usuario.replace("persona",persona);
 		Usuario userFin = mapper.map(usuario,Usuario.class);
 
-		//Registrar Tramite Derivacion
-		ZoneId defaultZoneId = ZoneId.systemDefault();
-		LocalDate localDate = tramiteDerivacionBodyRequest.getFechaMaximaAtencion();
-		tramiteDerivacionBodyRequest.setFechaMaximaAtencion(null);
-
 		TramiteDerivacion registroTramiteDerivacion = mapper.map(tramiteDerivacionBodyRequest,TramiteDerivacion.class);
-		registroTramiteDerivacion.setFechaMaximaAtencion(Date.from(localDate.atStartOfDay(defaultZoneId).toInstant()));
+		if(tramiteDerivacionBodyRequest.getFechaMaximaAtencion()!=null){
+			ZoneId defaultZoneId = ZoneId.systemDefault();
+			LocalDate localDate = tramiteDerivacionBodyRequest.getFechaMaximaAtencion();
+			tramiteDerivacionBodyRequest.setFechaMaximaAtencion(null);
+			registroTramiteDerivacion.setFechaMaximaAtencion(Date.from(localDate.atStartOfDay(defaultZoneId).toInstant()));
+		}
+
 		registroTramiteDerivacion.setUsuarioInicio(userInicio);
 		registroTramiteDerivacion.setUsuarioFin(userFin);
 		registroTramiteDerivacion.setTramite(tramiteMongoRepository.findById(tramiteDerivacionBodyRequest.getTramiteId()).get());
@@ -241,6 +244,7 @@ public class TramiteDerivacionService {
 
 	}
 
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
 	public TramiteDerivacion subsanarTramiteDerivacion(SubsanacionTramiteDerivacionBodyRequest subsanartramiteDerivacionBodyrequest) throws Exception {
 		String usuarioId = securityHelper.obtenerUserIdSession();
 
@@ -274,6 +278,7 @@ public class TramiteDerivacionService {
 		return nuevoDerivacionTramite;
 	}
 
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
 	public TramiteDerivacion registrarDerivacionTramite(DerivarTramiteBodyRequest derivartramiteBodyrequest) throws Exception {
 
 		String usuarioId = securityHelper.obtenerUserIdSession();
@@ -307,6 +312,7 @@ public class TramiteDerivacionService {
 		return nuevoDerivacionTramite;
 	}
 
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
 	public TramiteDerivacion registrarRecepcionTramiteDerivacion(String id) throws Exception {
 
 		TramiteDerivacion recepcionTramiteActual = tramiteDerivacionMongoRepository.findById(id).get();
@@ -336,6 +342,7 @@ public class TramiteDerivacionService {
 		return nuevoRecepcionTramite;
 	}
 
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
 	public TramiteDerivacion registrarAtencionTramiteDerivacion(AtencionTramiteDerivacionBodyRequest atenciontramiteDerivacionBodyrequest) throws Exception {
 		TramiteDerivacion atenderTramiteDerivacion = tramiteDerivacionMongoRepository.findById(atenciontramiteDerivacionBodyrequest.getId()).get();
 		atenderTramiteDerivacion.setEstadoFin(atenciontramiteDerivacionBodyrequest.getEstadoFin());

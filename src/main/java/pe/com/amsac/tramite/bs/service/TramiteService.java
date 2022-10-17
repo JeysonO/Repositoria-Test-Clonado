@@ -15,6 +15,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import pe.com.amsac.tramite.api.response.bean.Mensaje;
 import pe.com.amsac.tramite.api.util.ServiceException;
@@ -107,6 +109,7 @@ public class TramiteService {
 		return tramite;
 	}
 
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
 	public Tramite registrarTramite(TramiteBodyRequest tramiteBodyRequest) throws Exception {
 
 		if(StringUtils.isBlank(tramiteBodyRequest.getIdTramiteRelacionado())){
@@ -138,6 +141,7 @@ public class TramiteService {
 
 	}
 
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
 	public void registrarDerivacion(Tramite tramite) throws Exception {
 		//Obtener 1er Usuario de Seguridad-UsuarioCargo
 		RestTemplate restTemplate = new RestTemplate();
