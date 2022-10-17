@@ -344,6 +344,8 @@ public class TramiteDerivacionService {
 
 	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
 	public TramiteDerivacion registrarAtencionTramiteDerivacion(AtencionTramiteDerivacionBodyRequest atenciontramiteDerivacionBodyrequest) throws Exception {
+		String usuarioId = securityHelper.obtenerUserIdSession();
+
 		TramiteDerivacion atenderTramiteDerivacion = tramiteDerivacionMongoRepository.findById(atenciontramiteDerivacionBodyrequest.getId()).get();
 		atenderTramiteDerivacion.setEstadoFin(atenciontramiteDerivacionBodyrequest.getEstadoFin());
 		atenderTramiteDerivacion.setFechaFin(new Date());
@@ -351,8 +353,29 @@ public class TramiteDerivacionService {
 		atenderTramiteDerivacion.setEstado("A");
 		tramiteDerivacionMongoRepository.save(atenderTramiteDerivacion);
 
+		String idTramite = atenderTramiteDerivacion.getTramite().getId();
+
+		if(atenciontramiteDerivacionBodyrequest.getEstadoFin().equals("SUBSANADO")){
+			int sec = obtenerSecuencia(atenderTramiteDerivacion.getTramite().getId());
+
+			TramiteDerivacionBodyRequest subsanarTramiteBodyRequest = mapper.map(atenderTramiteDerivacion, TramiteDerivacionBodyRequest.class);
+			subsanarTramiteBodyRequest.setSecuencia(sec);
+			subsanarTramiteBodyRequest.setUsuarioInicio(usuarioId);
+			subsanarTramiteBodyRequest.setUsuarioFin(atenderTramiteDerivacion.getUsuarioInicio().getId());
+			subsanarTramiteBodyRequest.setComentarioInicio(atenciontramiteDerivacionBodyrequest.getComentarioFin());
+			subsanarTramiteBodyRequest.setEstadoInicio(atenderTramiteDerivacion.getEstadoFin());
+			subsanarTramiteBodyRequest.setFechaInicio(new Date());
+			subsanarTramiteBodyRequest.setForma("ORIGINAL");
+			subsanarTramiteBodyRequest.setId(null);
+			subsanarTramiteBodyRequest.setEstadoFin(null);
+			subsanarTramiteBodyRequest.setFechaFin(null);
+			subsanarTramiteBodyRequest.setComentarioFin(null);
+
+			atenderTramiteDerivacion = registrarTramiteDerivacion(subsanarTramiteBodyRequest);
+		}
+
 		//Ahora se actualiza el estado del tramite
-		Tramite tramite = tramiteService.findById(atenderTramiteDerivacion.getTramite().getId());
+		Tramite tramite = tramiteService.findById(idTramite);
 		tramite.setEstado(atenciontramiteDerivacionBodyrequest.getEstadoFin());
 		tramiteService.save(tramite);
 
