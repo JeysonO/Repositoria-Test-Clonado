@@ -63,6 +63,60 @@ public class TramiteDerivacionService {
 	@Autowired
 	private Environment env;
 
+
+	public List<TramiteDerivacion> obtenerTramiteDerivacionByTramiteId(String tramiteId) throws Exception {
+		//Obtener Usuario
+		/*
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication == null || !authentication.isAuthenticated()) {
+			return null;
+		}
+		DatosToken datosToken = (DatosToken)authentication.getPrincipal();
+
+		String idUser =  datosToken.getIdUser();
+		*/
+		//String idUser =  securityHelper.obtenerUserIdSession();
+
+		Query query = new Query();
+		Criteria criteria = Criteria.where("tramite.id").is(tramiteId);
+		query.addCriteria(criteria);
+		List<TramiteDerivacion> tramitePendienteList = mongoTemplate.find(query, TramiteDerivacion.class);
+
+		//Por cada usuario origen y fin, obtener la dependencia y cargo
+		RestTemplate restTemplate = new RestTemplate();
+		String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/";
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
+		HttpEntity entity = new HttpEntity<>(null, headers);
+		ResponseEntity<CommonResponse> response = null;
+		String uriBusqueda;
+		String nombreCompleto;
+		for(TramiteDerivacion tramiteDerivacion : tramitePendienteList){
+			//Se completan datos de usuario inicio
+			uriBusqueda = uri + tramiteDerivacion.getUsuarioInicio().getId();
+			response = restTemplate.exchange(uriBusqueda, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+			if(((LinkedHashMap)response.getBody().getData()).get("cargoNombre")!=null)
+				tramiteDerivacion.setCargoNombreUsuarioInicio(((LinkedHashMap)response.getBody().getData()).get("cargoNombre").toString());
+			if(((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre")!=null)
+				tramiteDerivacion.setDependenciaNombreUsuarioInicio(((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre").toString());
+			nombreCompleto = ((LinkedHashMap)response.getBody().getData()).get("nombre").toString() + " " + ((LinkedHashMap)response.getBody().getData()).get("apePaterno").toString() + ((((LinkedHashMap)response.getBody().getData()).get("apeMaterno")!=null)?" "+((LinkedHashMap)response.getBody().getData()).get("apeMaterno").toString():"");
+			tramiteDerivacion.setUsuarioInicioNombreCompleto(nombreCompleto);
+
+			//Se completan datos de usuario Fin
+			uriBusqueda = uri + tramiteDerivacion.getUsuarioFin().getId();
+			response = restTemplate.exchange(uriBusqueda, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+			if(((LinkedHashMap)response.getBody().getData()).get("cargoNombre")!=null)
+				tramiteDerivacion.setCargoNombreUsuarioFin(((LinkedHashMap)response.getBody().getData()).get("cargoNombre").toString());
+			if(((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre")!=null)
+				tramiteDerivacion.setDependenciaNombreUsuarioFin(((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre").toString());
+			nombreCompleto = ((LinkedHashMap)response.getBody().getData()).get("nombre").toString() + " " + ((LinkedHashMap)response.getBody().getData()).get("apePaterno").toString() + ((((LinkedHashMap)response.getBody().getData()).get("apeMaterno")!=null)?" "+((LinkedHashMap)response.getBody().getData()).get("apeMaterno").toString():"");
+			tramiteDerivacion.setUsuarioFinNombreCompleto(nombreCompleto);
+
+		}
+
+		return tramitePendienteList;
+	}
+
 	public List<TramiteDerivacion> obtenerTramiteDerivacionPendientes() throws Exception {
 		//Obtener Usuario
 		/*

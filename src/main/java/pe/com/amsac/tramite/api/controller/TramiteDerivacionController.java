@@ -254,5 +254,29 @@ public class TramiteDerivacionController {
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 	}
 
+	@GetMapping("/obtener-derivacion-by-tramite-id/{tramiteId}")
+	public ResponseEntity<CommonResponse> obtenerTramiteDerivacionByTramiteId(@PathVariable String tramiteId) throws Exception {
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.CREATED;
+
+		try {
+			List<TramiteDerivacion> listaTramiteDerivacionPendiente = tramiteDerivacionService.obtenerTramiteDerivacionByTramiteId(tramiteId);
+			List<TramiteDerivacionResponse> obtenerTramiteDerivacionPendienteList =  new ArrayList<>();
+			TramiteDerivacionResponse tramiteDerivacionResponse = null;
+			for (TramiteDerivacion temp : listaTramiteDerivacionPendiente) {
+				tramiteDerivacionResponse = mapper.map(temp, TramiteDerivacionResponse.class);
+				obtenerTramiteDerivacionPendienteList.add(tramiteDerivacionResponse);
+			}
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(obtenerTramiteDerivacionPendienteList).build();
+
+		} catch (ServiceException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+	}
+
 
 }
