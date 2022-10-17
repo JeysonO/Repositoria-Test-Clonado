@@ -18,11 +18,8 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
-import pe.com.amsac.tramite.api.request.body.bean.SubsanacionTramiteDerivacionBodyRequest;
+import pe.com.amsac.tramite.api.request.body.bean.*;
 import pe.com.amsac.tramite.api.request.bean.TramiteDerivacionRequest;
-import pe.com.amsac.tramite.api.request.body.bean.AtencionTramiteDerivacionBodyRequest;
-import pe.com.amsac.tramite.api.request.body.bean.DerivarTramiteBodyRequest;
-import pe.com.amsac.tramite.api.request.body.bean.TramiteDerivacionBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.bs.domain.Persona;
 import pe.com.amsac.tramite.bs.domain.Tramite;
@@ -624,6 +621,40 @@ public class TramiteDerivacionService {
 		RestTemplate restTemplate = new RestTemplate();
 		String uri = env.getProperty("app.url.mail") + "/api/mail/sendMail";
 		restTemplate.postForEntity( uri, params, null);
+	}
+
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
+	public TramiteDerivacion rechazarTramiteDerivacion(RechazarTramiteDerivacionBodyRequest rechazarTramiteDerivacionBodyRequest) throws Exception {
+		String usuarioId = securityHelper.obtenerUserIdSession();
+
+		TramiteDerivacion subsanarTramiteActual = tramiteDerivacionMongoRepository.findById(rechazarTramiteDerivacionBodyRequest.getId()).get();
+		subsanarTramiteActual.setComentarioFin(rechazarTramiteDerivacionBodyRequest.getComentarioInicial());
+		subsanarTramiteActual.setEstadoFin("RECHAZADO");
+		subsanarTramiteActual.setFechaFin(new Date());
+		subsanarTramiteActual.setEstado("A");
+		tramiteDerivacionMongoRepository.save(subsanarTramiteActual);
+
+		int sec = obtenerSecuencia(subsanarTramiteActual.getTramite().getId());
+
+		TramiteDerivacionBodyRequest subsanarTramiteBodyRequest = mapper.map(subsanarTramiteActual, TramiteDerivacionBodyRequest.class);
+		subsanarTramiteBodyRequest.setSecuencia(sec);
+		subsanarTramiteBodyRequest.setUsuarioInicio(usuarioId);
+		subsanarTramiteBodyRequest.setUsuarioFin(subsanarTramiteActual.getUsuarioInicio().getId());
+		subsanarTramiteBodyRequest.setComentarioInicio(subsanarTramiteActual.getComentarioFin());
+		subsanarTramiteBodyRequest.setEstadoInicio(subsanarTramiteActual.getEstadoFin());
+		subsanarTramiteBodyRequest.setFechaInicio(new Date());
+		subsanarTramiteBodyRequest.setForma("ORIGINAL");
+		subsanarTramiteBodyRequest.setId(null);
+		subsanarTramiteBodyRequest.setEstadoFin(null);
+		subsanarTramiteBodyRequest.setFechaFin(null);
+		subsanarTramiteBodyRequest.setComentarioFin(null);
+
+		TramiteDerivacion nuevoDerivacionTramite = registrarTramiteDerivacion(subsanarTramiteBodyRequest);
+
+		//Enviar correo para subsanacion
+		//envioCorreoSubsanacion(nuevoDerivacionTramite);
+
+		return nuevoDerivacionTramite;
 	}
 
 }
