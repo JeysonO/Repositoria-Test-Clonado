@@ -193,7 +193,7 @@ public class TramiteService {
 		//Obtener persona del Usuario creador de Tramite
 		String usuarioId = securityHelper.obtenerUserIdSession();
 		RestTemplate restTemplate = new RestTemplate();
-		String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id";
+		String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-externo-by-id";
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
 		HttpEntity entity = new HttpEntity<>(null, headers);
