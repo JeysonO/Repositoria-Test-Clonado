@@ -1,5 +1,8 @@
 package pe.com.amsac.tramite.api.controller;
 
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JasperExportManager;
+import net.sf.jasperreports.engine.JasperPrint;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dozer.Mapper;
@@ -18,10 +21,14 @@ import pe.com.amsac.tramite.api.util.ServiceException;
 import pe.com.amsac.tramite.bs.domain.TramiteDerivacion;
 import pe.com.amsac.tramite.bs.service.TramiteDerivacionService;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -71,8 +78,15 @@ public class TramiteDerivacionController {
 			List<TramiteDerivacion> listaTramiteDerivacionPendiente = tramiteDerivacionService.obtenerTramiteDerivacionPendientes();
 			List<TramiteDerivacionResponse> obtenerTramiteDerivacionPendienteList =  new ArrayList<>();
 			TramiteDerivacionResponse tramiteDerivacionResponse = null;
+			LocalDate fechaMaxima = null;
 			for (TramiteDerivacion temp : listaTramiteDerivacionPendiente) {
+				if (temp.getFechaMaximaAtencion()!=null){
+					fechaMaxima =temp.getFechaMaximaAtencion().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+					temp.setFechaMaximaAtencion(null);
+				}
 				tramiteDerivacionResponse = mapper.map(temp, TramiteDerivacionResponse.class);
+				if(fechaMaxima!=null)
+					tramiteDerivacionResponse.setFechaMaximaAtencion(fechaMaxima);
 				obtenerTramiteDerivacionPendienteList.add(tramiteDerivacionResponse);
 			}
 			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(obtenerTramiteDerivacionPendienteList).build();
@@ -95,8 +109,15 @@ public class TramiteDerivacionController {
 			List<TramiteDerivacion> listaTramiteDerivacion = tramiteDerivacionService.buscarTramiteDerivacionParams(tramiteDerivacionRequest);
 			List<TramiteDerivacionResponse> obtenerTramiteDerivacionList =  new ArrayList<>();
 			TramiteDerivacionResponse tramiteDerivacionResponse = null;
+			LocalDate fechaMaxima = null;
 			for (TramiteDerivacion temp : listaTramiteDerivacion) {
+				if (temp.getFechaMaximaAtencion()!=null){
+					fechaMaxima =temp.getFechaMaximaAtencion().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+					temp.setFechaMaximaAtencion(null);
+				}
 				tramiteDerivacionResponse = mapper.map(temp, TramiteDerivacionResponse.class);
+				if(fechaMaxima!=null)
+					tramiteDerivacionResponse.setFechaMaximaAtencion(fechaMaxima);
 				obtenerTramiteDerivacionList.add(tramiteDerivacionResponse);
 			}
 			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(obtenerTramiteDerivacionList).build();
@@ -277,6 +298,4 @@ public class TramiteDerivacionController {
 
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 	}
-
-
 }

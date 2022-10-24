@@ -1,6 +1,9 @@
 package pe.com.amsac.tramite.api.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JasperExportManager;
+import net.sf.jasperreports.engine.JasperPrint;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dozer.Mapper;
@@ -20,7 +23,10 @@ import pe.com.amsac.tramite.bs.domain.Tramite;
 import pe.com.amsac.tramite.bs.service.TramiteDerivacionService;
 import pe.com.amsac.tramite.bs.service.TramiteService;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -84,6 +90,45 @@ public class TramiteController {
 
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 	}
+
+	@GetMapping("/generar-reportes-by-params")
+	public ResponseEntity<CommonResponse> generarReporteByParams(@Valid TramiteRequest tramiteRequest) throws Exception {
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.CREATED;
+
+		try {
+			List<Tramite> listaTramite = tramiteService.buscarTramiteParams(tramiteRequest);
+			List<TramiteResponse> obtenerTramiteList =  new ArrayList<>();
+			TramiteResponse tramiteResponse = null;
+			for (Tramite temp : listaTramite) {
+				tramiteResponse = mapper.map(temp, TramiteResponse.class);
+				obtenerTramiteList.add(tramiteResponse);
+			}
+			//TODO: Ajustar incorporando metodo Export
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(obtenerTramiteList).build();
+
+		} catch (ServiceException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+	}
+
+	@PostMapping("/exportar-reporte")
+	public void export(HttpServletResponse response) throws IOException, JRException {
+
+		JasperPrint jasperPrint = null;
+		response.setContentType("application/pdf");
+		response.setHeader("Content-Disposition", String.format("attachment; filename=\"tramite.pdf\""));
+
+		OutputStream out = response.getOutputStream();
+		jasperPrint = tramiteService.exportPdfFile();
+		JasperExportManager.exportReportToPdfStream(jasperPrint, out);
+
+	}
+
 
 	@PostMapping
 	public ResponseEntity<CommonResponse> registrarTramites(@Valid @RequestBody TramiteBodyRequest tramiteBodyrequest) throws Exception {

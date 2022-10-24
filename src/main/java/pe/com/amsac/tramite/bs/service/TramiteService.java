@@ -1,5 +1,11 @@
 package pe.com.amsac.tramite.bs.service;
 
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.DBObject;
+import com.mongodb.Mongo;
+import net.sf.jasperreports.engine.*;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dozer.Mapper;
@@ -19,7 +25,9 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import pe.com.amsac.tramite.api.response.bean.Mensaje;
+import pe.com.amsac.tramite.api.response.bean.TramiteReporteResponse;
 import pe.com.amsac.tramite.api.util.ServiceException;
+import pe.com.amsac.tramite.bs.domain.TramiteDerivacion;
 import pe.com.amsac.tramite.bs.domain.Usuario;
 import pe.com.amsac.tramite.bs.repository.UsuarioMongoRepository;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
@@ -30,6 +38,8 @@ import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.bs.domain.Tramite;
 import pe.com.amsac.tramite.bs.repository.TramiteMongoRepository;
 
+import java.io.InputStream;
+import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -63,19 +73,18 @@ public class TramiteService {
 		Criteria andCriteria = new Criteria();
 		List<Criteria> andExpression =  new ArrayList<>();
 		Map<String, Object> parameters = mapper.map(tramiteRequest,Map.class);
+		parameters.values().removeIf(Objects::isNull);
 		List<Criteria> listCriteria =  new ArrayList<>();
-		/*if(parameters.containsKey("emailEmisor"))
-			listCriteria.add(Criteria.where("usuarioInicio.email").is(parameters.get("emailEmisor")));
-		*/
 		if(parameters.containsKey("fechaDocumentoDesde") && parameters.containsKey("fechaDocumentoHasta"))
 			listCriteria.add(Criteria.where("fechaDocumento").gte(parameters.get("fechaDocumentoDesde")).lte(parameters.get("fechaDocumentoHasta")));
 		if(parameters.containsKey("fechaCreacionDesde") && parameters.containsKey("fechaCreaciontoHasta"))
 			listCriteria.add(Criteria.where("createdDate").gte(parameters.get("fechaCreacionDesde")).lte(parameters.get("fechaCreaciontoHasta")));
-		if(!listCriteria.isEmpty()) {
+		if(!listCriteria.isEmpty())
 			andExpression.add(new Criteria().andOperator(listCriteria.toArray(new Criteria[listCriteria.size()])));
+		if((Integer) parameters.get("numeroTramite")==0) {
+			parameters.remove("numeroTramite");
 		}
 		Criteria expression = new Criteria();
-		parameters.values().removeIf(Objects::isNull);
 		parameters.forEach((key, value) -> expression.and(key).is(value));
 		andExpression.add(expression);
 		andQuery.addCriteria(andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()])));
@@ -268,5 +277,63 @@ public class TramiteService {
 		return mapRetorno;
 
 	}
-	
+
+	public List<TramiteReporteResponse> generarReporteTramiteSeguimiento(TramiteRequest tramiteRequest) throws Exception{
+		List<Tramite> tramiteList = buscarTramiteParams(tramiteRequest);
+		List<TramiteReporteResponse> tramiteReporteResponseList = new ArrayList<>();
+
+		for(Tramite tramite : tramiteList){
+			TramiteReporteResponse tramiteReporteResponse = mapper.map(tramite,TramiteReporteResponse.class);
+			tramiteReporteResponse.setTramiteDerivacion(tramiteDerivacionService.obtenerTramiteByTramiteId(tramite.getId()));
+			//TODO: obtener Persona y Tipo Persona de Creador de cada tramite
+			//tramiteReporteResponse.setTipoPersona();
+			tramiteReporteResponseList.add(tramiteReporteResponse);
+		}
+
+		//TODO: ajustar a llamar metodo exportPDFile
+
+		return tramiteReporteResponseList;
+
+	}
+
+	//Crear Reporte
+	public JasperPrint exportPdfFile() throws JRException, UnknownHostException {
+		JRDataSource ds = getDatasource();
+
+		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+		InputStream path = classloader.getResourceAsStream("reporteTramiteDerivacion.jrxml");
+
+		JasperReport jasperReport = JasperCompileManager.compileReport(path);
+
+		//List<TramiteReporteResponse> tramiteReporteResponseList = generarReporteTramiteSeguimiento();
+		List<TramiteReporteResponse> tramiteReporteResponseList = null;
+
+		JRBeanCollectionDataSource source = new JRBeanCollectionDataSource(tramiteReporteResponseList);
+
+		String REPORT_CONNECTION = "mongodb.jdbc.MongoDriver.getConnection('jdbc:mongodb://localhost:27017/amsac-tramite')";
+		// Parameters for report
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("DataSurse", source );
+		parameters.put("fechaReporte", new Date() );
+		parameters.put("REPORT_CONNECTION", REPORT_CONNECTION );
+		//parameters.put("title", "Reporte Tramite Derivacion");
+
+		JasperPrint print = JasperFillManager.fillReport(jasperReport,parameters, source);
+
+		return print;
+	}
+
+	private static JRDataSource getDatasource() throws UnknownHostException {
+		try {
+			Mongo m = new Mongo("localhost", 27017);
+			DB db = m.getDB("amsac-tramite");
+			DBCollection t = db.getCollection("tramite_derivacion");
+			List<DBObject> list = t.getIndexInfo();
+			JRDataSource ds = new JRBeanCollectionDataSource(list);
+			return ds;
+		} catch (Exception e) {
+			System.out.println("Other Exception");
+		}
+		return null;
+	}
 }

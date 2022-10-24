@@ -1,5 +1,11 @@
 package pe.com.amsac.tramite.bs.service;
 
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.DBObject;
+import com.mongodb.Mongo;
+import net.sf.jasperreports.engine.*;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.apache.commons.collections.CollectionUtils;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +38,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -62,7 +69,6 @@ public class TramiteDerivacionService {
 
 	@Autowired
 	private Environment env;
-
 
 	public List<TramiteDerivacion> obtenerTramiteDerivacionByTramiteId(String tramiteId) throws Exception {
 		//Obtener Usuario
@@ -270,16 +276,17 @@ public class TramiteDerivacionService {
 		usuario.replace("persona",persona);
 		Usuario userFin = mapper.map(usuario,Usuario.class);
 
-		TramiteDerivacion registroTramiteDerivacion = mapper.map(tramiteDerivacionBodyRequest,TramiteDerivacion.class);
-		/*
+		Date fechaMaxima = null;
 		if(tramiteDerivacionBodyRequest.getFechaMaximaAtencion()!=null){
 			ZoneId defaultZoneId = ZoneId.systemDefault();
 			LocalDate localDate = tramiteDerivacionBodyRequest.getFechaMaximaAtencion();
 			tramiteDerivacionBodyRequest.setFechaMaximaAtencion(null);
-			registroTramiteDerivacion.setFechaMaximaAtencion(Date.from(localDate.atStartOfDay(defaultZoneId).toInstant()));
+			fechaMaxima =Date.from(localDate.atStartOfDay(defaultZoneId).toInstant());
 		}
-		*/
 
+		TramiteDerivacion registroTramiteDerivacion = mapper.map(tramiteDerivacionBodyRequest,TramiteDerivacion.class);
+		if(fechaMaxima!=null)
+			registroTramiteDerivacion.setFechaMaximaAtencion(fechaMaxima);
 		registroTramiteDerivacion.setUsuarioInicio(userInicio);
 		registroTramiteDerivacion.setUsuarioFin(userFin);
 		registroTramiteDerivacion.setTramite(tramiteMongoRepository.findById(tramiteDerivacionBodyRequest.getTramiteId()).get());
@@ -667,8 +674,8 @@ public class TramiteDerivacionService {
 		String bodyHtmlFinal = String.format(msjHTML.toString(),numTramite,fechaDerivacion,fechaMaximaAtencion,diasAtraso,urlTramite);
 
 		Map<String, String> params = new HashMap<String, String>();
-		//params.put("to", "evelyn.flores@bitall.com.pe");
-		params.put("to", correoDestino);
+		params.put("to", "evelyn.flores@bitall.com.pe");
+		//params.put("to", correoDestino);
 		params.put("subject", "TRAMITE PENDIENTE DE ATENCION - N° TRAMITE: "+numTramite);
 		params.put("text", bodyHtmlFinal);
 
@@ -709,6 +716,12 @@ public class TramiteDerivacionService {
 		//envioCorreoSubsanacion(nuevoDerivacionTramite);
 
 		return nuevoDerivacionTramite;
+	}
+
+	//Obtener Tramite Derivacion por tramite Id
+
+	public List<TramiteDerivacion> obtenerTramiteByTramiteId(String tramiteId){
+		return tramiteDerivacionMongoRepository.findByTramiteId(tramiteId);
 	}
 
 }
