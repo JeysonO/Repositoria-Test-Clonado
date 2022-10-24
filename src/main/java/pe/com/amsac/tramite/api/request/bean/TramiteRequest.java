@@ -17,5 +17,4 @@ public class TramiteRequest {
 	private Date fechaDocumentoHasta;
 	private Date fechaCreacionDesde;
 	private Date fechaCreaciontoHasta;
-	private String emailEmisor;
 }
