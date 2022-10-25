@@ -23,9 +23,9 @@ public class TramiteDerivacionReporteResponse {
 
 	private String tramiteId;
 
-	@Mapping("usuarioInicio.email")
+	@Mapping("usuarioInicio.nombreCompleto")
 	public String getUsuarioInicio(){return usuarioInicio;}
-	@Mapping("usuarioFin.email")
+	@Mapping("usuarioFin.nombreCompleto")
 	public String getUsuarioFin(){return usuarioFin;}
 	@Mapping("tramite.id")
 	public String getTramiteId(){return tramiteId;}

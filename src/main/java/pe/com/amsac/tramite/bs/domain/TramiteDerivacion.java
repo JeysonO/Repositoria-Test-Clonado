@@ -80,4 +80,20 @@ public class TramiteDerivacion extends BaseAuditableEntity<String> {
 		return getId();
 	}
 
+	/*
+	public String getUsuarioInicioNombreCompleto(){
+		if(usuarioInicio!=null)
+			return usuarioInicio.getNombreCompleto();
+		else
+			return "";
+	}
+
+	public String getUsuarioFinNombreCompleto(){
+		if(usuarioFin!=null)
+			return usuarioFin.getNombreCompleto();
+		else
+			return "";
+	}
+	*/
+
 }

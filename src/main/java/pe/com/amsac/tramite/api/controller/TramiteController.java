@@ -7,7 +7,9 @@ import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -27,6 +29,7 @@ import pe.com.amsac.tramite.bs.service.TramiteService;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -94,22 +97,36 @@ public class TramiteController {
 	}
 
 	@GetMapping("/exportar-reporte")
-	public void downloadFileEscala(@Valid TramiteRequest tramiteRequest, HttpServletResponse response) throws Exception {
+	//public ResponseEntity<Resource> downloadFileEscala(@Valid TramiteRequest tramiteRequest, HttpServletResponse response) throws Exception {
+	public ResponseEntity<Resource> downloadFileEscala(@Valid TramiteRequest tramiteRequest) throws Exception {
 
 			JasperPrint jasperPrint = null;
-			response.setContentType("application/pdf");
-			response.setHeader("Content-Disposition", String.format("attachment; filename=\"tramite.pdf\""));
+			//response.setContentType("application/pdf");
+			//response.setHeader("Content-Disposition", String.format("attachment; filename=\"tramite.pdf\""));
 
 			//Directorio donde se guardará una copia fisica
-			final String reportPdf = "C:/Users/sayhu/Downloads/reporteTramite.pdf";
+			//final String reportPdf = "C:/Users/sayhu/Downloads/reporteTramite.pdf";
+			//File file = File.createTempFile("abc_", ".pdf");
 			jasperPrint = tramiteService.exportPdfFile(tramiteRequest);
 			//Guardamos en el directorio
-			JasperExportManager.exportReportToPdfFile(jasperPrint, reportPdf);
+			//JasperExportManager.exportReportToPdfFile(jasperPrint, reportPdf);
+
+			byte[] reporte = JasperExportManager.exportReportToPdf(jasperPrint);
+			//File file = File.createTempFile("abc_", ".pdf");
+			Resource resource = new ByteArrayResource(reporte);//new UrlResource("file:" + fulFilePath);
 			//Enviamos el Stream al Cliente
-			OutputStream out = response.getOutputStream();
-			JasperExportManager.exportReportToPdfStream(jasperPrint, out);
+			//OutputStream out = response.getOutputStream();
+			//JasperExportManager.exportReportToPdfStream(jasperPrint, out);
 
 			//Resource resource = JasperExportManager.exportReportToPdfStream(jasperPrint, out);
+
+			//Resource resource = documentoAdjuntoService.obtenerDocumentoAdjunto(documentoAdjuntoRequest);
+
+			String contentType = "application/pdf";
+
+			return ResponseEntity.ok().contentType(MediaType.parseMediaType(contentType))
+					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=tramite-reporte.pdf")
+					.body(resource);
 
 	}
 

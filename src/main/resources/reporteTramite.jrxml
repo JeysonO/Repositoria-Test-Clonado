@@ -41,7 +41,9 @@
         <band height="90" splitType="Stretch">
             <image>
                 <reportElement x="700" y="0" width="84" height="80" uuid="1c003177-754c-448f-8ce1-16868856f545"/>
+                <!--
                 <imageExpression><![CDATA["C:/Users/sayhu/Documents/Personal/Thiaguito/fotos imprimir/5-1.jpg"]]></imageExpression>
+                -->
             </image>
             <staticText>
                 <reportElement style="Title" x="240" y="0" width="350" height="62" uuid="bc1ce1da-8232-46ea-be55-cec4abb986dd"/>

@@ -85,6 +85,10 @@ public class TramiteService {
 		if((Integer) parameters.get("numeroTramite")==0) {
 			parameters.remove("numeroTramite");
 		}
+		if(!StringUtils.isBlank(tramiteRequest.getMisTramite())){
+			parameters.remove("misTramites");
+			parameters.put("createdByUser",securityHelper.obtenerUserIdSession());
+		}
 		Criteria expression = new Criteria();
 		parameters.forEach((key, value) -> expression.and(key).is(value));
 		andExpression.add(expression);
@@ -307,7 +311,7 @@ public class TramiteService {
 			usuario.replace("persona",persona);
 			Usuario user = mapper.map(usuario,Usuario.class);
 
-			tramiteReporteResponse.setUsuario(user.getEmail());
+			tramiteReporteResponse.setUsuario(user.getNombreCompleto());
 			tramiteReporteResponse.setPersona(persona.getRazonSocialNombre());
 			tramiteReporteResponse.setCreatedDate(tramite.getCreatedDate());
 			tramiteReporteResponseList.add(tramiteReporteResponse);
