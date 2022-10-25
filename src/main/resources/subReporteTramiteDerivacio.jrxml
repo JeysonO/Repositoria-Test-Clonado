@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="tramiteDerivacion" pageWidth="740" pageHeight="100" orientation="Landscape" columnWidth="700" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="df013db5-f76e-44d3-b0df-bcbc46d93160">
+    <style name="Title" fontName="Times New Roman" fontSize="50" isBold="true"/>
+    <style name="SubTitle" forecolor="#736343" fontName="Arial" fontSize="18"/>
+    <style name="Column header" forecolor="#666666" fontName="Arial" fontSize="12" isBold="true"/>
+    <style name="Detail" fontName="Arial" fontSize="12"/>
+    <style name="Row" mode="Transparent">
+        <conditionalStyle>
+            <conditionExpression><![CDATA[$V{REPORT_COUNT}%2 == 0]]></conditionExpression>
+            <style backcolor="#E6DAC3"/>
+        </conditionalStyle>
+    </style>
+
+    <field name="secuencia" class="java.lang.Integer"/>
+    <field name="usuarioInicio" class="java.lang.String"/>
+    <field name="estadoInicio" class="java.lang.String"/>
+    <field name="comentarioInicio" class="java.lang.String"/>
+    <field name="usuarioFin" class="java.lang.String"/>
+    <field name="estadoFin" class="java.lang.String"/>
+    <field name="comentarioFin" class="java.lang.String"/>
+    <field name="fechaMaximaAtencion" class="java.time.LocalDate"/>
+
+    <background>
+        <band splitType="Stretch"/>
+    </background>
+    <title>
+        <band splitType="Stretch"/>
+    </title>
+    <pageHeader>
+        <band splitType="Stretch"/>
+    </pageHeader>
+    <columnHeader>
+        <band height="16" splitType="Stretch">
+            <line>
+                <reportElement positionType="FixRelativeToBottom" x="0" y="15" width="700" height="1" uuid="e9d2002a-c8ee-4649-a258-640dad29110c"/>
+                <graphicElement><pen lineWidth="0.5" lineColor="#999999"/></graphicElement>
+            </line>
+            <staticText>
+                <reportElement style="Column header" x="0" y="0" width="60" height="15" forecolor="#736343" uuid="206015bd-48eb-4ee1-9f76-3c929ac33226"/>
+                <textElement textAlignment="Center"  verticalAlignment="Middle"/>
+                <text><![CDATA[Secuencia]]></text>
+            </staticText>
+            <staticText>
+                <reportElement style="Column header" x="60" y="0" width="90" height="15" forecolor="#736343" uuid="611ab65d-bd2a-464c-8a59-5eed26875b1c"/>
+                <textElement textAlignment="Center"  verticalAlignment="Middle"/>
+                <text><![CDATA[Usuario Inicio]]></text>
+            </staticText>
+            <staticText>
+                <reportElement style="Column header" x="150" y="0" width="90" height="15" forecolor="#736343" uuid="8f89861f-ddb2-4caa-ae8b-d611b08fceaa"/>
+                <textElement textAlignment="Center"  verticalAlignment="Middle"/>
+                <text><![CDATA[Estado Inicio]]></text>
+            </staticText>
+            <staticText>
+                <reportElement style="Column header" x="240" y="0" width="90" height="15" forecolor="#736343" uuid="8f89861f-ddb2-4caa-ae8b-d611b08fceaa"/>
+                <textElement textAlignment="Center"  verticalAlignment="Middle"/>
+                <text><![CDATA[Comentario Inicio]]></text>
+            </staticText>
+            <staticText>
+                <reportElement style="Column header" x="330" y="0" width="90" height="15" forecolor="#736343" uuid="3c5ee563-c272-48bd-b660-de721b24e95d"/>
+                <textElement textAlignment="Center"  verticalAlignment="Middle"/>
+                <text><![CDATA[Usuario Fin]]></text>
+            </staticText>
+            <staticText>
+                <reportElement style="Column header" x="420" y="0" width="90" height="15" forecolor="#736343" uuid="8f89861f-ddb2-4caa-ae8b-d611b08fceaa"/>
+                <textElement textAlignment="Center"  verticalAlignment="Middle"/>
+                <text><![CDATA[Estado Fin]]></text>
+            </staticText>
+            <staticText>
+                <reportElement style="Column header" x="510" y="0" width="90" height="15" forecolor="#736343" uuid="8f89861f-ddb2-4caa-ae8b-d611b08fceaa"/>
+                <textElement textAlignment="Center"  verticalAlignment="Middle"/>
+                <text><![CDATA[Comentario Fin]]></text>
+            </staticText>
+            <staticText>
+                <reportElement style="Column header" x="600" y="0" width="90" height="15" forecolor="#736343" uuid="98c2b498-36f1-4ff4-be2e-2f2a8c43df4d"/>
+                <textElement textAlignment="Center"  verticalAlignment="Middle"/>
+                <text><![CDATA[Fecha Atencion]]></text>
+            </staticText>
+        </band>
+    </columnHeader>
+    <detail>
+        <band height="18" splitType="Stretch">
+            <frame>
+                <reportElement style="Row" mode="Opaque" x="0" y="0" width="740" height="15" uuid="fa7cec56-4ec1-48e6-a26e-7266a995d174"/>
+                <textField textAdjust="StretchHeight" isBlankWhenNull="true">
+                    <reportElement style="Detail" x="0" y="0" width="60" height="15" uuid="e2157b53-61ef-440f-8c05-e8db78bd79e6"/>
+                    <textElement textAlignment="Center"  verticalAlignment="Middle"/>
+                    <textFieldExpression><![CDATA[$F{secuencia}]]></textFieldExpression>
+                </textField>
+                <textField textAdjust="StretchHeight" isBlankWhenNull="true">
+                    <reportElement style="Detail" x="60" y="0" width="90" height="15" uuid="0fb08e44-808b-4030-984d-9cd0872b5792"/>
+                    <textElement textAlignment="Center"  verticalAlignment="Middle"/>
+                    <textFieldExpression><![CDATA[$F{usuarioInicio}]]></textFieldExpression>
+                </textField>
+                <textField textAdjust="StretchHeight" isBlankWhenNull="true">
+                    <reportElement style="Detail" x="150" y="0" width="90" height="15" uuid="accd9f59-0a86-4994-a292-6e4f5453071e"/>
+                    <textElement textAlignment="Center"  verticalAlignment="Middle"/>
+                    <textFieldExpression><![CDATA[$F{estadoInicio}]]></textFieldExpression>
+                </textField>
+                <textField textAdjust="StretchHeight" isBlankWhenNull="true">
+                    <reportElement style="Detail" x="240" y="0" width="90" height="15" uuid="accd9f59-0a86-4994-a292-6e4f5453071e"/>
+                    <textElement textAlignment="Center"  verticalAlignment="Middle"/>
+                    <textFieldExpression><![CDATA[$F{comentarioInicio}]]></textFieldExpression>
+                </textField>
+                <textField textAdjust="StretchHeight" isBlankWhenNull="true">
+                    <reportElement style="Detail" x="330" y="0" width="90" height="15" uuid="df722fb7-94d3-409a-bf54-04d0e5e27cde"/>
+                    <textElement textAlignment="Center"  verticalAlignment="Middle"/>
+                    <textFieldExpression><![CDATA[$F{usuarioFin}]]></textFieldExpression>
+                </textField>
+                <textField textAdjust="StretchHeight" isBlankWhenNull="true">
+                    <reportElement style="Detail" x="420" y="0" width="90" height="15" uuid="accd9f59-0a86-4994-a292-6e4f5453071e"/>
+                    <textElement textAlignment="Center"  verticalAlignment="Middle"/>
+                    <textFieldExpression><![CDATA[$F{estadoFin}]]></textFieldExpression>
+                </textField>
+                <textField textAdjust="StretchHeight" isBlankWhenNull="true">
+                    <reportElement style="Detail" x="510" y="0" width="90" height="15" uuid="accd9f59-0a86-4994-a292-6e4f5453071e"/>
+                    <textElement textAlignment="Center"  verticalAlignment="Middle"/>
+                    <textFieldExpression><![CDATA[$F{comentarioFin}]]></textFieldExpression>
+                </textField>
+                <textField textAdjust="StretchHeight" isBlankWhenNull="true">
+                    <reportElement style="Detail" x="600" y="0" width="90" height="15" uuid="d5524806-6206-4578-91fa-83bc04c8830a"/>
+                    <textElement textAlignment="Center"  verticalAlignment="Middle"/>
+                    <textFieldExpression><![CDATA[$F{fechaMaximaAtencion}]]></textFieldExpression>
+                </textField>
+            </frame>
+        </band>
+    </detail>
+    <columnFooter>
+        <band splitType="Stretch"/>
+    </columnFooter>
+    <pageFooter>
+        <band splitType="Stretch"/>
+    </pageFooter>
+    <summary>
+        <band splitType="Stretch"/>
+    </summary>
+</jasperReport>
