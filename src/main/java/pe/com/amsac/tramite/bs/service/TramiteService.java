@@ -25,9 +25,10 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import pe.com.amsac.tramite.api.response.bean.Mensaje;
+import pe.com.amsac.tramite.api.response.bean.TramiteDerivacionReporteResponse;
 import pe.com.amsac.tramite.api.response.bean.TramiteReporteResponse;
 import pe.com.amsac.tramite.api.util.ServiceException;
-import pe.com.amsac.tramite.bs.domain.TramiteDerivacion;
+import pe.com.amsac.tramite.bs.domain.Persona;
 import pe.com.amsac.tramite.bs.domain.Usuario;
 import pe.com.amsac.tramite.bs.repository.UsuarioMongoRepository;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
@@ -279,61 +280,65 @@ public class TramiteService {
 	}
 
 	public List<TramiteReporteResponse> generarReporteTramiteSeguimiento(TramiteRequest tramiteRequest) throws Exception{
+		//Persona y Tipo Persona de Creador de cada tramite
+		RestTemplate restTemplate = new RestTemplate();
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
+		HttpEntity entity = new HttpEntity<>(null, headers);
+
 		List<Tramite> tramiteList = buscarTramiteParams(tramiteRequest);
 		List<TramiteReporteResponse> tramiteReporteResponseList = new ArrayList<>();
 
 		for(Tramite tramite : tramiteList){
 			TramiteReporteResponse tramiteReporteResponse = mapper.map(tramite,TramiteReporteResponse.class);
 			tramiteReporteResponse.setTramiteDerivacion(tramiteDerivacionService.obtenerTramiteByTramiteId(tramite.getId()));
-			//TODO: obtener Persona y Tipo Persona de Creador de cada tramite
-			//tramiteReporteResponse.setTipoPersona();
+
+			String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/" + tramite.getCreatedByUser();
+			ResponseEntity<CommonResponse> response = restTemplate.exchange(uri,HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+
+			//Mapear Persona de Usuario Inicio
+			LinkedHashMap<Object, Object> usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
+			LinkedHashMap<String, String> personaL = (LinkedHashMap<String, String>) usuario.get("persona");
+			personaL.remove("createdDate");
+			personaL.remove("lastModifiedDate");
+			personaL.remove("tipoDocumento");
+			personaL.remove("entityId");
+			Persona persona = mapper.map(personaL,Persona.class);
+			usuario.replace("persona",persona);
+			Usuario user = mapper.map(usuario,Usuario.class);
+
+			tramiteReporteResponse.setUsuario(user.getEmail());
+			tramiteReporteResponse.setPersona(persona.getRazonSocialNombre());
+			tramiteReporteResponse.setCreatedDate(tramite.getCreatedDate());
 			tramiteReporteResponseList.add(tramiteReporteResponse);
 		}
-
-		//TODO: ajustar a llamar metodo exportPDFile
 
 		return tramiteReporteResponseList;
 
 	}
 
-	//Crear Reporte
-	public JasperPrint exportPdfFile() throws JRException, UnknownHostException {
-		JRDataSource ds = getDatasource();
+	public JasperPrint exportPdfFile(TramiteRequest tramiteRequest) throws Exception {
 
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-		InputStream path = classloader.getResourceAsStream("reporteTramiteDerivacion.jrxml");
+		InputStream url1 = classloader.getResourceAsStream("reporteTramite.jrxml");
+		InputStream url2 = classloader.getResourceAsStream("subReporteTramiteDerivacio.jrxml");
 
-		JasperReport jasperReport = JasperCompileManager.compileReport(path);
+		JasperReport jasperReport = JasperCompileManager.compileReport(url1);
+		JasperReport jasperReport1 = JasperCompileManager.compileReport(url2);
 
-		//List<TramiteReporteResponse> tramiteReporteResponseList = generarReporteTramiteSeguimiento();
-		List<TramiteReporteResponse> tramiteReporteResponseList = null;
+		List<TramiteReporteResponse> tramiteReporteResponseList = generarReporteTramiteSeguimiento(tramiteRequest);
 
 		JRBeanCollectionDataSource source = new JRBeanCollectionDataSource(tramiteReporteResponseList);
 
-		String REPORT_CONNECTION = "mongodb.jdbc.MongoDriver.getConnection('jdbc:mongodb://localhost:27017/amsac-tramite')";
 		// Parameters for report
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("DataSurse", source );
 		parameters.put("fechaReporte", new Date() );
-		parameters.put("REPORT_CONNECTION", REPORT_CONNECTION );
+		parameters.put("subReporteUrl", jasperReport1 );
 		//parameters.put("title", "Reporte Tramite Derivacion");
 
-		JasperPrint print = JasperFillManager.fillReport(jasperReport,parameters, source);
+		JasperPrint print = JasperFillManager.fillReport(jasperReport,parameters,source);
 
 		return print;
-	}
-
-	private static JRDataSource getDatasource() throws UnknownHostException {
-		try {
-			Mongo m = new Mongo("localhost", 27017);
-			DB db = m.getDB("amsac-tramite");
-			DBCollection t = db.getCollection("tramite_derivacion");
-			List<DBObject> list = t.getIndexInfo();
-			JRDataSource ds = new JRBeanCollectionDataSource(list);
-			return ds;
-		} catch (Exception e) {
-			System.out.println("Other Exception");
-		}
-		return null;
 	}
 }

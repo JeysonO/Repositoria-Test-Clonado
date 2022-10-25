@@ -2,8 +2,8 @@ package pe.com.amsac.tramite.api.response.bean;
 
 import lombok.Data;
 import org.dozer.Mapping;
-import pe.com.amsac.tramite.bs.domain.TramiteDerivacion;
 
+import java.util.Date;
 import java.util.List;
 
 @Data
@@ -20,11 +20,14 @@ public class TramiteReporteResponse {
 	private String asunto;
 
 	//Otros datos
+	private String usuario;
 	private String tipoDocumentoNombre;
+	private String persona;
 	private String tipoPersona;
 	private String estado;
+	private Date createdDate;
 
-	private List<TramiteDerivacion> tramiteDerivacion;
+	private List<TramiteDerivacionReporteResponse> tramiteDerivacion;
 
 	@Mapping("tipoDocumento.tipoDocumento")
 	public String getTipoDocumentoNombre(){return tipoDocumentoNombre;}
