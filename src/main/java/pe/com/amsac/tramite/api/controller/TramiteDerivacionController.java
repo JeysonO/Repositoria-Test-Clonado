@@ -144,11 +144,11 @@ public class TramiteDerivacionController {
 
 			TramiteDerivacion tramiteDerivacion = tramiteDerivacionService.registrarTramiteDerivacion(tramiteDerivacionBodyrequest);
 
-			//LocalDate localDate = tramiteDerivacion.getFechaMaximaAtencion().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-			//tramiteDerivacion.setFechaMaximaAtencion(null);
+			LocalDate localDate = tramiteDerivacion.getFechaMaximaAtencion().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+			tramiteDerivacion.setFechaMaximaAtencion(null);
 
 			TramiteDerivacionResponse tramiteDerivacionResponse = mapper.map(tramiteDerivacion, TramiteDerivacionResponse.class);
-			//tramiteDerivacionResponse.setFechaMaximaAtencion(localDate);
+			tramiteDerivacionResponse.setFechaMaximaAtencion(localDate);
 
 			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(tramiteDerivacionResponse).build();
 
