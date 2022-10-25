@@ -1,11 +1,5 @@
 package pe.com.amsac.tramite.bs.service;
 
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
-import com.mongodb.Mongo;
-import net.sf.jasperreports.engine.*;
-import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.apache.commons.collections.CollectionUtils;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +21,7 @@ import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.request.body.bean.*;
 import pe.com.amsac.tramite.api.request.bean.TramiteDerivacionRequest;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
+import pe.com.amsac.tramite.api.response.bean.TramiteDerivacionReporteResponse;
 import pe.com.amsac.tramite.bs.domain.Persona;
 import pe.com.amsac.tramite.bs.domain.Tramite;
 import pe.com.amsac.tramite.bs.domain.TramiteDerivacion;
@@ -38,7 +33,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -298,7 +292,7 @@ public class TramiteDerivacionService {
 		tramiteDerivacionMongoRepository.save(registroTramiteDerivacion);
 		//Invocar a servicio para envio de correo
 		//modificar susbanacion
-		envioCorreoDerivacion(registroTramiteDerivacion);
+		//envioCorreoDerivacion(registroTramiteDerivacion);
 
 		return registroTramiteDerivacion;
 
@@ -720,8 +714,22 @@ public class TramiteDerivacionService {
 
 	//Obtener Tramite Derivacion por tramite Id
 
-	public List<TramiteDerivacion> obtenerTramiteByTramiteId(String tramiteId){
-		return tramiteDerivacionMongoRepository.findByTramiteId(tramiteId);
+	public List<TramiteDerivacionReporteResponse> obtenerTramiteByTramiteId(String tramiteId){
+		List<TramiteDerivacion> tramiteDerivacion = tramiteDerivacionMongoRepository.findByTramiteId(tramiteId);
+		List<TramiteDerivacionReporteResponse> tramiteReporteResponseList = new ArrayList<>();
+		LocalDate fechaMaxima = null;
+		for(TramiteDerivacion temp : tramiteDerivacion){
+			if(temp.getFechaMaximaAtencion()!=null){
+				fechaMaxima = temp.getFechaMaximaAtencion().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+				temp.setFechaMaximaAtencion(null);
+			}
+
+			TramiteDerivacionReporteResponse tramiteDerivacionReporteResponse = mapper.map(temp,TramiteDerivacionReporteResponse.class);
+			if(fechaMaxima!=null)
+				tramiteDerivacionReporteResponse.setFechaMaximaAtencion(fechaMaxima);
+			tramiteReporteResponseList.add(tramiteDerivacionReporteResponse);
+		}
+		return tramiteReporteResponseList;
 	}
 
 }
