@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="reporteTramiteDerivacion" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="df013db5-f76e-44d3-b0df-bcbc46d93160">
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="reporteTramiteDerivacion" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" isSummaryNewPage="true" uuid="df013db5-f76e-44d3-b0df-bcbc46d93160">
     <property name="ireport.zoom" value="1.0"/>
     <property name="ireport.x" value="0"/>
     <property name="ireport.y" value="0"/>
@@ -118,9 +118,9 @@
         </band>
     </columnHeader>
     <detail>
-        <band height="180" splitType="Stretch">
-            <textField isBlankWhenNull="true">
-                <reportElement stretchType="RelativeToBandHeight" x="0" y="0" width="30" height="20" uuid="f9cf1e93-86de-42d4-a337-09152af5589f"/>
+        <band height="30" splitType="Stretch">
+            <textField isStretchWithOverflow="true" isBlankWhenNull="true">
+                <reportElement stretchType="NoStretch" x="0" y="0" width="30" height="20" uuid="f9cf1e93-86de-42d4-a337-09152af5589f"/>
                 <box leftPadding="3">
                     <pen lineWidth="0.5"/>
                     <topPen lineWidth="0.5"/>
@@ -131,8 +131,8 @@
                 <textElement textAlignment="Center" verticalAlignment="Middle"/>
                 <textFieldExpression class="java.lang.Integer"><![CDATA[$F{numeroTramite}]]></textFieldExpression>
             </textField>
-            <textField isBlankWhenNull="true">
-                <reportElement stretchType="RelativeToBandHeight" x="30" y="0" width="150" height="20" uuid="f9cf1e93-86de-42d4-a337-09152af5589f"/>
+            <textField isStretchWithOverflow="true" isBlankWhenNull="true">
+                <reportElement stretchType="NoStretch" x="30" y="0" width="150" height="20" uuid="f9cf1e93-86de-42d4-a337-09152af5589f"/>
                 <box leftPadding="3">
                     <pen lineWidth="0.5"/>
                     <topPen lineWidth="0.5"/>
@@ -143,8 +143,8 @@
                 <textElement textAlignment="Center"  verticalAlignment="Middle"/>
                 <textFieldExpression class="java.util.Date"><![CDATA[$F{usuario}]]></textFieldExpression>
             </textField>
-            <textField isBlankWhenNull="true">
-                <reportElement stretchType="RelativeToBandHeight" x="180" y="0" width="70" height="20" uuid="35a6355d-8307-4414-bf43-8a7788ec81c3"/>
+            <textField isStretchWithOverflow="true" isBlankWhenNull="true">
+                <reportElement stretchType="NoStretch" x="180" y="0" width="70" height="20" uuid="35a6355d-8307-4414-bf43-8a7788ec81c3"/>
                 <box leftPadding="3">
                     <pen lineWidth="0.5"/>
                     <topPen lineWidth="0.5"/>
@@ -155,8 +155,8 @@
                 <textElement textAlignment="Center"  verticalAlignment="Middle"/>
                 <textFieldExpression class="java.lang.String"><![CDATA[$F{origenDocumento}]]></textFieldExpression>
             </textField>
-            <textField isBlankWhenNull="true">
-                <reportElement stretchType="RelativeToBandHeight" x="250" y="0" width="90" height="20" uuid="35a6355d-8307-4414-bf43-8a7788ec81c3"/>
+            <textField isStretchWithOverflow="true" isBlankWhenNull="true">
+                <reportElement stretchType="NoStretch" x="250" y="0" width="90" height="20" uuid="35a6355d-8307-4414-bf43-8a7788ec81c3"/>
                 <box leftPadding="3">
                     <pen lineWidth="0.5"/>
                     <topPen lineWidth="0.5"/>
@@ -167,8 +167,8 @@
                 <textElement textAlignment="Center"  verticalAlignment="Middle"/>
                 <textFieldExpression class="java.util.Date"><![CDATA[$F{createdDate}]]></textFieldExpression>
             </textField>
-            <textField isBlankWhenNull="true">
-                <reportElement stretchType="RelativeToBandHeight" x="340" y="0" width="100" height="20" uuid="35a6355d-8307-4414-bf43-8a7788ec81c3"/>
+            <textField isStretchWithOverflow="true" isBlankWhenNull="true">
+                <reportElement stretchType="NoStretch" x="340" y="0" width="100" height="20" uuid="35a6355d-8307-4414-bf43-8a7788ec81c3"/>
                 <box leftPadding="3">
                     <pen lineWidth="0.5"/>
                     <topPen lineWidth="0.5"/>
@@ -179,8 +179,8 @@
                 <textElement textAlignment="Center"  verticalAlignment="Middle"/>
                 <textFieldExpression class="java.lang.String"><![CDATA[$F{asunto}]]></textFieldExpression>
             </textField>
-            <textField isBlankWhenNull="true">
-                <reportElement stretchType="RelativeToBandHeight" x="440" y="0" width="50" height="20" uuid="35a6355d-8307-4414-bf43-8a7788ec81c3"/>
+            <textField isStretchWithOverflow="true" isBlankWhenNull="true">
+                <reportElement stretchType="NoStretch" x="440" y="0" width="50" height="20" uuid="35a6355d-8307-4414-bf43-8a7788ec81c3"/>
                 <box leftPadding="3">
                     <pen lineWidth="0.5"/>
                     <topPen lineWidth="0.5"/>
@@ -191,8 +191,8 @@
                 <textElement textAlignment="Center"  verticalAlignment="Middle"/>
                 <textFieldExpression class="java.lang.String"><![CDATA[$F{estado}]]></textFieldExpression>
             </textField>
-            <textField isBlankWhenNull="true">
-                <reportElement stretchType="RelativeToBandHeight" x="490" y="0" width="50" height="20" uuid="35a6355d-8307-4414-bf43-8a7788ec81c3"/>
+            <textField isStretchWithOverflow="true" isBlankWhenNull="true">
+                <reportElement stretchType="NoStretch" x="490" y="0" width="50" height="20" uuid="35a6355d-8307-4414-bf43-8a7788ec81c3"/>
                 <box leftPadding="3">
                     <pen lineWidth="0.5"/>
                     <topPen lineWidth="0.5"/>
@@ -203,8 +203,8 @@
                 <textElement textAlignment="Center"  verticalAlignment="Middle"/>
                 <textFieldExpression class="java.lang.String"><![CDATA[$F{numeroDocumento}]]></textFieldExpression>
             </textField>
-            <textField isBlankWhenNull="true">
-                <reportElement stretchType="RelativeToBandHeight" x="540" y="0" width="90" height="20" uuid="35a6355d-8307-4414-bf43-8a7788ec81c3"/>
+            <textField isStretchWithOverflow="true" isBlankWhenNull="true">
+                <reportElement stretchType="NoStretch" x="540" y="0" width="90" height="20" uuid="35a6355d-8307-4414-bf43-8a7788ec81c3"/>
                 <box leftPadding="3">
                     <pen lineWidth="0.5"/>
                     <topPen lineWidth="0.5"/>
@@ -215,8 +215,8 @@
                 <textElement textAlignment="Center"  verticalAlignment="Middle"/>
                 <textFieldExpression class="java.lang.String"><![CDATA[$F{tipoDocumentoNombre}]]></textFieldExpression>
             </textField>
-            <textField isBlankWhenNull="true">
-                <reportElement stretchType="RelativeToBandHeight" x="630" y="0" width="140" height="20" uuid="35a6355d-8307-4414-bf43-8a7788ec81c3"/>
+            <textField isStretchWithOverflow="true" isBlankWhenNull="true">
+                <reportElement stretchType="NoStretch" x="630" y="0" width="140" height="20" uuid="35a6355d-8307-4414-bf43-8a7788ec81c3"/>
                 <box leftPadding="3">
                     <pen lineWidth="0.5"/>
                     <topPen lineWidth="0.5"/>
@@ -228,7 +228,7 @@
                 <textFieldExpression class="java.lang.String"><![CDATA[$F{persona}]]></textFieldExpression>
             </textField>
             <subreport>
-                <reportElement x="20" y="30" width="750" height="140" uuid="2a848d3f-50ba-4790-8b49-43bda49ce5e7"/>
+                <reportElement stretchType="RelativeToTallestObject" positionType="FixRelativeToTop" x="10" y="30" width="750" height="0" uuid="2a848d3f-50ba-4790-8b49-43bda49ce5e7"/>
                 <dataSourceExpression>
                     new net.sf.jasperreports.engine.data.JRBeanCollectionDataSource($F{tramiteDerivacion})
                 </dataSourceExpression>
