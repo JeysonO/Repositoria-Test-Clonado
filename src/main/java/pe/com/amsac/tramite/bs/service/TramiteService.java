@@ -1,9 +1,5 @@
 package pe.com.amsac.tramite.bs.service;
 
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
-import com.mongodb.Mongo;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.apache.commons.collections.CollectionUtils;
@@ -25,7 +21,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import pe.com.amsac.tramite.api.response.bean.Mensaje;
-import pe.com.amsac.tramite.api.response.bean.TramiteDerivacionReporteResponse;
 import pe.com.amsac.tramite.api.response.bean.TramiteReporteResponse;
 import pe.com.amsac.tramite.api.util.ServiceException;
 import pe.com.amsac.tramite.bs.domain.Persona;
@@ -40,7 +35,6 @@ import pe.com.amsac.tramite.bs.domain.Tramite;
 import pe.com.amsac.tramite.bs.repository.TramiteMongoRepository;
 
 import java.io.InputStream;
-import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -69,6 +63,8 @@ public class TramiteService {
 	@Autowired
 	private SecurityHelper securityHelper;
 
+	Map<String, Object> filtroParam = new HashMap<>();
+
 	public List<Tramite> buscarTramiteParams(TramiteRequest tramiteRequest) throws Exception {
 		Query andQuery = new Query();
 		Criteria andCriteria = new Criteria();
@@ -76,8 +72,9 @@ public class TramiteService {
 		Map<String, Object> parameters = mapper.map(tramiteRequest,Map.class);
 		parameters.values().removeIf(Objects::isNull);
 		List<Criteria> listCriteria =  new ArrayList<>();
-		if(parameters.containsKey("fechaDocumentoDesde") && parameters.containsKey("fechaDocumentoHasta"))
+		/*if(parameters.containsKey("fechaDocumentoDesde") && parameters.containsKey("fechaDocumentoHasta"))
 			listCriteria.add(Criteria.where("fechaDocumento").gte(parameters.get("fechaDocumentoDesde")).lte(parameters.get("fechaDocumentoHasta")));
+		*/
 		if(parameters.containsKey("fechaCreacionDesde") && parameters.containsKey("fechaCreaciontoHasta"))
 			listCriteria.add(Criteria.where("createdDate").gte(parameters.get("fechaCreacionDesde")).lte(parameters.get("fechaCreaciontoHasta")));
 		if(!listCriteria.isEmpty())
@@ -89,6 +86,7 @@ public class TramiteService {
 			parameters.remove("misTramites");
 			parameters.put("createdByUser",securityHelper.obtenerUserIdSession());
 		}
+		filtroParam = parameters;
 		Criteria expression = new Criteria();
 		parameters.forEach((key, value) -> expression.and(key).is(value));
 		andExpression.add(expression);
@@ -106,14 +104,6 @@ public class TramiteService {
 		Criteria expression = new Criteria();
 		param.values().removeIf(Objects::isNull);
 		param.forEach((key, value) -> expression.and(key).is(value));
-		/*for (Map.Entry<String,Object> paramTMP : param.entrySet()) {
-			if((paramTMP.getValue() instanceof List))
-				//Agregar el criterio con in
-				expression.and(paramTMP.getKey()).in(paramTMP.getValue());
-			else
-				//Agregar el criterio con is
-				expression.and(paramTMP.getKey()).is(paramTMP.getValue());
-		}*/
 		andExpression.add(expression);
 		andQuery.addCriteria(andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()])));
 		andQuery.with(Sort.by(
@@ -259,8 +249,6 @@ public class TramiteService {
 
 		Map<String, Object> mapRetorno = null;
 
-		//if(!CollectionUtils.isEmpty(buscarHistorialTramite(param))){
-			//Tramite tramiteRelacionado = buscarHistorialTramite(param).get(0);
 		if(!CollectionUtils.isEmpty(tramiteList)){
 			Tramite tramiteRelacionado = tramiteList.get(0);
 
@@ -340,6 +328,18 @@ public class TramiteService {
 		parameters.put("fechaReporte", new Date() );
 		parameters.put("subReporteUrl", jasperReport1 );
 		//parameters.put("title", "Reporte Tramite Derivacion");
+
+		//Mostrar filtros Aplicados
+		if(filtroParam.containsKey("fechaCreacionDesde") && filtroParam.containsKey("fechaCreaciontoHasta")){
+			filtroParam.put("fechaCreacion",filtroParam.get("fechaCreacionDesde")+" - "+filtroParam.get("fechaCreaciontoHasta"));
+			filtroParam.remove("fechaCreacionDesde");
+			filtroParam.remove("fechaCreaciontoHasta");
+		}
+		filtroParam.replace("createdByUser", tramiteReporteResponseList.get(0).getUsuario());
+
+		for (Map.Entry<String, Object> entry : filtroParam.entrySet()) {
+			parameters.put(entry.getKey(),entry.getValue());
+		}
 
 		JasperPrint print = JasperFillManager.fillReport(jasperReport,parameters,source);
 

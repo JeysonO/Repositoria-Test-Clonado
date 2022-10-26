@@ -10,11 +10,11 @@ public class TramiteRequest {
 
 	private String createdByUser;
 	private String estado;
-	private String id;
+	//private String id;
 
 	private int numeroTramite;
-	private Date fechaDocumentoDesde;
-	private Date fechaDocumentoHasta;
+	//private Date fechaDocumentoDesde;
+	//private Date fechaDocumentoHasta;
 	private Date fechaCreacionDesde;
 	private Date fechaCreaciontoHasta;
 	private String misTramite;

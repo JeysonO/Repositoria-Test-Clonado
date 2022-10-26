@@ -12,16 +12,56 @@
     <style name="Title" fontName="Times New Roman" fontSize="22" isBold="true"/>
     <style name="Column header" forecolor="#666666" fontName="Arial" fontSize="12" isBold="true"/>
     <style name="Detail" fontName="Arial" fontSize="12"/>
-    <style name="Row" mode="Transparent">
+    <style name="Row" mode="Transparent"/>
+
+    <style name="filtroUsuario">
         <conditionalStyle>
-            <conditionExpression><![CDATA[$V{REPORT_COUNT}%2 == 0]]></conditionExpression>
-            <style backcolor="#E6DAC3"/>
+            <conditionExpression><![CDATA[$P{createdByUser} != null]]></conditionExpression>
+            <style mode="Opaque" forecolor="#FFFFFF" backcolor="#F60404"/>
+        </conditionalStyle>
+        <conditionalStyle>
+            <conditionExpression><![CDATA[$P{createdByUser} == null]]></conditionExpression>
+            <style mode="Opaque" forecolor="#FFFFFF" backcolor="#666666"/>
+        </conditionalStyle>
+    </style>
+    <style name="filtroNumero">
+        <conditionalStyle>
+            <conditionExpression><![CDATA[$P{numeroTramite} != null]]></conditionExpression>
+            <style mode="Opaque" forecolor="#FFFFFF" backcolor="#F60404"/>
+        </conditionalStyle>
+        <conditionalStyle>
+            <conditionExpression><![CDATA[$P{numeroTramite} == null]]></conditionExpression>
+            <style mode="Opaque" forecolor="#FFFFFF" backcolor="#666666"/>
+        </conditionalStyle>
+    </style>
+    <style name="filtroFecha">
+        <conditionalStyle>
+            <conditionExpression><![CDATA[$P{fechaCreacion} != null]]></conditionExpression>
+            <style mode="Opaque" forecolor="#FFFFFF" backcolor="#F60404"/>
+        </conditionalStyle>
+        <conditionalStyle>
+            <conditionExpression><![CDATA[$P{fechaCreacion} == null]]></conditionExpression>
+            <style mode="Opaque" forecolor="#FFFFFF" backcolor="#666666"/>
+        </conditionalStyle>
+    </style>
+    <style name="filtroEstado">
+        <conditionalStyle>
+            <conditionExpression><![CDATA[$P{estado} != null]]></conditionExpression>
+            <style mode="Opaque" forecolor="#FFFFFF" backcolor="#F60404"/>
+        </conditionalStyle>
+        <conditionalStyle>
+            <conditionExpression><![CDATA[$P{estado} == null]]></conditionExpression>
+            <style mode="Opaque" forecolor="#FFFFFF" backcolor="#666666"/>
         </conditionalStyle>
     </style>
 
     <parameter name="DataSurse" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
     <parameter name="fechaReporte" class="java.util.Date"/>
     <parameter name="subReporteUrl" class="net.sf.jasperreports.engine.JasperReport"/>
+    <parameter name="createdByUser" class="java.lang.String"/>
+    <parameter name="numeroTramite" class="java.lang.Integer"/>
+    <parameter name="fechaCreacion" class="java.lang.String"/>
+    <parameter name="estado" class="java.lang.String"/>
 
     <field name="numeroTramite" class="java.lang.Integer"/>
     <field name="usuario" class="java.lang.String"/>
@@ -60,67 +100,90 @@
         <band splitType="Stretch"/>
     </pageHeader>
     <columnHeader>
-        <band height="20" isSplitAllowed="true" >
-            <staticText>
-                <reportElement mode="Opaque" x="0" y="0" width="30" height="20" forecolor="#FFFFFF" backcolor="#666666" />
-                <box topBorder="None" topBorderColor="#000000" leftBorder="None" leftBorderColor="#000000" rightBorder="None" rightBorderColor="#000000" bottomBorder="None" bottomBorderColor="#000000"/>
-                <textElement textAlignment="Center" verticalAlignment="Middle"/>
-                <text><![CDATA[N°]]></text>
-            </staticText>
-            <staticText>
-                <reportElement mode="Opaque" x="30" y="0" width="150" height="20" forecolor="#FFFFFF" backcolor="#666666" />
-                <box topBorder="None" topBorderColor="#000000" leftBorder="None" leftBorderColor="#000000" rightBorder="None" rightBorderColor="#000000" bottomBorder="None" bottomBorderColor="#000000"/>
-                <textElement textAlignment="Center" verticalAlignment="Middle"/>
-                <text><![CDATA[Usuario]]></text>
-            </staticText>
-            <staticText>
-                <reportElement mode="Opaque" x="180" y="0" width="70" height="20" forecolor="#FFFFFF" backcolor="#666666" />
-                <box topBorder="None" topBorderColor="#000000" leftBorder="None" leftBorderColor="#000000" rightBorder="None" rightBorderColor="#000000" bottomBorder="None" bottomBorderColor="#000000"/>
-                <textElement textAlignment="Center" verticalAlignment="Middle"/>
-                <text><![CDATA[Origen]]></text>
-            </staticText>
-            <staticText>
-                <reportElement mode="Opaque" x="250" y="0" width="90" height="20" forecolor="#FFFFFF" backcolor="#666666" />
-                <box topBorder="None" topBorderColor="#000000" leftBorder="None" leftBorderColor="#000000" rightBorder="None" rightBorderColor="#000000" bottomBorder="None" bottomBorderColor="#000000"/>
-                <textElement textAlignment="Center" verticalAlignment="Middle"/>
-                <text><![CDATA[Fecha Creacion]]></text>
-            </staticText>
-            <staticText>
-                <reportElement mode="Opaque" x="340" y="0" width="100" height="20" forecolor="#FFFFFF" backcolor="#666666" />
-                <box topBorder="None" topBorderColor="#000000" leftBorder="None" leftBorderColor="#000000" rightBorder="None" rightBorderColor="#000000" bottomBorder="None" bottomBorderColor="#000000"/>
-                <textElement textAlignment="Center" verticalAlignment="Middle"/>
-                <text><![CDATA[Asunto]]></text>
-            </staticText>
-            <staticText>
-                <reportElement mode="Opaque" x="440" y="0" width="50" height="20" forecolor="#FFFFFF" backcolor="#666666" />
-                <box topBorder="None" topBorderColor="#000000" leftBorder="None" leftBorderColor="#000000" rightBorder="None" rightBorderColor="#000000" bottomBorder="None" bottomBorderColor="#000000"/>
-                <textElement textAlignment="Center" verticalAlignment="Middle"/>
-                <text><![CDATA[Estado]]></text>
-            </staticText>
-            <staticText>
-                <reportElement mode="Opaque" x="490" y="0" width="50" height="20" forecolor="#FFFFFF" backcolor="#666666" />
-                <box topBorder="None" topBorderColor="#000000" leftBorder="None" leftBorderColor="#000000" rightBorder="None" rightBorderColor="#000000" bottomBorder="None" bottomBorderColor="#000000"/>
-                <textElement textAlignment="Center" verticalAlignment="Middle"/>
-                <text><![CDATA[N° Doc]]></text>
-            </staticText>
-            <staticText>
-                <reportElement mode="Opaque" x="540" y="0" width="90" height="20" forecolor="#FFFFFF" backcolor="#666666" />
-                <box topBorder="None" topBorderColor="#000000" leftBorder="None" leftBorderColor="#000000" rightBorder="None" rightBorderColor="#000000" bottomBorder="None" bottomBorderColor="#000000"/>
-                <textElement textAlignment="Center" verticalAlignment="Middle"/>
-                <text><![CDATA[Tipo Documento]]></text>
-            </staticText>
-            <staticText>
-                <reportElement mode="Opaque" x="630" y="0" width="140" height="20" forecolor="#FFFFFF" backcolor="#666666" />
-                <box topBorder="None" topBorderColor="#000000" leftBorder="None" leftBorderColor="#000000" rightBorder="None" rightBorderColor="#000000" bottomBorder="None" bottomBorderColor="#000000"/>
-                <textElement textAlignment="Center" verticalAlignment="Middle"/>
-                <text><![CDATA[Razon Social]]></text>
-            </staticText>
+        <band height="45" isSplitAllowed="true" >
+            <frame>
+                <reportElement x="0" y="0" width="800" height="40"></reportElement>
+                <textField isStretchWithOverflow="true" isBlankWhenNull="true" evaluationTime="Now">
+                    <reportElement stretchType="NoStretch" x="20" y="0" width="200" height="20"/>
+                    <textFieldExpression class="java.lang.String"><![CDATA[( $P{createdByUser} != null ? "Usuario:" + $P{createdByUser} : "" )]]></textFieldExpression>
+                </textField>
+                <textField isStretchWithOverflow="true" isBlankWhenNull="true" evaluationTime="Now">
+                    <reportElement stretchType="NoStretch" x="250" y="0" width="100" height="20"/>
+                    <textFieldExpression class="java.lang.String"><![CDATA[( $P{numeroTramite} != null ? "N° Tramite:" + $P{numeroTramite} : "" )]]></textFieldExpression>
+                </textField>
+                <textField isStretchWithOverflow="true" isBlankWhenNull="true" evaluationTime="Now">
+                    <reportElement stretchType="NoStretch" x="400" y="0" width="200" height="20"/>
+                    <textFieldExpression class="java.lang.String"><![CDATA[( $P{fechaCreacion} != null ? "Fecha Creacion:" + $P{fechaCreacion} : "" )]]></textFieldExpression>
+                </textField>
+                <textField isStretchWithOverflow="true" isBlankWhenNull="true" evaluationTime="Now">
+                    <reportElement stretchType="NoStretch" x="650" y="0" width="100" height="20"/>
+                    <textFieldExpression class="java.lang.String"><![CDATA[( $P{estado} != null ? "Estado:" + $P{estado} : "" )]]></textFieldExpression>
+                </textField>
+            </frame>
+            <frame>
+                <reportElement x="0" y="25" width="800" height="20"/>
+                <staticText>
+                    <reportElement style="filtroNumero" x="0" y="0" width="30" height="20"/>
+                    <box topBorder="None" topBorderColor="#000000" leftBorder="None" leftBorderColor="#000000" rightBorder="None" rightBorderColor="#000000" bottomBorder="None" bottomBorderColor="#000000"/>
+                    <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                    <text><![CDATA[N°]]></text>
+                </staticText>
+                <staticText>
+                    <reportElement style="filtroUsuario" x="30" y="0" width="150" height="20"/>
+                    <box topBorder="None" topBorderColor="#000000" leftBorder="None" leftBorderColor="#000000" rightBorder="None" rightBorderColor="#000000" bottomBorder="None" bottomBorderColor="#000000"/>
+                    <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                    <text><![CDATA[Usuario]]></text>
+                </staticText>
+                <staticText>
+                    <reportElement mode="Opaque" x="180" y="0" width="70" height="20" forecolor="#FFFFFF" backcolor="#666666"/>
+                    <box topBorder="None" topBorderColor="#000000" leftBorder="None" leftBorderColor="#000000" rightBorder="None" rightBorderColor="#000000" bottomBorder="None" bottomBorderColor="#000000"/>
+                    <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                    <text><![CDATA[Origen]]></text>
+                </staticText>
+                <staticText>
+                    <reportElement style="filtroFecha" x="250" y="0" width="90" height="20"/>
+                    <box topBorder="None" topBorderColor="#000000" leftBorder="None" leftBorderColor="#000000" rightBorder="None" rightBorderColor="#000000" bottomBorder="None" bottomBorderColor="#000000"/>
+                    <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                    <text><![CDATA[Fecha Creacion]]></text>
+                </staticText>
+                <staticText>
+                    <reportElement mode="Opaque" x="340" y="0" width="100" height="20" forecolor="#FFFFFF" backcolor="#666666"/>
+                    <box topBorder="None" topBorderColor="#000000" leftBorder="None" leftBorderColor="#000000" rightBorder="None" rightBorderColor="#000000" bottomBorder="None" bottomBorderColor="#000000"/>
+                    <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                    <text><![CDATA[Asunto]]></text>
+                </staticText>
+                <staticText>
+                    <reportElement style="filtroEstado" x="440" y="0" width="50" height="20"/>
+                    <box topBorder="None" topBorderColor="#000000" leftBorder="None" leftBorderColor="#000000" rightBorder="None" rightBorderColor="#000000" bottomBorder="None" bottomBorderColor="#000000"/>
+                    <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                    <text><![CDATA[Estado]]></text>
+                </staticText>
+                <staticText>
+                    <reportElement mode="Opaque" x="490" y="0" width="50" height="20" forecolor="#FFFFFF" backcolor="#666666"/>
+                    <box topBorder="None" topBorderColor="#000000" leftBorder="None" leftBorderColor="#000000" rightBorder="None" rightBorderColor="#000000" bottomBorder="None" bottomBorderColor="#000000"/>
+                    <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                    <text><![CDATA[N° Doc]]></text>
+                </staticText>
+                <staticText>
+                    <reportElement mode="Opaque" x="540" y="0" width="90" height="20" forecolor="#FFFFFF" backcolor="#666666"/>
+                    <box topBorder="None" topBorderColor="#000000" leftBorder="None" leftBorderColor="#000000" rightBorder="None" rightBorderColor="#000000" bottomBorder="None" bottomBorderColor="#000000"/>
+                    <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                    <text><![CDATA[Tipo Documento]]></text>
+                </staticText>
+                <staticText>
+                    <reportElement mode="Opaque" x="630" y="0" width="140" height="20" forecolor="#FFFFFF" backcolor="#666666"/>
+                    <box topBorder="None" topBorderColor="#000000" leftBorder="None" leftBorderColor="#000000" rightBorder="None" rightBorderColor="#000000" bottomBorder="None" bottomBorderColor="#000000"/>
+                    <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                    <text><![CDATA[Razon Social]]></text>
+                </staticText>
+            </frame>
+
         </band>
     </columnHeader>
     <detail>
         <band height="30" splitType="Stretch">
             <textField isStretchWithOverflow="true" isBlankWhenNull="true">
-                <reportElement stretchType="NoStretch" x="0" y="0" width="30" height="20" uuid="f9cf1e93-86de-42d4-a337-09152af5589f"/>
+                <reportElement stretchType="NoStretch" x="0" y="0" width="30" height="20"/>
                 <box leftPadding="3">
                     <pen lineWidth="0.5"/>
                     <topPen lineWidth="0.5"/>
@@ -132,7 +195,7 @@
                 <textFieldExpression class="java.lang.Integer"><![CDATA[$F{numeroTramite}]]></textFieldExpression>
             </textField>
             <textField isStretchWithOverflow="true" isBlankWhenNull="true">
-                <reportElement stretchType="NoStretch" x="30" y="0" width="150" height="20" uuid="f9cf1e93-86de-42d4-a337-09152af5589f"/>
+                <reportElement stretchType="NoStretch" x="30" y="0" width="150" height="20"/>
                 <box leftPadding="3">
                     <pen lineWidth="0.5"/>
                     <topPen lineWidth="0.5"/>
@@ -144,7 +207,7 @@
                 <textFieldExpression class="java.util.Date"><![CDATA[$F{usuario}]]></textFieldExpression>
             </textField>
             <textField isStretchWithOverflow="true" isBlankWhenNull="true">
-                <reportElement stretchType="NoStretch" x="180" y="0" width="70" height="20" uuid="35a6355d-8307-4414-bf43-8a7788ec81c3"/>
+                <reportElement stretchType="NoStretch" x="180" y="0" width="70" height="20"/>
                 <box leftPadding="3">
                     <pen lineWidth="0.5"/>
                     <topPen lineWidth="0.5"/>
@@ -156,7 +219,7 @@
                 <textFieldExpression class="java.lang.String"><![CDATA[$F{origenDocumento}]]></textFieldExpression>
             </textField>
             <textField isStretchWithOverflow="true" isBlankWhenNull="true">
-                <reportElement stretchType="NoStretch" x="250" y="0" width="90" height="20" uuid="35a6355d-8307-4414-bf43-8a7788ec81c3"/>
+                <reportElement stretchType="NoStretch" x="250" y="0" width="90" height="20"/>
                 <box leftPadding="3">
                     <pen lineWidth="0.5"/>
                     <topPen lineWidth="0.5"/>
@@ -168,7 +231,7 @@
                 <textFieldExpression class="java.util.Date"><![CDATA[$F{createdDate}]]></textFieldExpression>
             </textField>
             <textField isStretchWithOverflow="true" isBlankWhenNull="true">
-                <reportElement stretchType="NoStretch" x="340" y="0" width="100" height="20" uuid="35a6355d-8307-4414-bf43-8a7788ec81c3"/>
+                <reportElement stretchType="NoStretch" x="340" y="0" width="100" height="20"/>
                 <box leftPadding="3">
                     <pen lineWidth="0.5"/>
                     <topPen lineWidth="0.5"/>
@@ -180,7 +243,7 @@
                 <textFieldExpression class="java.lang.String"><![CDATA[$F{asunto}]]></textFieldExpression>
             </textField>
             <textField isStretchWithOverflow="true" isBlankWhenNull="true">
-                <reportElement stretchType="NoStretch" x="440" y="0" width="50" height="20" uuid="35a6355d-8307-4414-bf43-8a7788ec81c3"/>
+                <reportElement stretchType="NoStretch" x="440" y="0" width="50" height="20"/>
                 <box leftPadding="3">
                     <pen lineWidth="0.5"/>
                     <topPen lineWidth="0.5"/>
@@ -192,7 +255,7 @@
                 <textFieldExpression class="java.lang.String"><![CDATA[$F{estado}]]></textFieldExpression>
             </textField>
             <textField isStretchWithOverflow="true" isBlankWhenNull="true">
-                <reportElement stretchType="NoStretch" x="490" y="0" width="50" height="20" uuid="35a6355d-8307-4414-bf43-8a7788ec81c3"/>
+                <reportElement stretchType="NoStretch" x="490" y="0" width="50" height="20"/>
                 <box leftPadding="3">
                     <pen lineWidth="0.5"/>
                     <topPen lineWidth="0.5"/>
@@ -204,7 +267,7 @@
                 <textFieldExpression class="java.lang.String"><![CDATA[$F{numeroDocumento}]]></textFieldExpression>
             </textField>
             <textField isStretchWithOverflow="true" isBlankWhenNull="true">
-                <reportElement stretchType="NoStretch" x="540" y="0" width="90" height="20" uuid="35a6355d-8307-4414-bf43-8a7788ec81c3"/>
+                <reportElement stretchType="NoStretch" x="540" y="0" width="90" height="20"/>
                 <box leftPadding="3">
                     <pen lineWidth="0.5"/>
                     <topPen lineWidth="0.5"/>
@@ -216,7 +279,7 @@
                 <textFieldExpression class="java.lang.String"><![CDATA[$F{tipoDocumentoNombre}]]></textFieldExpression>
             </textField>
             <textField isStretchWithOverflow="true" isBlankWhenNull="true">
-                <reportElement stretchType="NoStretch" x="630" y="0" width="140" height="20" uuid="35a6355d-8307-4414-bf43-8a7788ec81c3"/>
+                <reportElement stretchType="NoStretch" x="630" y="0" width="140" height="20"/>
                 <box leftPadding="3">
                     <pen lineWidth="0.5"/>
                     <topPen lineWidth="0.5"/>
@@ -228,7 +291,7 @@
                 <textFieldExpression class="java.lang.String"><![CDATA[$F{persona}]]></textFieldExpression>
             </textField>
             <subreport>
-                <reportElement stretchType="RelativeToTallestObject" positionType="FixRelativeToTop" x="10" y="30" width="750" height="0" uuid="2a848d3f-50ba-4790-8b49-43bda49ce5e7"/>
+                <reportElement stretchType="RelativeToTallestObject" positionType="FixRelativeToTop" x="10" y="30" width="780" height="0"/>
                 <dataSourceExpression>
                     new net.sf.jasperreports.engine.data.JRBeanCollectionDataSource($F{tramiteDerivacion})
                 </dataSourceExpression>

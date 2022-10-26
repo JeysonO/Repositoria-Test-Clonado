@@ -4,6 +4,7 @@ import lombok.Data;
 import org.dozer.Mapping;
 
 import java.time.LocalDate;
+import java.util.Date;
 
 @Data
 public class TramiteDerivacionReporteResponse {
@@ -16,6 +17,8 @@ public class TramiteDerivacionReporteResponse {
 	private String estadoFin;
 	private String comentarioInicio;
 	private String comentarioFin;
+	private Date fechaInicio;
+	private Date fechaFin;
 	private LocalDate fechaMaximaAtencion;
 	private String proveidoAtencion;
 	private String estado;
