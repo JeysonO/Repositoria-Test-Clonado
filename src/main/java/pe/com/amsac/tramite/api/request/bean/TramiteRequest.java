@@ -8,7 +8,7 @@ import java.util.Date;
 @Data
 public class TramiteRequest {
 
-	private String createdByUser;
+	//private String createdByUser;
 	private String estado;
 	//private String id;
 

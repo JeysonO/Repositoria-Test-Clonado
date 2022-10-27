@@ -112,11 +112,11 @@
                     <textFieldExpression class="java.lang.String"><![CDATA[( $P{numeroTramite} != null ? "N° Tramite:" + $P{numeroTramite} : "" )]]></textFieldExpression>
                 </textField>
                 <textField isStretchWithOverflow="true" isBlankWhenNull="true" evaluationTime="Now">
-                    <reportElement stretchType="NoStretch" x="400" y="0" width="200" height="20"/>
+                    <reportElement stretchType="NoStretch" x="400" y="0" width="250" height="20"/>
                     <textFieldExpression class="java.lang.String"><![CDATA[( $P{fechaCreacion} != null ? "Fecha Creacion:" + $P{fechaCreacion} : "" )]]></textFieldExpression>
                 </textField>
                 <textField isStretchWithOverflow="true" isBlankWhenNull="true" evaluationTime="Now">
-                    <reportElement stretchType="NoStretch" x="650" y="0" width="100" height="20"/>
+                    <reportElement stretchType="NoStretch" x="700" y="0" width="80" height="20"/>
                     <textFieldExpression class="java.lang.String"><![CDATA[( $P{estado} != null ? "Estado:" + $P{estado} : "" )]]></textFieldExpression>
                 </textField>
             </frame>

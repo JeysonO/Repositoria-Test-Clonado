@@ -66,6 +66,7 @@ public class TramiteService {
 	Map<String, Object> filtroParam = new HashMap<>();
 
 	public List<Tramite> buscarTramiteParams(TramiteRequest tramiteRequest) throws Exception {
+		SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
 		Query andQuery = new Query();
 		Criteria andCriteria = new Criteria();
 		List<Criteria> andExpression =  new ArrayList<>();
@@ -75,18 +76,26 @@ public class TramiteService {
 		/*if(parameters.containsKey("fechaDocumentoDesde") && parameters.containsKey("fechaDocumentoHasta"))
 			listCriteria.add(Criteria.where("fechaDocumento").gte(parameters.get("fechaDocumentoDesde")).lte(parameters.get("fechaDocumentoHasta")));
 		*/
-		if(parameters.containsKey("fechaCreacionDesde") && parameters.containsKey("fechaCreaciontoHasta"))
-			listCriteria.add(Criteria.where("createdDate").gte(parameters.get("fechaCreacionDesde")).lte(parameters.get("fechaCreaciontoHasta")));
+		if(parameters.containsKey("fechaCreacionDesde")){
+			listCriteria.add(Criteria.where("createdDate").gte(parameters.get("fechaCreacionDesde")));
+			filtroParam.put("fechaCreacionDesde",formatter.format(parameters.get("fechaCreacionDesde")));
+			parameters.remove("fechaCreacionDesde");
+		}
+		if(parameters.containsKey("fechaCreaciontoHasta")){
+			listCriteria.add(Criteria.where("createdDate").lte(parameters.get("fechaCreaciontoHasta")));
+			filtroParam.put("fechaCreaciontoHasta",formatter.format(parameters.get("fechaCreaciontoHasta")));
+			parameters.remove("fechaCreaciontoHasta");
+		}
 		if(!listCriteria.isEmpty())
 			andExpression.add(new Criteria().andOperator(listCriteria.toArray(new Criteria[listCriteria.size()])));
 		if((Integer) parameters.get("numeroTramite")==0) {
 			parameters.remove("numeroTramite");
 		}
 		if(!StringUtils.isBlank(tramiteRequest.getMisTramite())){
-			parameters.remove("misTramites");
+			parameters.remove("misTramite");
 			parameters.put("createdByUser",securityHelper.obtenerUserIdSession());
 		}
-		filtroParam = parameters;
+		filtroParam.putAll(parameters);
 		Criteria expression = new Criteria();
 		parameters.forEach((key, value) -> expression.and(key).is(value));
 		andExpression.add(expression);
@@ -298,6 +307,7 @@ public class TramiteService {
 			Persona persona = mapper.map(personaL,Persona.class);
 			usuario.replace("persona",persona);
 			Usuario user = mapper.map(usuario,Usuario.class);
+			filtroParam.replace("createdByUser", user.getNombreCompleto());
 
 			tramiteReporteResponse.setUsuario(user.getNombreCompleto());
 			tramiteReporteResponse.setPersona(persona.getRazonSocialNombre());
@@ -335,7 +345,6 @@ public class TramiteService {
 			filtroParam.remove("fechaCreacionDesde");
 			filtroParam.remove("fechaCreaciontoHasta");
 		}
-		filtroParam.replace("createdByUser", tramiteReporteResponseList.get(0).getUsuario());
 
 		for (Map.Entry<String, Object> entry : filtroParam.entrySet()) {
 			parameters.put(entry.getKey(),entry.getValue());
