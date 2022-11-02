@@ -15,4 +15,6 @@ public class TramiteDerivacionRequest{
 	private Date fechaDerivacionDesde;
 	private Date fechaDerivacionHasta;
 
+	private String tramiteId;
+
 }

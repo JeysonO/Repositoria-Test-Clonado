@@ -144,11 +144,15 @@ public class TramiteDerivacionController {
 
 			TramiteDerivacion tramiteDerivacion = tramiteDerivacionService.registrarTramiteDerivacion(tramiteDerivacionBodyrequest);
 
-			LocalDate localDate = tramiteDerivacion.getFechaMaximaAtencion().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-			tramiteDerivacion.setFechaMaximaAtencion(null);
+			LocalDate localDate = null;
+			if(tramiteDerivacion.getFechaMaximaAtencion()!=null){
+				localDate = tramiteDerivacion.getFechaMaximaAtencion().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+				tramiteDerivacion.setFechaMaximaAtencion(null);
+			}
 
 			TramiteDerivacionResponse tramiteDerivacionResponse = mapper.map(tramiteDerivacion, TramiteDerivacionResponse.class);
-			tramiteDerivacionResponse.setFechaMaximaAtencion(localDate);
+			if(localDate!=null)
+				tramiteDerivacionResponse.setFechaMaximaAtencion(localDate);
 
 			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(tramiteDerivacionResponse).build();
 
@@ -172,8 +176,16 @@ public class TramiteDerivacionController {
 		try {
 			TramiteDerivacion tramiteDerivacion = tramiteDerivacionService.subsanarTramiteDerivacion(subsanartramiteDerivacionBodyrequest);
 
+			LocalDate localDate = null;
+			if(tramiteDerivacion.getFechaMaximaAtencion()!=null){
+				localDate = tramiteDerivacion.getFechaMaximaAtencion().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+				tramiteDerivacion.setFechaMaximaAtencion(null);
+			}
+			
 			TramiteDerivacionResponse tramiteDerivacionResponse = mapper.map(tramiteDerivacion, TramiteDerivacionResponse.class);
-
+			if(localDate!=null)
+				tramiteDerivacionResponse.setFechaMaximaAtencion(localDate);
+			
 			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(tramiteDerivacionResponse).build();
 
 
@@ -195,7 +207,15 @@ public class TramiteDerivacionController {
 
 			TramiteDerivacion tramiteDerivacion = tramiteDerivacionService.registrarDerivacionTramite(derivartramiteBodyrequest);
 
+			LocalDate localDate = null;
+			if(tramiteDerivacion.getFechaMaximaAtencion()!=null){
+				localDate = tramiteDerivacion.getFechaMaximaAtencion().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+				tramiteDerivacion.setFechaMaximaAtencion(null);
+			}
+
 			TramiteDerivacionResponse tramiteDerivacionResponse = mapper.map(tramiteDerivacion, TramiteDerivacionResponse.class);
+			if(localDate!=null)
+				tramiteDerivacionResponse.setFechaMaximaAtencion(localDate);
 
 			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(tramiteDerivacionResponse).build();
 
@@ -218,8 +238,16 @@ public class TramiteDerivacionController {
 
 			TramiteDerivacion tramiteDerivacion = tramiteDerivacionService.registrarRecepcionTramiteDerivacion(idTramiteDerivacion);
 
-			TramiteDerivacionResponse tramiteDerivacionResponse = mapper.map(tramiteDerivacion, TramiteDerivacionResponse.class);
+			LocalDate localDate = null;
+			if(tramiteDerivacion.getFechaMaximaAtencion()!=null){
+				localDate = tramiteDerivacion.getFechaMaximaAtencion().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+				tramiteDerivacion.setFechaMaximaAtencion(null);
+			}
 
+			TramiteDerivacionResponse tramiteDerivacionResponse = mapper.map(tramiteDerivacion, TramiteDerivacionResponse.class);
+			if(localDate!=null)
+				tramiteDerivacionResponse.setFechaMaximaAtencion(localDate);
+			
 			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(tramiteDerivacionResponse).build();
 
 
@@ -240,7 +268,15 @@ public class TramiteDerivacionController {
 		try {
 			TramiteDerivacion tramiteDerivacion = tramiteDerivacionService.registrarAtencionTramiteDerivacion(atenciontramiteDerivacionBodyrequest);
 
+			LocalDate localDate = null;
+			if(tramiteDerivacion.getFechaMaximaAtencion()!=null){
+				localDate = tramiteDerivacion.getFechaMaximaAtencion().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+				tramiteDerivacion.setFechaMaximaAtencion(null);
+			}
+			
 			TramiteDerivacionResponse tramiteDerivacionResponse = mapper.map(tramiteDerivacion, TramiteDerivacionResponse.class);
+			if(localDate!=null)
+				tramiteDerivacionResponse.setFechaMaximaAtencion(localDate);
 
 			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(tramiteDerivacionResponse).build();
 

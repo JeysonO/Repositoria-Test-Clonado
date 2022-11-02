@@ -186,6 +186,8 @@ public class TramiteDerivacionService {
 		}
 		List<Criteria> listCriteria =  new ArrayList<>();
 		//TODO: Verificar busqueda por parametro tramite.numeroTramite
+		if(parameters.containsKey("tramiteId"))
+			listCriteria.add(Criteria.where("tramite.id").is(parameters.get("tramiteId")));
 		if(parameters.containsKey("numeroTramite"))
 			listCriteria.add(Criteria.where("tramite.numeroTramite").is(parameters.get("numeroTramite")));
 		if(parameters.containsKey("fechaDerivacionDesde") && parameters.containsKey("fechaDerivacionHasta"))
@@ -311,6 +313,11 @@ public class TramiteDerivacionService {
 
 		int sec = obtenerSecuencia(subsanarTramiteActual.getTramite().getId());
 
+		LocalDate fechaMaxima = null;
+		if(subsanarTramiteActual.getFechaMaximaAtencion()!=null){
+			fechaMaxima = subsanarTramiteActual.getFechaMaximaAtencion().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+			subsanarTramiteActual.setFechaMaximaAtencion(null);
+		}
 		TramiteDerivacionBodyRequest subsanarTramiteBodyRequest = mapper.map(subsanarTramiteActual, TramiteDerivacionBodyRequest.class);
 		subsanarTramiteBodyRequest.setSecuencia(sec);
 		subsanarTramiteBodyRequest.setUsuarioInicio(usuarioId);
@@ -319,6 +326,8 @@ public class TramiteDerivacionService {
 		subsanarTramiteBodyRequest.setEstadoInicio(subsanarTramiteActual.getEstadoFin());
 		subsanarTramiteBodyRequest.setFechaInicio(new Date());
 		subsanarTramiteBodyRequest.setForma("ORIGINAL");
+		if(fechaMaxima!=null)
+			subsanarTramiteBodyRequest.setFechaMaximaAtencion(fechaMaxima);
 		subsanarTramiteBodyRequest.setId(null);
 		subsanarTramiteBodyRequest.setEstadoFin(null);
 		subsanarTramiteBodyRequest.setFechaFin(null);
@@ -336,25 +345,34 @@ public class TramiteDerivacionService {
 	public TramiteDerivacion registrarDerivacionTramite(DerivarTramiteBodyRequest derivartramiteBodyrequest) throws Exception {
 
 		String usuarioId = securityHelper.obtenerUserIdSession();
+		ZoneId defaultZoneId = ZoneId.systemDefault();
 
 		TramiteDerivacion derivacionTramiteActual = tramiteDerivacionMongoRepository.findById(derivartramiteBodyrequest.getId()).get();
+
 		derivacionTramiteActual.setEstadoFin("DERIVADO");
 		derivacionTramiteActual.setFechaFin(new Date());
 		derivacionTramiteActual.setProveidoAtencion(derivartramiteBodyrequest.getProveidoAtencion());
 		derivacionTramiteActual.setComentarioFin(derivartramiteBodyrequest.getComentarioFin());
+		derivacionTramiteActual.setFechaMaximaAtencion(Date.from(derivartramiteBodyrequest.getFechaMaximaAtencion().atStartOfDay(defaultZoneId).toInstant()));
 		derivacionTramiteActual.setEstado("A");
 		tramiteDerivacionMongoRepository.save(derivacionTramiteActual);
 
 		//int sec = obtenerSecuencia(derivacionTramiteActual.getId()).get(0).getSecuencia();
 		int sec = obtenerSecuencia(derivacionTramiteActual.getTramite().getId());
 
+		LocalDate fechaMaxima = null;
+		if(derivacionTramiteActual.getFechaMaximaAtencion()!=null){
+			fechaMaxima = derivacionTramiteActual.getFechaMaximaAtencion().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+			derivacionTramiteActual.setFechaMaximaAtencion(null);
+		}
 		TramiteDerivacionBodyRequest derivacionTramiteBodyRequest = mapper.map(derivacionTramiteActual, TramiteDerivacionBodyRequest.class);
 		derivacionTramiteBodyRequest.setSecuencia(sec);
 		derivacionTramiteBodyRequest.setUsuarioInicio(usuarioId);
 		derivacionTramiteBodyRequest.setUsuarioFin(derivartramiteBodyrequest.getUsuarioFin());
 		derivacionTramiteBodyRequest.setEstadoInicio(derivacionTramiteActual.getEstadoFin());
 		derivacionTramiteBodyRequest.setFechaInicio(new Date());
-		derivacionTramiteBodyRequest.setFechaMaximaAtencion(derivartramiteBodyrequest.getFechaMaximaAtencion());
+		if(fechaMaxima!=null)
+			derivacionTramiteBodyRequest.setFechaMaximaAtencion(fechaMaxima);
 		derivacionTramiteBodyRequest.setComentarioInicio(derivacionTramiteActual.getComentarioFin());
 		derivacionTramiteBodyRequest.setId(null);
 		derivacionTramiteBodyRequest.setEstadoFin(null);
@@ -379,6 +397,12 @@ public class TramiteDerivacionService {
 		//int sec = obtenerSecuencia(recepcionTramiteActual.getId()).get(0).getSecuencia();
 		int sec = obtenerSecuencia(recepcionTramiteActual.getTramite().getId());
 
+		LocalDate fechaMaxima = null;
+		if(recepcionTramiteActual.getFechaMaximaAtencion()!=null){
+			fechaMaxima = recepcionTramiteActual.getFechaMaximaAtencion().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+			recepcionTramiteActual.setFechaMaximaAtencion(null);
+		}
+
 		TramiteDerivacionBodyRequest recepcionTramiteBodyRequest = mapper.map(recepcionTramiteActual, TramiteDerivacionBodyRequest.class);
 		recepcionTramiteBodyRequest.setSecuencia(sec);
 		recepcionTramiteBodyRequest.setUsuarioInicio(recepcionTramiteActual.getUsuarioFin().getId());
@@ -386,6 +410,8 @@ public class TramiteDerivacionService {
 		recepcionTramiteBodyRequest.setEstadoInicio(recepcionTramiteActual.getEstadoFin());
 		recepcionTramiteBodyRequest.setFechaInicio(new Date());
 		recepcionTramiteBodyRequest.setComentarioInicio(recepcionTramiteActual.getComentarioFin());
+		if(fechaMaxima!=null)
+			recepcionTramiteBodyRequest.setFechaMaximaAtencion(fechaMaxima);
 		recepcionTramiteBodyRequest.setId(null);
 		recepcionTramiteBodyRequest.setEstadoFin(null);
 		recepcionTramiteBodyRequest.setFechaFin(null);
@@ -409,6 +435,12 @@ public class TramiteDerivacionService {
 
 		String idTramite = atenderTramiteDerivacion.getTramite().getId();
 
+		LocalDate fechaMaxima = null;
+		if(atenderTramiteDerivacion.getFechaMaximaAtencion()!=null){
+			fechaMaxima = atenderTramiteDerivacion.getFechaMaximaAtencion().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+			atenderTramiteDerivacion.setFechaMaximaAtencion(null);
+		}
+
 		if(atenciontramiteDerivacionBodyrequest.getEstadoFin().equals("SUBSANADO")){
 			int sec = obtenerSecuencia(atenderTramiteDerivacion.getTramite().getId());
 
@@ -420,6 +452,8 @@ public class TramiteDerivacionService {
 			subsanarTramiteBodyRequest.setEstadoInicio(atenderTramiteDerivacion.getEstadoFin());
 			subsanarTramiteBodyRequest.setFechaInicio(new Date());
 			subsanarTramiteBodyRequest.setForma("ORIGINAL");
+			if(fechaMaxima!=null)
+				subsanarTramiteBodyRequest.setFechaMaximaAtencion(fechaMaxima);
 			subsanarTramiteBodyRequest.setId(null);
 			subsanarTramiteBodyRequest.setEstadoFin(null);
 			subsanarTramiteBodyRequest.setFechaFin(null);
