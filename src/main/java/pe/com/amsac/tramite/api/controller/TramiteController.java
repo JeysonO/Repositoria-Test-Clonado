@@ -98,7 +98,7 @@ public class TramiteController {
 
 	@GetMapping("/exportar-reporte")
 	//public ResponseEntity<Resource> downloadFileEscala(@Valid TramiteRequest tramiteRequest, HttpServletResponse response) throws Exception {
-	public ResponseEntity<Resource> downloadFileEscala(@Valid TramiteRequest tramiteRequest) throws Exception {
+	public ResponseEntity<Resource> downloadFileTramite(@Valid TramiteRequest tramiteRequest) throws Exception {
 
 			JasperPrint jasperPrint = null;
 			//response.setContentType("application/pdf");

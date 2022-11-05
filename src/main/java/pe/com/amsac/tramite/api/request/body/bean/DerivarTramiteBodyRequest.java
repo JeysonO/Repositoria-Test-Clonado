@@ -18,7 +18,8 @@ public class DerivarTramiteBodyRequest {
 	private String proveidoAtencion;
 	private String forma; //COPIA, ORIGINAL
 	private LocalDate fechaMaximaAtencion;
-	//private Date fechaMaximaAtencion;
+
+	private String enConocimientoAtendido;
 
 	@Mapping("usuarioFin.id")
 	public String getUsuarioFin(){return usuarioFin;}
