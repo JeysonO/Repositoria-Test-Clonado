@@ -237,7 +237,7 @@ public class TramiteDerivacionService {
 		return tramiteList;
 	}
 
-	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
+	//@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
 	public TramiteDerivacion registrarTramiteDerivacion(TramiteDerivacionBodyRequest tramiteDerivacionBodyRequest) throws Exception {
 
 		//Obtener Usuario Inicio
@@ -285,6 +285,7 @@ public class TramiteDerivacionService {
 			registroTramiteDerivacion.setFechaMaximaAtencion(fechaMaxima);
 		registroTramiteDerivacion.setUsuarioInicio(userInicio);
 		registroTramiteDerivacion.setUsuarioFin(userFin);
+		registroTramiteDerivacion.setFechaInicio(new Date());
 		registroTramiteDerivacion.setTramite(tramiteMongoRepository.findById(tramiteDerivacionBodyRequest.getTramiteId()).get());
 		registroTramiteDerivacion.setEstado("P");
 
@@ -293,7 +294,6 @@ public class TramiteDerivacionService {
 
 		tramiteDerivacionMongoRepository.save(registroTramiteDerivacion);
 		//Invocar a servicio para envio de correo
-		//modificar susbanacion
 		//envioCorreoDerivacion(registroTramiteDerivacion);
 
 		return registroTramiteDerivacion;
@@ -344,36 +344,48 @@ public class TramiteDerivacionService {
 	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
 	public TramiteDerivacion registrarDerivacionTramite(DerivarTramiteBodyRequest derivartramiteBodyrequest) throws Exception {
 
-		String usuarioId = securityHelper.obtenerUserIdSession();
-		ZoneId defaultZoneId = ZoneId.systemDefault();
+		TramiteDerivacion derivacionTramiteActual = null;
+		if(derivartramiteBodyrequest.getEnConocimientoAtendido()!=null){
+			if(derivartramiteBodyrequest.getEnConocimientoAtendido().equals("S")){
+				AtencionTramiteDerivacionBodyRequest atencionTramiteDerivacionBodyRequest = new AtencionTramiteDerivacionBodyRequest();
+				atencionTramiteDerivacionBodyRequest.setId(derivartramiteBodyrequest.getId());
+				atencionTramiteDerivacionBodyRequest.setEstadoFin("ATENDIDO");
+				atencionTramiteDerivacionBodyRequest.setComentarioFin("CONOCIMIENTO ATENDIDO");
+				derivacionTramiteActual = registrarAtencionTramiteDerivacion(atencionTramiteDerivacionBodyRequest);
+				derivacionTramiteActual.setForma("COPIA");
+			}
+		}else{
+			derivacionTramiteActual = tramiteDerivacionMongoRepository.findById(derivartramiteBodyrequest.getId()).get();
+			ZoneId defaultZoneId = ZoneId.systemDefault();
+			derivacionTramiteActual.setEstadoFin("DERIVADO");
+			derivacionTramiteActual.setFechaFin(new Date());
+			derivacionTramiteActual.setProveidoAtencion(derivartramiteBodyrequest.getProveidoAtencion());
+			derivacionTramiteActual.setComentarioFin(derivartramiteBodyrequest.getComentarioFin());
+			derivacionTramiteActual.setFechaMaximaAtencion(Date.from(derivartramiteBodyrequest.getFechaMaximaAtencion().atStartOfDay(defaultZoneId).toInstant()));
+			derivacionTramiteActual.setEstado("A");
+			tramiteDerivacionMongoRepository.save(derivacionTramiteActual);
+		}
 
-		TramiteDerivacion derivacionTramiteActual = tramiteDerivacionMongoRepository.findById(derivartramiteBodyrequest.getId()).get();
-
-		derivacionTramiteActual.setEstadoFin("DERIVADO");
-		derivacionTramiteActual.setFechaFin(new Date());
-		derivacionTramiteActual.setProveidoAtencion(derivartramiteBodyrequest.getProveidoAtencion());
-		derivacionTramiteActual.setComentarioFin(derivartramiteBodyrequest.getComentarioFin());
-		derivacionTramiteActual.setFechaMaximaAtencion(Date.from(derivartramiteBodyrequest.getFechaMaximaAtencion().atStartOfDay(defaultZoneId).toInstant()));
-		derivacionTramiteActual.setEstado("A");
-		tramiteDerivacionMongoRepository.save(derivacionTramiteActual);
-
-		//int sec = obtenerSecuencia(derivacionTramiteActual.getId()).get(0).getSecuencia();
+		//Asignar valores manualmente segun condiciones
 		int sec = obtenerSecuencia(derivacionTramiteActual.getTramite().getId());
-
+		String usuarioId = securityHelper.obtenerUserIdSession();
 		LocalDate fechaMaxima = null;
 		if(derivacionTramiteActual.getFechaMaximaAtencion()!=null){
 			fechaMaxima = derivacionTramiteActual.getFechaMaximaAtencion().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 			derivacionTramiteActual.setFechaMaximaAtencion(null);
 		}
+
+		//Crear nuevo tramite
 		TramiteDerivacionBodyRequest derivacionTramiteBodyRequest = mapper.map(derivacionTramiteActual, TramiteDerivacionBodyRequest.class);
 		derivacionTramiteBodyRequest.setSecuencia(sec);
 		derivacionTramiteBodyRequest.setUsuarioInicio(usuarioId);
 		derivacionTramiteBodyRequest.setUsuarioFin(derivartramiteBodyrequest.getUsuarioFin());
-		derivacionTramiteBodyRequest.setEstadoInicio(derivacionTramiteActual.getEstadoFin());
+		derivacionTramiteBodyRequest.setEstadoInicio("DERIVADO");
 		derivacionTramiteBodyRequest.setFechaInicio(new Date());
 		if(fechaMaxima!=null)
 			derivacionTramiteBodyRequest.setFechaMaximaAtencion(fechaMaxima);
-		derivacionTramiteBodyRequest.setComentarioInicio(derivacionTramiteActual.getComentarioFin());
+		//TODO: PENDIENTE DATO COMENTARIO INICIO
+		derivacionTramiteBodyRequest.setComentarioInicio("derivacionTramiteActual.getComentarioFin()");
 		derivacionTramiteBodyRequest.setId(null);
 		derivacionTramiteBodyRequest.setEstadoFin(null);
 		derivacionTramiteBodyRequest.setFechaFin(null);
@@ -394,7 +406,6 @@ public class TramiteDerivacionService {
 		recepcionTramiteActual.setEstado("A");
 		tramiteDerivacionMongoRepository.save(recepcionTramiteActual);
 
-		//int sec = obtenerSecuencia(recepcionTramiteActual.getId()).get(0).getSecuencia();
 		int sec = obtenerSecuencia(recepcionTramiteActual.getTramite().getId());
 
 		LocalDate fechaMaxima = null;
@@ -470,12 +481,10 @@ public class TramiteDerivacionService {
 		return atenderTramiteDerivacion;
 	}
 
-	//public List<TramiteDerivacion> obtenerSecuencia(String id){
 	public int obtenerSecuencia(String id){
 		int secuencia = 1;
 		Query query = new Query();
-		//Criteria criteria = Criteria.where("tramite.id").is(id).and("estado").is("A");
-		Criteria criteria = Criteria.where("tramite.id").is(id);//.and("estado").is("A");
+		Criteria criteria = Criteria.where("tramite.id").is(id);
 		query.addCriteria(criteria);
 		query.with(Sort.by(
 				Sort.Order.desc("secuencia")
@@ -588,7 +597,8 @@ public class TramiteDerivacionService {
 		while ((strLine = bufferedReader.readLine()) != null) {
 			msjHTML.append(strLine);
 		}
-		//Si la forma es ORIGINAL, se envia como pendientes, pero si es COPIA entonces que el mensaje indique que le ha llegago tramite como copia
+		//Si la forma es ORIGINAL, se envia como pendientes, pero si es COPIA entonces que el mensaje indique que le ha .
+		// llegago tramite como copia
 		//Asunto: Segun Forma
 		String forma;
 		if(registrotramiteDerivacion.getForma().equals("ORIGINAL"))
@@ -639,8 +649,8 @@ public class TramiteDerivacionService {
 				correoEmisor, proveido, plazoMaximo, horaRecepcion, avisoConfidencialidad, codigoEtica, desde, hasta);
 
 		Map<String, String> params = new HashMap<String, String>();
-		//params.put("to", "evelyn.flores@bitall.com.pe");
-		params.put("to", correoDestinatario);
+		params.put("to", "evelyn.flores@bitall.com.pe");
+		//params.put("to", correoDestinatario);
 		params.put("subject", forma);
 		params.put("text", bodyHtmlFinal);
 
@@ -745,8 +755,6 @@ public class TramiteDerivacionService {
 
 		return nuevoDerivacionTramite;
 	}
-
-	//Obtener Tramite Derivacion por tramite Id
 
 	public List<TramiteDerivacionReporteResponse> obtenerTramiteByTramiteId(String tramiteId){
 		List<TramiteDerivacion> tramiteDerivacion = tramiteDerivacionMongoRepository.findByTramiteId(tramiteId);
