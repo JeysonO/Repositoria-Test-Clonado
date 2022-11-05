@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="acuseTramiteExterno" language="groovy" pageWidth="595" pageHeight="842" orientation="Portrait"
+              columnWidth="520" leftMargin="38" rightMargin="37" topMargin="10" bottomMargin="25" whenNoDataType="AllSectionsNoDetail">
+    <property name="ireport.zoom" value="1.0"/>
+    <property name="ireport.x" value="0"/>
+    <property name="ireport.y" value="0"/>
+
+    <import value="net.sf.jasperreports.engine.*"/>
+    <import value="net.sf.jasperreports.engine.data.*"/>
+    <import value="net.sf.jasperreports.components.*"/>
+
+    <style name="Title" fontName="Times New Roman" fontSize="26" isBold="true"/>
+    <style name="SubTitle" backcolor="#DEE2E6" fontName="Arial Black" fontSize="18" isBold="true"/>
+    <style name="Detail" fontName="Arial" fontSize="9"/>
+    <style name="Obs" fontName="Arial" fontSize="8"/>
+    <style name="RowTitle" backcolor="#DEE2E6" forecolor="#000000" fontName="Arial Black" fontSize="9" isBold="true"/>
+
+    <parameter name="numeroTramite" class="java.lang.Integer"/>
+    <parameter name="tipoDocumento" class="java.lang.String"/>
+    <parameter name="fechaGeneracion" class="java.lang.String"/>
+    <parameter name="fechaHoraIngreso" class="java.lang.String"/>
+    <parameter name="estado" class="java.lang.String"/>
+    <parameter name="emisorNombreCompleto" class="java.lang.String"/>
+    <parameter name="emisorRazonSocial" class="java.lang.String"/>
+    <parameter name="emisorRuc" class="java.lang.String"/>
+    <parameter name="asunto" class="java.lang.String"/>
+    <parameter name="destino" class="java.lang.String"/>
+
+    <title>
+        <band height="800" splitType="Stretch">
+            <image>
+                <reportElement x="60" y="0" width="99" height="75"/>
+                <imageExpression><![CDATA["C:/Users/sayhu/Downloads/logoAmsac.png"]]></imageExpression>
+            </image>
+            <staticText>
+                <reportElement style="Title" x="158" y="0" width="362" height="75"/>
+                <textElement textAlignment="Left" verticalAlignment="Middle"/>
+                <text><![CDATA[ACTIVOS MINEROS S.A.C]]></text>
+            </staticText>
+            <staticText>
+                <reportElement style="SubTitle" mode="Opaque" x="0" y="99" width="520" height="28"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                <text><![CDATA[ACUSE DE RECIBO]]></text>
+            </staticText>
+            <staticText>
+                <reportElement style="RowTitle" mode="Opaque" x="0" y="133" width="520" height="19"/>
+                <box leftPadding="13"/>
+                <textElement textAlignment="Left" verticalAlignment="Middle"/>
+                <text><![CDATA[N TRAMITE]]></text>
+            </staticText>
+            <textField>
+                <reportElement style="Detail" mode="Opaque" x="0" y="152" width="520" height="17"/>
+                <box leftPadding="13"/>
+                <textElement textAlignment="Left" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$P{numeroTramite}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement style="RowTitle" mode="Opaque" x="0" y="169" width="520" height="19"/>
+                <box leftPadding="13"/>
+                <textElement textAlignment="Left" verticalAlignment="Middle"/>
+                <text><![CDATA[TIPO DE DOCUMENTO]]></text>
+            </staticText>
+            <textField>
+                <reportElement style="Detail" mode="Opaque" x="0" y="188" width="520" height="17"/>
+                <box leftPadding="13"/>
+                <textElement textAlignment="Left" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$P{tipoDocumento}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement style="RowTitle" mode="Opaque" x="0" y="205" width="520" height="19"/>
+                <box leftPadding="13"/>
+                <textElement textAlignment="Left" verticalAlignment="Middle"/>
+                <text><![CDATA[FECHA DE GENERACION]]></text>
+            </staticText>
+            <textField>
+                <reportElement style="Detail" mode="Opaque" x="0" y="224" width="520" height="17"/>
+                <box leftPadding="13"/>
+                <textElement textAlignment="Left" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$P{fechaGeneracion}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement style="RowTitle" mode="Opaque" x="0" y="241" width="520" height="19"/>
+                <box leftPadding="13"/>
+                <textElement textAlignment="Left" verticalAlignment="Middle"/>
+                <text><![CDATA[FECHA Y HORA DE INGRESO/RECEPCION]]></text>
+            </staticText>
+            <textField>
+                <reportElement style="Detail" mode="Opaque" x="0" y="260" width="520" height="17"/>
+                <box leftPadding="13"/>
+                <textElement textAlignment="Left" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$P{fechaHoraIngreso}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement style="RowTitle" mode="Opaque" x="0" y="277" width="520" height="19"/>
+                <box leftPadding="13"/>
+                <textElement textAlignment="Left" verticalAlignment="Middle"/>
+                <text><![CDATA[ESTADO]]></text>
+            </staticText>
+            <image vAlign="Middle" hAlign="Center">
+                <reportElement x="0" y="298" width="43" height="28"/>
+                <box leftPadding="13"/>
+                <imageExpression><![CDATA["C:/Users/sayhu/Downloads/estado.png"]]></imageExpression>
+            </image>
+            <textField>
+                <reportElement style="Detail" mode="Opaque" x="43" y="296" width="477" height="28"/>
+                <box leftPadding="13"/>
+                <textElement textAlignment="Left" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$P{estado}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement style="RowTitle" mode="Opaque" x="0" y="326" width="520" height="19"/>
+                <box leftPadding="13"/>
+                <textElement textAlignment="Left" verticalAlignment="Middle"/>
+                <text><![CDATA[EMISOR]]></text>
+            </staticText>
+            <textField>
+                <reportElement style="Detail" mode="Opaque" x="0" y="348" width="520" height="11"/>
+                <box leftPadding="13"/>
+                <textElement textAlignment="Left" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$P{emisorNombreCompleto}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement style="Detail" mode="Opaque" x="0" y="359" width="520" height="11"/>
+                <box leftPadding="13"/>
+                <textElement textAlignment="Left" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$P{emisorRazonSocial}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement style="Detail" mode="Opaque" x="0" y="370" width="520" height="11"/>
+                <box leftPadding="13"/>
+                <textElement textAlignment="Left" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA["RUC:" + $P{emisorRuc}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement style="Detail" mode="Opaque" x="0" y="381" width="520" height="11"/>
+                <box leftPadding="13"/>
+                <textElement textAlignment="Left" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA["ASUNTO:" + $P{asunto}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement style="RowTitle" mode="Opaque" x="0" y="394" width="520" height="19"/>
+                <box leftPadding="13"/>
+                <textElement textAlignment="Left" verticalAlignment="Middle"/>
+                <text><![CDATA[DESTINATARIO]]></text>
+            </staticText>
+            <staticText>
+                <reportElement style="Detail" mode="Opaque" x="0" y="415" width="342" height="11"/>
+                <box leftPadding="13"/>
+                <textElement textAlignment="Left" verticalAlignment="Middle"/>
+                <text><![CDATA[Mesa de partes virtual de ACTIVOS MINEROS S.A.C]]></text>
+            </staticText>
+            <textField>
+                <reportElement style="Detail" mode="Opaque" x="0" y="426" width="520" height="11"/>
+                <box leftPadding="13"/>
+                <textElement textAlignment="Left" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA["Dirigido:"]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement style="Detail" mode="Opaque" x="0" y="437" width="520" height="11"/>
+                <box leftPadding="13"/>
+                <textElement textAlignment="Left" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$P{destino}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement style="RowTitle" mode="Opaque" x="0" y="450" width="520" height="19"/>
+                <box leftPadding="13"/>
+                <textElement textAlignment="Left" verticalAlignment="Middle"/>
+                <text><![CDATA[HUELLAS DIGITALES DE DOCUMENTOS REGISTRADOS]]></text>
+            </staticText>
+            <image vAlign="Middle" hAlign="Center">
+                <reportElement x="0" y="469" width="40" height="40"/>
+                <box leftPadding="13"/>
+                <imageExpression><![CDATA["C:/Users/sayhu/Downloads/huellas.jpg"]]></imageExpression>
+            </image>
+            <staticText>
+                <reportElement style="Detail" mode="Opaque" x="51" y="469" width="469" height="46"/>
+                <textElement textAlignment="Left" verticalAlignment="Middle"/>
+                <text><![CDATA[asfas]]></text>
+            </staticText>
+            <staticText>
+                <reportElement style="RowTitle" mode="Opaque" x="0" y="515" width="520" height="19"/>
+                <box leftPadding="13"/>
+                <textElement textAlignment="Left" verticalAlignment="Middle"/>
+                <text><![CDATA[OBSERVACIÓN]]></text>
+            </staticText>
+            <staticText>
+                <reportElement style="Obs" mode="Opaque" x="29" y="540" width="225" height="150"/>
+                <textElement textAlignment="Justified"/>
+                <text><![CDATA[El presente documento es fiel reflejo de la comunicación realizada entre las partes, siendo una impresión del documento electrónico emito por AMSAC a petición del emisor firmado electrónicamente mediante Firma Digital y Sello de Tiempo.
+
+De acuerdo con la legislación vigente, Ley de Protección de Datos Personales, los datos personales que figuran en este certificado han sido proporcionados por el emisor con su total y expresa conformidad de forma que sea BIGDAVI como Tercero de Confianza quien preste los servicios de Certificación Electrónica.]]></text>
+            </staticText>
+            <staticText>
+                <reportElement style="Obs" mode="Opaque" x="267" y="540" width="226" height="150"/>
+                <textElement textAlignment="Justified"/>
+                <text><![CDATA[“El horario de Mesa de Partes es de lunes a viernes de 8:30 a.m. a 4:30 p.m.
+
+Los documentos recibidos fuera de ese horario, se computará su ingreso al siguiente día hábil”
+
+Los documentos, información y datos registrados en el formulario de ingreso son responsabilidad del emisor del documento.
+
+El presente acuse de recibo certifica que los documentos del emisor han ingresado en nuestra plataforma y han sido registrados pero no implica su aceptación y/o conformidad de su contenido hasta la revisión del área o personal a quien se dirige el formulario de ingreso y documentos.]]></text>
+            </staticText>
+            <staticText>
+                <reportElement style="Detail" mode="Opaque" x="0" y="743" width="400" height="11"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle"/>
+                <text><![CDATA[Prolongación Pedro Miotta 421, San Juan de Miraflores]]></text>
+            </staticText>
+            <staticText>
+                <reportElement style="Detail" mode="Opaque" x="0" y="754" width="400" height="11"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle"/>
+                <text><![CDATA[Lima, Lima - Perú]]></text>
+            </staticText>
+            <staticText>
+                <reportElement style="Detail" mode="Opaque" x="0" y="765" width="400" height="11"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle"/>
+                <text><![CDATA[www.amsac.pe]]></text>
+            </staticText>
+            <staticText>
+                <reportElement style="Detail" mode="Opaque" x="0" y="776" width="400" height="11"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font size="9"/>
+                </textElement>
+                <text><![CDATA[mvp@amsac.pe]]></text>
+            </staticText>
+            <image>
+                <reportElement x="422" y="743" width="56" height="57"/>
+                <imageExpression><![CDATA["C:/Users/sayhu/Downloads/qr.png"]]></imageExpression>
+            </image>
+        </band>
+    </title>
+</jasperReport>
