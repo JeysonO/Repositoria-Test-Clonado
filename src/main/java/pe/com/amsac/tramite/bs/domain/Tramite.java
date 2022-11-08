@@ -1,7 +1,6 @@
 package pe.com.amsac.tramite.bs.domain;
 
 import lombok.Data;
-import org.dozer.Mapping;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import pe.com.amsac.tramite.api.util.BaseAuditableEntity;
@@ -33,6 +32,9 @@ public class Tramite extends BaseAuditableEntity<String> {
 	private String mensajeTramite;
 	private String avisoConfidencial;
 	private String codigoEtica;
+
+	@DBRef(db = "amsac-seguridad")
+	private Dependencia dependenciaDestino;
 
 	//Datos del documento
 	private Date fechaDocumento;

@@ -18,6 +18,7 @@ public class TramiteResponse {
 
 	//Datos de registro
 	private String tramitePrioridadId;
+	private String dependenciaDestinoId;
 
 	//Datos del documento
 	private Date fechaDocumento;
@@ -59,6 +60,9 @@ public class TramiteResponse {
 
 	//Id tramite referencia
 	private String idTramiteRelacionado;
+
+	@Mapping("dependenciaDestino.id")
+	public String getDependenciaDestinoId(){return dependenciaDestinoId;}
 
 	@Mapping("tipoDocumento.id")
 	public String getTipoDocumentoId(){return tipoDocumentoId;}

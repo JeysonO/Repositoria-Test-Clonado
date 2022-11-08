@@ -3,28 +3,23 @@ package pe.com.amsac.tramite.bs.service;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.disk.DiskFileItem;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.*;
-import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.commons.CommonsMultipartFile;
 import pe.com.amsac.tramite.api.response.bean.Mensaje;
 import pe.com.amsac.tramite.api.response.bean.TramiteReporteResponse;
 import pe.com.amsac.tramite.api.util.ServiceException;
@@ -40,11 +35,8 @@ import pe.com.amsac.tramite.api.request.body.bean.TramiteDerivacionBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.bs.domain.Tramite;
 import pe.com.amsac.tramite.bs.repository.TramiteMongoRepository;
-import org.springframework.mock.web.MockMultipartFile;
 
-import javax.servlet.ServletException;
 import java.io.*;
-import java.nio.file.Files;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -163,8 +155,8 @@ public class TramiteService {
 		tramiteMongoRepository.save(tramite);
 		if(tramiteBodyRequest.getOrigenDocumento().equals("EXTERNO")){
 			registrarDerivacion(tramite);
-			generarReporteAcuseTramite(tramite);
-			//enviarAcuseTramite(tramite);
+			Map param = generarReporteAcuseTramite(tramite);
+			enviarAcuseTramite(param);
 		}
 
 		return tramite;
@@ -372,7 +364,7 @@ public class TramiteService {
 		return print;
 	}
 
-	public void generarReporteAcuseTramite(Tramite tramite) throws Exception {
+	public Map generarReporteAcuseTramite(Tramite tramite) throws Exception {
 
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 		InputStream url = classloader.getResourceAsStream("acuseTramiteExterno.jrxml");
@@ -382,11 +374,13 @@ public class TramiteService {
 		DateFormat Formato = new SimpleDateFormat("yyyy/MM/dd hh:MM:ss");
 		String fechaGeneracion = Formato.format(tramite.getCreatedDate());
 
-		//Mapear Usuario y Persona
+
 		RestTemplate restTemplate = new RestTemplate();
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
 		HttpEntity entity = new HttpEntity<>(null, headers);
+
+		//Mapear Usuario y Persona
 		String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/" + tramite.getCreatedByUser();
 		ResponseEntity<CommonResponse> response = restTemplate.exchange(uri, HttpMethod.GET, entity, new ParameterizedTypeReference<CommonResponse>() {
 		});
@@ -398,22 +392,29 @@ public class TramiteService {
 		usuario.replace("persona", person);
 		Usuario user = mapper.map(usuario, Usuario.class);
 
+		//Mapear Dependencia Destino
+		String uriD = env.getProperty("app.url.seguridad") + "/dependencias/obtener-dependencia-by-id/" + tramite.getDependenciaDestino().getId();
+		ResponseEntity<CommonResponse> responseD = restTemplate.exchange(uriD, HttpMethod.GET, entity, new ParameterizedTypeReference<CommonResponse>() {
+		});
+
+		LinkedHashMap<Object, Object> dependencia = (LinkedHashMap<Object, Object>) responseD.getBody().getData();
+
 		//Obtener Tipo Documento de Tramite
 		TipoDocumento tipoDocumento = tipoDocumentoMongoRepository.findById(tramite.getTipoDocumento().getId()).get();
 
 		// Parameters for report
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("numeroTramite", tramite.getNumeroTramite());
-		parameters.put("tipoDocumento", tipoDocumento.getTipoDocumento());
+		parameters.put("tipoDocumento", tipoDocumento.getTipoDocumento().toUpperCase());
 		parameters.put("fechaGeneracion", fechaGeneracion);
 		parameters.put("fechaHoraIngreso", fechaGeneracion);
 		parameters.put("estado", "EN CUSTODIA ELECTRÓNICA POR AMSAC");
 		parameters.put("emisorNombreCompleto", user.getNombreCompleto());
-		parameters.put("emisorRazonSocial", user.getPersona().getRazonSocialNombre());
+		parameters.put("emisorRazonSocial", user.getPersona().getRazonSocialNombre().toUpperCase());
 		parameters.put("emisorRuc", user.getPersona().getNumeroDocumento());
 		parameters.put("asunto", tramite.getAsunto());
 		//TODO: pendiente conocer destino en registro de Trmaite
-		parameters.put("destino", "dff");
+		parameters.put("destino", dependencia.get("nombre").toString().toUpperCase());
 
 		List<String> lista = null;
 		JRBeanCollectionDataSource source = new JRBeanCollectionDataSource(lista);
@@ -424,47 +425,33 @@ public class TramiteService {
 		final String reportPdf = "C:/Users/sayhu/Downloads/acuseRecibo.pdf";
 		//Guardamos en el directorio
 		JasperExportManager.exportReportToPdfFile(print, reportPdf);
+
+		Map<String, Object> param = new HashMap<>();
+		param.put("ruta",reportPdf);
+		param.put("numeroTramite",tramite.getNumeroTramite());
+		param.put("correo",user.getEmail());
+
+		return param;
 	}
 
-	public void enviarAcuseTramite(Tramite tramite) throws Exception {
-		/*Leer plantilla html
-		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-		InputStream is = classloader.getResourceAsStream("plantillaDerivacion.html");
-		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
-		String strLine;
-		StringBuffer msjHTML = new StringBuffer();
-		while ((strLine = bufferedReader.readLine()) != null) {
-			msjHTML.append(strLine);
-		}*/
-
+	public void enviarAcuseTramite(Map param){
 		RestTemplate restTemplate = new RestTemplate();
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
-		File file = new File("");
-		FileItem fileItem = new DiskFileItem("mainFile", Files.probeContentType(file.toPath()), false, file.getName(), (int) file.length(), file.getParentFile());
-		InputStream input = new FileInputStream(file);
-		OutputStream os = fileItem.getOutputStream();
-		MultipartFile multipartFile = null;
-		IOUtils.copy(input, os);
-		multipartFile = new CommonsMultipartFile(fileItem);
+		MultiValueMap<String, Object> bodyMap = new LinkedMultiValueMap<>();
+		//bodyMap.add("to",param.get("correo"));
+		bodyMap.add("to","evelyn.flores@bitall.com.pe");
+		bodyMap.add("asunto","Acuse de Recibo N° Tramite " + param.get("numeroTramite"));
+		bodyMap.add("cuerpo","<h4>Estimado(a).</h4> </br> <p>Usted ha creado un tramite el cual hemos recibido de forma correcta, los detalles del trámite creado los puede ver en el documento adjunto.</p>");
+		bodyMap.add("files", new FileSystemResource(param.get("ruta").toString()));
 
-		LinkedMultiValueMap<String, String> pdfHeaderMap = new LinkedMultiValueMap<>();
-		pdfHeaderMap.add("Content-disposition", "form-data; name=filex; filename=tramite-reporte.pdf");
-		pdfHeaderMap.add("Content-type", "application/pdf");
-		HttpEntity<byte[]> doc = new HttpEntity<byte[]>(multipartFile.getBytes(), pdfHeaderMap);
+		HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(bodyMap, headers);
 
-		LinkedMultiValueMap<String, Object> multipartReqMap = new LinkedMultiValueMap<>();
-		multipartReqMap.add("files", doc);
-		multipartReqMap.add("to","evelyn.flores@bitall.com.pe");
-		multipartReqMap.add("asunto","TRAMITE - PARA SU CONOCIMIENTO");
-		multipartReqMap.add("cuerpo","ddd");
+		String uri = "http://localhost:8400/api/mail/sendMailAttach";
 
-		HttpEntity<LinkedMultiValueMap<String, Object>> reqEntity = new HttpEntity<>(multipartReqMap, headers);
+		restTemplate.postForEntity( uri, requestEntity, null);
 
-		String uri = env.getProperty("app.url.mail") + "/api/mail/sendMailAttach";
-
-		restTemplate.postForEntity( uri, reqEntity, null);
 	}
 }
