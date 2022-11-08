@@ -132,13 +132,13 @@
                 <reportElement style="Detail" mode="Opaque" x="0" y="370" width="520" height="11"/>
                 <box leftPadding="13"/>
                 <textElement textAlignment="Left" verticalAlignment="Middle"/>
-                <textFieldExpression><![CDATA["RUC:" + $P{emisorRuc}]]></textFieldExpression>
+                <textFieldExpression><![CDATA["RUC: " + $P{emisorRuc}]]></textFieldExpression>
             </textField>
             <textField>
                 <reportElement style="Detail" mode="Opaque" x="0" y="381" width="520" height="11"/>
                 <box leftPadding="13"/>
                 <textElement textAlignment="Left" verticalAlignment="Middle"/>
-                <textFieldExpression><![CDATA["ASUNTO:" + $P{asunto}]]></textFieldExpression>
+                <textFieldExpression><![CDATA["ASUNTO: " + $P{asunto}]]></textFieldExpression>
             </textField>
             <staticText>
                 <reportElement style="RowTitle" mode="Opaque" x="0" y="394" width="520" height="19"/>
