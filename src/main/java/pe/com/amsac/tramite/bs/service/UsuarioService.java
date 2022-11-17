@@ -42,7 +42,7 @@ public class UsuarioService {
 		}
 
 		//Generarle un usuario que no exista
-		usuarioCreateBodyRequest.setUsername(generateUsername(usuarioCreateBodyRequest));
+		usuarioCreateBodyRequest.setUsuario(generateUsername(usuarioCreateBodyRequest));
 
 		//Enviamos a crear el usuario a Keycloak
 		createUserOnKeycloak(usuarioCreateBodyRequest);
@@ -64,8 +64,8 @@ public class UsuarioService {
 			mensajes.add(new Mensaje("E001","ERROR","Ya existe otro usuario con el mismo email"));
 		}
 
-		if(!StringUtils.isBlank(usuarioCreateBodyRequest.getUsername())
-			&& !CollectionUtils.isEmpty(usuarioMongoRepository.findByUsername(usuarioCreateBodyRequest.getUsername()))){
+		if(!StringUtils.isBlank(usuarioCreateBodyRequest.getUsuario())
+			&& !CollectionUtils.isEmpty(usuarioMongoRepository.findByUsuario(usuarioCreateBodyRequest.getUsuario()))){
 			mensajes.add(new Mensaje("E001","ERROR","Ya existe otro usuario con el mismo username"));
 		}
 
@@ -75,8 +75,8 @@ public class UsuarioService {
 
 	public String generateUsername(UsuarioBodyRequest usuarioBodyRequest) throws ServiceException{
 
-		if(!StringUtils.isBlank(usuarioBodyRequest.getUsername()))
-			return usuarioBodyRequest.getUsername();
+		if(!StringUtils.isBlank(usuarioBodyRequest.getUsuario()))
+			return usuarioBodyRequest.getUsuario();
 
 		if(StringUtils.isBlank(usuarioBodyRequest.getNombre())
 				|| StringUtils.isBlank(usuarioBodyRequest.getApePaterno())
@@ -91,7 +91,7 @@ public class UsuarioService {
 
 	public String generateUsername(String nombre, String apellidoPaterno, String apellidoMaterno, int contadorComodin){
 		String username = nombre.substring(0,1).concat(apellidoPaterno).concat(StringUtils.isBlank(apellidoMaterno)?"":apellidoMaterno.substring(0,1)).concat(contadorComodin==0?"":String.valueOf(contadorComodin)).toLowerCase();
-		if(usuarioMongoRepository.findByUsername(username)!=null)
+		if(usuarioMongoRepository.findByUsuario(username)!=null)
 			username = generateUsername(nombre,apellidoPaterno,apellidoMaterno,++contadorComodin);
 		return username;
 	}

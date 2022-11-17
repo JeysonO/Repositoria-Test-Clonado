@@ -1,14 +1,12 @@
 package pe.com.amsac.tramite.bs.domain;
 
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import pe.com.amsac.tramite.api.util.BaseAuditableEntity;
 
-import javax.persistence.AttributeOverride;
-import javax.persistence.AttributeOverrides;
-import javax.persistence.Column;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.io.Serializable;
 
 @Data
@@ -26,12 +24,16 @@ public class Usuario extends BaseAuditableEntity<String> {
 
     @Id
     private String id;
-    private String username;
+    private String usuario;
     private String nombre;
     private String apePaterno;
     private String apeMaterno;
     private String email;
     private String estado;
+    private String tokenActivacion;
+
+    @Transient
+    private String nombreCompleto;
 
     @DBRef
     private Persona persona;
@@ -39,6 +41,10 @@ public class Usuario extends BaseAuditableEntity<String> {
     @Override
     public Serializable getEntityId() {
         return getId();
+    }
+
+    public String getNombreCompleto(){
+        return getNombre().concat(" ").concat(getApePaterno()).concat(" ").concat(StringUtils.isBlank(getApeMaterno())?"":getApeMaterno());
     }
 
 }

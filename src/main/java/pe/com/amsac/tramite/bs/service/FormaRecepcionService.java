@@ -7,6 +7,8 @@ import pe.com.amsac.tramite.api.request.body.bean.FormaRecepcionBodyRequest;
 import pe.com.amsac.tramite.bs.domain.FormaRecepcion;
 import pe.com.amsac.tramite.bs.repository.FormaRecepcionMongoRepository;
 
+import java.util.List;
+
 @Service
 public class FormaRecepcionService {
 
@@ -24,6 +26,9 @@ public class FormaRecepcionService {
 		return formaRecepcion;
 
 	}
-		
+
+	public List<FormaRecepcion> findByAllFormaRecepcion() throws Exception{
+		return formaRecepcionMongoRepository.findByEstado("A");
+	}
 	
 }

@@ -31,6 +31,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String tokenData = new String(Base64.getDecoder().decode(decoded.getPayload()));
                 ObjectMapper mapper = new ObjectMapper();
                 DatosToken datosToken = (DatosToken) mapper.readValue(tokenData, DatosToken.class);
+                datosToken.setToken(jwt);
 
                 /*
                 UserPrincipal userDetails = new UserPrincipal();

@@ -7,6 +7,8 @@ import pe.com.amsac.tramite.api.request.body.bean.TramitePrioridadBodyRequest;
 import pe.com.amsac.tramite.bs.domain.TramitePrioridad;
 import pe.com.amsac.tramite.bs.repository.TramitePrioridadMongoRepository;
 
+import java.util.List;
+
 @Service
 public class TramitePrioridadService {
 
@@ -24,6 +26,9 @@ public class TramitePrioridadService {
 		return tramitePrioridad;
 
 	}
-		
+
+	public List<TramitePrioridad> findByAllTramitePrioridad() throws Exception{
+		return tramitePrioridadMongoRepository.findByEstado("A");
+	}
 	
 }

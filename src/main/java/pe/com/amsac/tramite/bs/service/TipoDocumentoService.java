@@ -7,6 +7,8 @@ import pe.com.amsac.tramite.api.request.body.bean.TipoDocumentoBodyRequest;
 import pe.com.amsac.tramite.bs.domain.TipoDocumento;
 import pe.com.amsac.tramite.bs.repository.TipoDocumentoMongoRepository;
 
+import java.util.List;
+
 @Service
 public class TipoDocumentoService {
 
@@ -23,6 +25,10 @@ public class TipoDocumentoService {
 		tipoDocumentoMongoRepository.save(tipoDocumento);
 		return tipoDocumento;
 
+	}
+
+	public List<TipoDocumento> findByAllTipoDocumento() throws Exception{
+		return tipoDocumentoMongoRepository.findByEstado("A");
 	}
 		
 	

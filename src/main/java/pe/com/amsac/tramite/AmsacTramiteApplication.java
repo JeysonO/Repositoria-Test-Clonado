@@ -27,8 +27,10 @@ import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger.web.UiConfiguration;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TimeZone;
 
 @SpringBootApplication
 //@ComponentScan(basePackages = {"pe.com.bitall.framework.api.*", "pe.com.bitall.security.*"})
@@ -38,6 +40,10 @@ import java.util.List;
 @EnableMongoAuditing(auditorAwareRef = "auditorAware")
 public class AmsacTramiteApplication {
 
+	@PostConstruct
+	void init() {
+		TimeZone.setDefault(TimeZone.getTimeZone("America/Lima"));
+	}
 
 	public static void main(String[] args) {
 		SpringApplication.run(AmsacTramiteApplication.class, args);
@@ -86,6 +92,7 @@ public class AmsacTramiteApplication {
 		return new SpringSecurityAuditorAware();
 	}
 
+	/*
 	@Bean
 	public MongoClient mongo() {
 		ConnectionString connectionString = new ConnectionString("mongodb://localhost:27017/amsac-tramite");
@@ -100,6 +107,7 @@ public class AmsacTramiteApplication {
 	public MongoTemplate mongoTemplate() throws Exception {
 		return new MongoTemplate(mongo(), "amsac-tramite");
 	}
+	*/
 
 }
 

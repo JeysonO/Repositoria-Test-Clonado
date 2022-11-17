@@ -5,10 +5,7 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import pe.com.amsac.tramite.api.util.BaseAuditableEntity;
 
-import javax.persistence.AttributeOverride;
-import javax.persistence.AttributeOverrides;
-import javax.persistence.Column;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -27,15 +24,27 @@ public class TramiteDerivacion extends BaseAuditableEntity<String> {
 	@Id
 	private String id;
 
-	private String secuencia;
+	private int secuencia;
 
-	private String usuarioInicio;
+	//private String usuarioInicio;
+	@DBRef(db = "amsac-seguridad")
+	private Usuario usuarioInicio;
 
-	private String usuarioFin;
+	//private String usuarioFin;
+	@DBRef(db = "amsac-seguridad")
+	private Usuario usuarioFin;
+
+	private String estadoInicio;
 
 	private String estadoFin;
 
-	private String comentario;
+	private String comentarioInicio;
+
+	private String comentarioFin;
+
+	private Date fechaInicio;
+
+	private Date fechaFin;
 
 	private Date fechaMaximaAtencion;
 
@@ -48,9 +57,43 @@ public class TramiteDerivacion extends BaseAuditableEntity<String> {
 	@DBRef
 	private Tramite tramite;
 
+	@Transient
+	private String dependenciaNombreUsuarioInicio;
+
+	@Transient
+	private String cargoNombreUsuarioInicio;
+
+	@Transient
+	private String dependenciaNombreUsuarioFin;
+
+	@Transient
+	private String cargoNombreUsuarioFin;
+
+	@Transient
+	private String usuarioInicioNombreCompleto;
+
+	@Transient
+	private String usuarioFinNombreCompleto;
+
 	@Override
 	public Serializable getEntityId() {
 		return getId();
 	}
+
+	/*
+	public String getUsuarioInicioNombreCompleto(){
+		if(usuarioInicio!=null)
+			return usuarioInicio.getNombreCompleto();
+		else
+			return "";
+	}
+
+	public String getUsuarioFinNombreCompleto(){
+		if(usuarioFin!=null)
+			return usuarioFin.getNombreCompleto();
+		else
+			return "";
+	}
+	*/
 
 }

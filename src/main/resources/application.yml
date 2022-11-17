@@ -15,6 +15,15 @@ spring:
     mongodb:
       uri: "mongodb://${app.connectionMongo.user}:${app.connectionMongo.password}@${app.connectionMongo.host}:${app.connectionMongo.port}/amsac-tramite"
 
+  servlet:
+    multipart:
+      #enabled: true
+      # Threshold after which files are written to disk.
+      #file-size-threshold: 2KB
+      # Max file size.
+      max-file-size: 900MB
+      # Max Request Size
+      max-request-size: 905MB
 
 #  jpa:
 #    hibernate:
@@ -28,28 +37,62 @@ spring:
 
 server:
   port:
-    8280
-  servlet:
+    8100
+    #8280
+  #servlet:
     #context-path: /entity-vuce-middleware
-    context-path: /amsac-tramite-documentario
+    #context-path: /amsac-tramite
 
 ##Properties
 app:
-  keycloak:
-    grant-type: password
-    url-create-user: http://localhost:8181/admin/realms/app-realm/users
-    url: http://localhost:8181/realms/app-realm/protocol/openid-connect/token
-    admin:
-      grant_type: client_credentials
-      client-secret: p4jNYSp2HTe04nIkGlHvTgfIJ46mmDgf
-      client-id: admin-cli
+  #keycloak:
+    #grant-type: password
+    #url-create-user: http://keycloack:8080/admin/realms/app-realm/users
+    #url: http://keycloack:8080/realms/app-realm/protocol/openid-connect/token
+    #grant_type: client_credentials
+    #client-secret: p4jNYSp2HTe04nIkGlHvTgfIJ46mmDgf
+    #client-id: admin-cli
 
 
   connectionMongo:
     user: user-amsac-db
-    password: Evelyn123
+    #password: Evelyn123
+    password: "%40ms%40c2022"
     #password: vvc33#t1ty
-    host: localhost
+    #host: localhost
+    host: mongoservice
+    #host: 190.119.248.132
     #host: 172.16.1.228
-    port: 27017
+    #port: 27017
+    port: 57017
     #port: 55025
+
+  ruta:
+    adjuntos: tramite
+  url:
+    #seguridad: http://localhost:8480/amsac-seguridad
+    seguridad: http://amsac-security-api:8100/amsac-seguridad
+    #seguridad: http://190.119.248.132:8180/amsac-seguridad
+    #mail: http://localhost:8400
+    mail: http://amsac-mail-api:8100
+    linkTramite: http://tramitedocumentario.amsac.pe/
+
+## File Storage Properties
+file:
+  base-upload-dir: tramite/file
+
+fixedDelay:
+  evaluar-tramite-derivacion:
+    milliseconds: 100000
+
+cron:
+  ##second, minute, hour, day, month, weekday. Month and weekday names can be given as the first three letters of the English names
+  #vencimiento-documento: 0 0 00,12 * * *
+  #* "0 0 * * * *" = the top of every hour of every day.
+  #* "*/10 * * * * *" = every ten seconds.
+  #* "0 0 8-10 * * *" = 8, 9 and 10 o'clock of every day.
+  #* "0 0 8,10 * * *" = 8 and 10 o'clock of every day.
+  #* "0 0/30 8-10 * * *" = 8:00, 8:30, 9:00, 9:30 and 10 o'clock every day.
+  #* "0 0 9-17 * * MON-FRI" = on the hour nine-to-five weekdays
+  #* "0 0 0 25 12 ?" = every Christmas Day at midnight
+  evaluar-vencimiento-tramite-derivacion: 0 0 8 * * *

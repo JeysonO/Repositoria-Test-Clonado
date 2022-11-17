@@ -20,4 +20,7 @@ public class DatosToken {
     @JsonProperty("email")
     private String email;
 
+    private String idUser;
+
+    private String token;
 }

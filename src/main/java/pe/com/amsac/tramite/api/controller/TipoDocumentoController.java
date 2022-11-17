@@ -6,10 +6,7 @@ import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import pe.com.amsac.tramite.api.request.body.bean.TipoDocumentoBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.api.response.bean.TipoDocumentoResponse;
@@ -20,6 +17,8 @@ import pe.com.amsac.tramite.bs.domain.TipoDocumento;
 import pe.com.amsac.tramite.bs.service.TipoDocumentoService;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/tipos-documentos")
@@ -50,6 +49,34 @@ public class TipoDocumentoController {
 		} catch (ServiceException se) {
 			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
 			httpStatus = HttpStatus.CONFLICT;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+
+	}
+
+	@GetMapping
+	public ResponseEntity<CommonResponse> obtenerTipoDocumento() throws Exception {
+
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.OK;
+
+		try {
+			List<TipoDocumento> listaTipoDocumento = tipoDocumentoService.findByAllTipoDocumento();
+			List<TipoDocumentoResponse> obtenerTipoDocumentoList =  new ArrayList<>();
+			TipoDocumentoResponse tipoDocumentoResponse = null;
+			for (TipoDocumento temp : listaTipoDocumento) {
+				tipoDocumentoResponse = mapper.map(temp, TipoDocumentoResponse.class);
+				obtenerTipoDocumentoList.add(tipoDocumentoResponse);
+			}
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(obtenerTipoDocumentoList).build();
+
+		} catch (ServiceException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
