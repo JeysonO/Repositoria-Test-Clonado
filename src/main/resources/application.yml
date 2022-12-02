@@ -56,17 +56,10 @@ app:
 
   connectionMongo:
     user: user-amsac-db
-    #password: Evelyn123
     password: "%40ms%40c2022"
-    #password: vvc33#t1ty
-    #host: localhost
     host: mongoservice
-    #host: 190.119.248.132
-    #host: 172.16.1.228
-    #port: 27017
     port: 57017
-    #port: 55025
-
+    
   ruta:
     adjuntos: tramite
   url:

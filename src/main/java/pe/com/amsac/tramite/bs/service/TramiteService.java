@@ -422,7 +422,9 @@ public class TramiteService {
 		JasperPrint print = JasperFillManager.fillReport(jasperReport, parameters,source);
 
 		//Directorio donde se guardará una copia fisica
-		final String reportPdf = "C:/Users/sayhu/Downloads/acuseRecibo.pdf";
+		String nombreArchivoAcuse = "acuseRecibo-" + new SimpleDateFormat("ddMMyyyyHHmmss").format(new Date()) + ".pdf";
+		//final String reportPdf = env.getProperty("file.base-upload-dir") + File.separator + "acuse" + File.separator + "acuseRecibo.pdf";
+		final String reportPdf = env.getProperty("file.base-upload-dir") + File.separator + "acuse" + File.separator + nombreArchivoAcuse;
 		//Guardamos en el directorio
 		JasperExportManager.exportReportToPdfFile(print, reportPdf);
 
@@ -441,15 +443,15 @@ public class TramiteService {
 		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
 		MultiValueMap<String, Object> bodyMap = new LinkedMultiValueMap<>();
-		//bodyMap.add("to",param.get("correo"));
-		bodyMap.add("to","evelyn.flores@bitall.com.pe");
+		bodyMap.add("to",param.get("correo").toString());
+		//bodyMap.add("to","evelyn.flores@bitall.com.pe");
 		bodyMap.add("asunto","Acuse de Recibo N° Tramite " + param.get("numeroTramite"));
 		bodyMap.add("cuerpo","<h4>Estimado(a).</h4> </br> <p>Usted ha creado un tramite el cual hemos recibido de forma correcta, los detalles del trámite creado los puede ver en el documento adjunto.</p>");
 		bodyMap.add("files", new FileSystemResource(param.get("ruta").toString()));
 
 		HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(bodyMap, headers);
 
-		String uri = "http://localhost:8400/api/mail/sendMailAttach";
+		String uri = env.getProperty("app.url.mail") + "/api/mail/sendMailAttach";
 
 		restTemplate.postForEntity( uri, requestEntity, null);
 
