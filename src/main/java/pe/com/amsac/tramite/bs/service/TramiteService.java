@@ -151,6 +151,8 @@ public class TramiteService {
 		if(tramiteBodyRequest.getOrigenDocumento().equals("EXTERNO")){
 			tramite.setEntidadInterna(null);
 			tramite.setEntidadExterna(null);
+		}else{
+			tramite.setDependenciaDestino(null);
 		}
 		tramiteMongoRepository.save(tramite);
 		if(tramiteBodyRequest.getOrigenDocumento().equals("EXTERNO")){
