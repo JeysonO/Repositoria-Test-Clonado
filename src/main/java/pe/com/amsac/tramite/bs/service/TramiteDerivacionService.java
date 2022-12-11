@@ -385,7 +385,7 @@ public class TramiteDerivacionService {
 		if(fechaMaxima!=null)
 			derivacionTramiteBodyRequest.setFechaMaximaAtencion(fechaMaxima);
 		//TODO: PENDIENTE DATO COMENTARIO INICIO
-		derivacionTramiteBodyRequest.setComentarioInicio("derivacionTramiteActual.getComentarioFin()");
+		derivacionTramiteBodyRequest.setComentarioInicio(derivacionTramiteActual.getComentarioFin());
 		derivacionTramiteBodyRequest.setId(null);
 		derivacionTramiteBodyRequest.setEstadoFin(null);
 		derivacionTramiteBodyRequest.setFechaFin(null);
