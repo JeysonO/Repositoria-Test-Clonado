@@ -294,7 +294,9 @@ public class TramiteDerivacionService {
 
 		tramiteDerivacionMongoRepository.save(registroTramiteDerivacion);
 		//Invocar a servicio para envio de correo
-		//envioCorreoDerivacion(registroTramiteDerivacion);
+		//Solo se envia si es diferente de estadoInicio = SUBSANACION
+		if(!registroTramiteDerivacion.getEstadoInicio().equals("SUBSANACION"))
+			envioCorreoDerivacion(registroTramiteDerivacion);
 
 		return registroTramiteDerivacion;
 
@@ -336,7 +338,7 @@ public class TramiteDerivacionService {
 		TramiteDerivacion nuevoDerivacionTramite = registrarTramiteDerivacion(subsanarTramiteBodyRequest);
 
 		//Enviar correo para subsanacion
-		//envioCorreoSubsanacion(nuevoDerivacionTramite);
+		envioCorreoSubsanacion(nuevoDerivacionTramite);
 
 		return nuevoDerivacionTramite;
 	}
@@ -649,8 +651,8 @@ public class TramiteDerivacionService {
 				correoEmisor, proveido, plazoMaximo, horaRecepcion, avisoConfidencialidad, codigoEtica, desde, hasta);
 
 		Map<String, String> params = new HashMap<String, String>();
-		params.put("to", "evelyn.flores@bitall.com.pe");
-		//params.put("to", correoDestinatario);
+		//params.put("to", "evelyn.flores@bitall.com.pe");
+		params.put("to", correoDestinatario);
 		params.put("subject", forma);
 		params.put("text", bodyHtmlFinal);
 
