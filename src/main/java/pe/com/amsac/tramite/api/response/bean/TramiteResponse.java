@@ -4,6 +4,7 @@ import lombok.Data;
 import org.dozer.Mapping;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 public class TramiteResponse {
@@ -60,6 +61,12 @@ public class TramiteResponse {
 
 	//Id tramite referencia
 	private String idTramiteRelacionado;
+
+	private String usuario;
+	private String persona;
+	private Date createdDate;
+
+	private List<TramiteDerivacionReporteResponse> tramiteDerivacion;
 
 	@Mapping("dependenciaDestino.id")
 	public String getDependenciaDestinoId(){return dependenciaDestinoId;}

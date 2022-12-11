@@ -22,6 +22,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import pe.com.amsac.tramite.api.response.bean.Mensaje;
 import pe.com.amsac.tramite.api.response.bean.TramiteReporteResponse;
+import pe.com.amsac.tramite.api.response.bean.TramiteResponse;
 import pe.com.amsac.tramite.api.util.ServiceException;
 import pe.com.amsac.tramite.bs.domain.Persona;
 import pe.com.amsac.tramite.bs.domain.TipoDocumento;
@@ -106,6 +107,7 @@ public class TramiteService {
 		andExpression.add(expression);
 		andQuery.addCriteria(andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()])));
 		List<Tramite> tramiteList = mongoTemplate.find(andQuery, Tramite.class);
+
 		return tramiteList;
 	}
 
@@ -298,6 +300,8 @@ public class TramiteService {
 		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
 		HttpEntity entity = new HttpEntity<>(null, headers);
 
+		//List<TramiteReporteResponse> tramiteReporteResponseList = buscarTramiteParams(tramiteRequest);
+
 		List<Tramite> tramiteList = buscarTramiteParams(tramiteRequest);
 		List<TramiteReporteResponse> tramiteReporteResponseList = new ArrayList<>();
 
@@ -457,5 +461,46 @@ public class TramiteService {
 
 		restTemplate.postForEntity( uri, requestEntity, null);
 
+	}
+
+	public List<TramiteResponse> buscarTramiteWithParams(TramiteRequest tramiteRequest) throws Exception {
+
+		//Persona y Tipo Persona de Creador de cada tramite
+		RestTemplate restTemplate = new RestTemplate();
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
+		HttpEntity entity = new HttpEntity<>(null, headers);
+
+		//List<TramiteReporteResponse> tramiteReporteResponseList = buscarTramiteParams(tramiteRequest);
+
+		List<Tramite> tramiteList = buscarTramiteParams(tramiteRequest);
+		List<TramiteResponse> tramiteResponseList = new ArrayList<>();
+
+		for(Tramite tramite : tramiteList){
+			TramiteResponse tramiteResponse = mapper.map(tramite,TramiteResponse.class);
+			tramiteResponse.setTramiteDerivacion(tramiteDerivacionService.obtenerTramiteByTramiteId(tramite.getId()));
+
+			String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/" + tramite.getCreatedByUser();
+			ResponseEntity<CommonResponse> response = restTemplate.exchange(uri,HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+
+			//Mapear Persona de Usuario Inicio
+			LinkedHashMap<Object, Object> usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
+			LinkedHashMap<String, String> personaL = (LinkedHashMap<String, String>) usuario.get("persona");
+			personaL.remove("createdDate");
+			personaL.remove("lastModifiedDate");
+			personaL.remove("tipoDocumento");
+			personaL.remove("entityId");
+			Persona persona = mapper.map(personaL,Persona.class);
+			usuario.replace("persona",persona);
+			Usuario user = mapper.map(usuario,Usuario.class);
+			filtroParam.replace("createdByUser", user.getNombreCompleto());
+
+			tramiteResponse.setUsuario(user.getNombreCompleto());
+			tramiteResponse.setPersona(persona.getRazonSocialNombre());
+			tramiteResponse.setCreatedDate(tramite.getCreatedDate());
+			tramiteResponseList.add(tramiteResponse);
+		}
+
+		return tramiteResponseList;
 	}
 }

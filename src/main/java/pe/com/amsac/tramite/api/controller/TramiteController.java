@@ -59,6 +59,7 @@ public class TramiteController {
 		HttpStatus httpStatus = HttpStatus.CREATED;
 
 		try {
+			/*
 			List<Tramite> listaTramite = tramiteService.buscarTramiteParams(tramiteRequest);
 			List<TramiteResponse> obtenerTramiteList =  new ArrayList<>();
 			TramiteResponse tramiteResponse = null;
@@ -66,6 +67,8 @@ public class TramiteController {
 				tramiteResponse = mapper.map(temp, TramiteResponse.class);
 				obtenerTramiteList.add(tramiteResponse);
 			}
+			*/
+			List<TramiteResponse> obtenerTramiteList =  tramiteService.buscarTramiteWithParams(tramiteRequest);
 			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(obtenerTramiteList).build();
 
 		} catch (ServiceException se) {
