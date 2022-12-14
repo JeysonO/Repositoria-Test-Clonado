@@ -295,7 +295,7 @@ public class TramiteDerivacionService {
 		tramiteDerivacionMongoRepository.save(registroTramiteDerivacion);
 		//Invocar a servicio para envio de correo
 		//Solo se envia si es diferente de estadoInicio = SUBSANACION
-		if(!registroTramiteDerivacion.getEstadoInicio().equals("SUBSANACION"))
+		if(registroTramiteDerivacion.getEstadoInicio()!=null && !registroTramiteDerivacion.getEstadoInicio().equals("SUBSANACION"))
 			envioCorreoDerivacion(registroTramiteDerivacion);
 
 		return registroTramiteDerivacion;
