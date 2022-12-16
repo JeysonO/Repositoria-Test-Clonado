@@ -9,10 +9,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -585,9 +582,17 @@ public class TramiteDerivacionService {
 		params.put("subject", forma);
 		params.put("text", bodyHtmlFinal);
 
+		/*
 		RestTemplate restTemplate = new RestTemplate();
 		String uri = env.getProperty("app.url.mail") + "/api/mail/sendMail";
 		restTemplate.postForEntity( uri, params, null);
+		*/
+		RestTemplate restTemplate = new RestTemplate();
+		String uri = env.getProperty("app.url.mail") + "/api/mail/sendMail";
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		HttpEntity request = new HttpEntity<>(params, headers);
+		restTemplate.exchange(uri,HttpMethod.POST,request,String.class);
 
 	}
 
@@ -658,9 +663,18 @@ public class TramiteDerivacionService {
 		params.put("subject", forma);
 		params.put("text", bodyHtmlFinal);
 
+		/*
 		RestTemplate restTemplate = new RestTemplate();
 		String uri = env.getProperty("app.url.mail") + "/api/mail/sendMail";
 		restTemplate.postForEntity( uri, params, null);
+		*/
+
+		RestTemplate restTemplate = new RestTemplate();
+		String uri = env.getProperty("app.url.mail") + "/api/mail/sendMail";
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		HttpEntity request = new HttpEntity<>(params, headers);
+		restTemplate.exchange(uri,HttpMethod.POST,request,String.class);
 
 	}
 
@@ -721,9 +735,17 @@ public class TramiteDerivacionService {
 		params.put("subject", "TRAMITE PENDIENTE DE ATENCION - N° TRAMITE: "+numTramite);
 		params.put("text", bodyHtmlFinal);
 
+		/*
 		RestTemplate restTemplate = new RestTemplate();
 		String uri = env.getProperty("app.url.mail") + "/api/mail/sendMail";
 		restTemplate.postForEntity( uri, params, null);
+		*/
+		RestTemplate restTemplate = new RestTemplate();
+		String uri = env.getProperty("app.url.mail") + "/api/mail/sendMail";
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		HttpEntity request = new HttpEntity<>(params, headers);
+		restTemplate.exchange(uri,HttpMethod.POST,request,String.class);
 	}
 
 	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
