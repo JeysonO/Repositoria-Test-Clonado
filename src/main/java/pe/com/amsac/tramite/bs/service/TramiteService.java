@@ -186,7 +186,7 @@ public class TramiteService {
 		tramiteDerivacionBodyRequest.setSecuencia(1);
 		tramiteDerivacionBodyRequest.setUsuarioInicio(tramite.getCreatedByUser());
 		tramiteDerivacionBodyRequest.setUsuarioFin(((LinkedHashMap)((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("usuario")).get("id").toString());
-		tramiteDerivacionBodyRequest.setEstadoInicio("REGISTRADO");
+		tramiteDerivacionBodyRequest.setEstadoInicio("DERIVADO");
 		tramiteDerivacionBodyRequest.setFechaInicio(tramite.getCreatedDate());
 		tramiteDerivacionBodyRequest.setTramiteId(tramite.getId());
 		tramiteDerivacionBodyRequest.setComentarioInicio("Se inicia registro del Tramite");
