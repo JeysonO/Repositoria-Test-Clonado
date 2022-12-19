@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import pe.com.amsac.tramite.api.file.bean.FileStorageService;
 import pe.com.amsac.tramite.api.response.bean.Mensaje;
 import pe.com.amsac.tramite.api.response.bean.TramiteReporteResponse;
 import pe.com.amsac.tramite.api.response.bean.TramiteResponse;
@@ -68,6 +69,9 @@ public class TramiteService {
 
 	@Autowired
 	private SecurityHelper securityHelper;
+
+	@Autowired
+	private FileStorageService fileStorageService;
 
 	Map<String, Object> filtroParam = new HashMap<>();
 
@@ -431,7 +435,13 @@ public class TramiteService {
 		//Directorio donde se guardará una copia fisica
 		String nombreArchivoAcuse = "acuseRecibo-" + new SimpleDateFormat("ddMMyyyyHHmmss").format(new Date()) + ".pdf";
 		//final String reportPdf = env.getProperty("file.base-upload-dir") + File.separator + "acuse" + File.separator + "acuseRecibo.pdf";
-		final String reportPdf = env.getProperty("file.base-upload-dir") + File.separator + "acuse" + File.separator + nombreArchivoAcuse;
+		//final String reportPdf = env.getProperty("file.base-upload-dir") + File.separator + "acuse" + File.separator + nombreArchivoAcuse;
+
+		String rutaAcuse = env.getProperty("file.base-upload-dir") + File.separator + "acuse";
+		fileStorageService.createDirectory(rutaAcuse);
+
+		final String reportPdf = rutaAcuse + File.separator + nombreArchivoAcuse;
+
 		//Guardamos en el directorio
 		JasperExportManager.exportReportToPdfFile(print, reportPdf);
 
