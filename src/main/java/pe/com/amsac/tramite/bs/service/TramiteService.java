@@ -153,6 +153,7 @@ public class TramiteService {
 		if(tramiteBodyRequest.getOrigenDocumento().equals("EXTERNO")){
 			tramite.setEntidadInterna(null);
 			tramite.setEntidadExterna(null);
+			tramite.setTramitePrioridad(null);
 		}else{
 			tramite.setDependenciaDestino(null);
 		}
