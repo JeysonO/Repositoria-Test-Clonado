@@ -33,7 +33,7 @@
         <band height="800" splitType="Stretch">
             <image>
                 <reportElement x="60" y="0" width="99" height="75"/>
-                <imageExpression><![CDATA["C:/Users/sayhu/Downloads/logoAmsac.png"]]></imageExpression>
+                <imageExpression><![CDATA["tramite/resource/logoAmsac.png"]]></imageExpression>
             </image>
             <staticText>
                 <reportElement style="Title" x="158" y="0" width="362" height="75"/>
@@ -102,7 +102,7 @@
             <image vAlign="Middle" hAlign="Center">
                 <reportElement x="0" y="298" width="43" height="28"/>
                 <box leftPadding="13"/>
-                <imageExpression><![CDATA["C:/Users/sayhu/Downloads/estado.png"]]></imageExpression>
+                <imageExpression><![CDATA["tramite/resource/estado.png"]]></imageExpression>
             </image>
             <textField>
                 <reportElement style="Detail" mode="Opaque" x="43" y="296" width="477" height="28"/>
@@ -164,6 +164,7 @@
                 <textElement textAlignment="Left" verticalAlignment="Middle"/>
                 <textFieldExpression><![CDATA[$P{destino}]]></textFieldExpression>
             </textField>
+            <!--
             <staticText>
                 <reportElement style="RowTitle" mode="Opaque" x="0" y="450" width="520" height="19"/>
                 <box leftPadding="13"/>
@@ -175,6 +176,7 @@
                 <box leftPadding="13"/>
                 <imageExpression><![CDATA["C:/Users/sayhu/Downloads/huellas.jpg"]]></imageExpression>
             </image>
+            -->
             <staticText>
                 <reportElement style="Detail" mode="Opaque" x="51" y="469" width="469" height="46"/>
                 <textElement textAlignment="Left" verticalAlignment="Middle"/>
@@ -228,7 +230,7 @@ El presente acuse de recibo certifica que los documentos del emisor han ingresad
             </staticText>
             <image>
                 <reportElement x="422" y="743" width="56" height="57"/>
-                <imageExpression><![CDATA["C:/Users/sayhu/Downloads/qr.png"]]></imageExpression>
+                <imageExpression><![CDATA["tramite/resource/qr.png"]]></imageExpression>
             </image>
         </band>
     </title>
