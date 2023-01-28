@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface CalendarioMongoRepository extends MongoRepository<Calendario, String> {
 
-    List<Calendario> findFechaNumber(Integer fechaNumer);
+    List<Calendario> findByFechaNumber(Integer fechaNumer);
 
 }
