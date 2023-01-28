@@ -660,7 +660,7 @@ public class TramiteService {
 		MultiValueMap<String, Object> bodyMap = new LinkedMultiValueMap<>();
 		bodyMap.add("to",emailDestino);
 		//bodyMap.add("to","evelyn.flores@bitall.com.pe");
-		bodyMap.add("asunto","Acuse de Recibo N° Tramite " + tramite.getNumeroTramite());
+		bodyMap.add("asunto",env.getProperty("app.field.asuntoAcuseRecepcionTramite") + tramite.getNumeroTramite());
 		bodyMap.add("cuerpo","<h4>Estimado(a).</h4> </br> <p>Usted ha creado un tramite el cual hemos recibido de forma correcta, los detalles del trámite creado los puede ver en el documento adjunto.</p>");
 		bodyMap.add("files", resource); //new FileSystemResource(param.get("ruta").toString()));
 

@@ -519,9 +519,9 @@ public class TramiteDerivacionService {
 		//Asunto: Segun Forma
 		String forma;
 		if(subsanartramiteDerivacion.getForma().equals("ORIGINAL"))
-			forma = "PENDIENTE DE ATENCION";
+			forma = env.getProperty("app.field.asuntoDerivacion");//"STD AMSAC - Pendiente de atención";
 		else
-			forma = "TRAMITE - PARA SU CONOCIMIENTO";
+			forma = env.getProperty("app.field.asuntoDerivacionCopia"); //"STD AMSAC - Para su conocimiento";
 
 		//Correo: Destinatario
 		String correoDestinatario = subsanartramiteDerivacion.getUsuarioFin().getEmail();
@@ -618,9 +618,9 @@ public class TramiteDerivacionService {
 		//Asunto: Segun Forma
 		String forma;
 		if(registrotramiteDerivacion.getForma().equals("ORIGINAL"))
-			forma = "PENDIENTE DE ATENCION";
+			forma = env.getProperty("app.field.asuntoDerivacion"); //"STD AMSAC - Pendiente de atención";
 		else
-			forma = "TRAMITE - PARA SU CONOCIMIENTO";
+			forma = env.getProperty("app.field.asuntoDerivacionCopia"); //"STD AMSAC - Para su conocimiento";
 
 		//Correo: Destinatario
 		String correoDestinatario = registrotramiteDerivacion.getUsuarioFin().getEmail();
@@ -737,9 +737,9 @@ public class TramiteDerivacionService {
 		String bodyHtmlFinal = String.format(msjHTML.toString(),numTramite,fechaDerivacion,fechaMaximaAtencion,diasAtraso,urlTramite);
 
 		Map<String, String> params = new HashMap<String, String>();
-		params.put("to", "evelyn.flores@bitall.com.pe");
-		//params.put("to", correoDestino);
-		params.put("subject", "TRAMITE PENDIENTE DE ATENCION - N° TRAMITE: "+numTramite);
+		//params.put("to", "evelyn.flores@bitall.com.pe");
+		params.put("to", correoDestino);
+		params.put("subject", env.getProperty("app.field.asuntoAtencionFueraPlazo")+numTramite);
 		params.put("text", bodyHtmlFinal);
 
 		/*
