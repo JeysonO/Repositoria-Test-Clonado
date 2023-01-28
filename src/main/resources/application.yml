@@ -58,6 +58,7 @@ app:
     user: user-amsac-db
     password: "%40ms%40c2022"
     host: mongoservice
+    #host: 190.119.248.132
     port: 57017
     
   ruta:
@@ -66,9 +67,12 @@ app:
     #seguridad: http://localhost:8480/amsac-seguridad
     seguridad: http://amsac-security-api:8100/amsac-seguridad
     #seguridad: http://190.119.248.132:8180/amsac-seguridad
-    #mail: http://localhost:8400
+    #mail: http://localhost:8200
     mail: http://amsac-mail-api:8100
-    linkTramite: http://tramitedocumentario.amsac.pe/
+    #mail: http://190.119.248.132:8180/amsac-mail
+    linkTramite: http://std1.amsac.pe/admin/login
+    scheduler: http://std1.amsac.pe/admin/login
+    enviarAcuseTramite: http://amsac-tramite-api:8100/tramites/enviar-acuse-tramite/%s
 
 ## File Storage Properties
 file:

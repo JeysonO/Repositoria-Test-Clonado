@@ -1,20 +1,31 @@
 package pe.com.amsac.tramite.bs.service;
 
+import com.fasterxml.jackson.databind.deser.SettableAnyProperty;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.env.Environment;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import pe.com.amsac.tramite.api.config.KeycloakProperties;
+import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.request.body.bean.UsuarioBodyRequest;
+import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.api.response.bean.Mensaje;
 import pe.com.amsac.tramite.api.util.ServiceException;
+import pe.com.amsac.tramite.bs.domain.Persona;
 import pe.com.amsac.tramite.bs.domain.Usuario;
 import pe.com.amsac.tramite.bs.repository.UsuarioMongoRepository;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 
@@ -32,6 +43,12 @@ public class UsuarioService {
 
 	@Autowired
 	private KeycloakProperties keycloakProperties;
+
+	@Autowired
+	private SecurityHelper securityHelper;
+
+	@Autowired
+	private Environment env;
 
 	public Usuario registrarUsuario(UsuarioBodyRequest usuarioCreateBodyRequest) throws Exception{
 
@@ -110,5 +127,29 @@ public class UsuarioService {
 
 		return token;
 	}
+
+	public Usuario obtenerUsuarioById(String usuarioId){
+		RestTemplate restTemplate = new RestTemplate();
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
+		HttpEntity entity = new HttpEntity<>(null, headers);
+
+		//Mapear Usuario y Persona
+		String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/" + usuarioId;
+		ResponseEntity<CommonResponse> response = restTemplate.exchange(uri, HttpMethod.GET, entity, new ParameterizedTypeReference<CommonResponse>() {
+		});
+
+		LinkedHashMap<Object, Object> usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
+		LinkedHashMap<String, String> persona = (LinkedHashMap<String, String>) usuario.get("persona");
+
+		Persona person = mapper.map(persona, Persona.class);
+		usuario.replace("persona", person);
+		Usuario usuarioEntidad = mapper.map(usuario, Usuario.class);
+
+		return usuarioEntidad;
+
+	}
+
+
 	
 }

@@ -130,6 +130,7 @@ public class TramiteDerivacionController {
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 	}
 
+	//Este servicio se invoca cuando registro la derivacion de mi tramite al momento de registrar un tramite interno
 	@PostMapping
 	public ResponseEntity<CommonResponse> registrarTramitesDerivacion(@Valid @RequestBody TramiteDerivacionBodyRequest tramiteDerivacionBodyrequest) throws Exception {
 
@@ -142,7 +143,7 @@ public class TramiteDerivacionController {
 			String usuarioInicioId = securityHelper.obtenerUserIdSession();
 			tramiteDerivacionBodyrequest.setUsuarioInicio(usuarioInicioId);
 
-			TramiteDerivacion tramiteDerivacion = tramiteDerivacionService.registrarTramiteDerivacion(tramiteDerivacionBodyrequest);
+			TramiteDerivacion tramiteDerivacion = tramiteDerivacionService.registrar(tramiteDerivacionBodyrequest);
 
 			LocalDate localDate = null;
 			if(tramiteDerivacion.getFechaMaximaAtencion()!=null){
@@ -197,6 +198,7 @@ public class TramiteDerivacionController {
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 	}
 
+	//Cuando la persona que tiene le tramite lo deriva a otra persona
 	@PostMapping("/derivacion-tramite")
 	public ResponseEntity<CommonResponse> derivarTramiteDerivacion(@Valid @RequestBody DerivarTramiteBodyRequest derivartramiteBodyrequest) throws Exception {
 		CommonResponse commonResponse = null;

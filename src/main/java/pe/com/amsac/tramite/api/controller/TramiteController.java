@@ -181,4 +181,26 @@ public class TramiteController {
 
 	}
 
+	@PostMapping("/enviar-acuse-tramite/{tramiteId}")
+	public ResponseEntity<CommonResponse> enviarAcusePorTramiteId(@PathVariable String tramiteId) throws Exception {
+
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.OK;
+
+		try {
+			tramiteService.enviarAcusePorTramiteId(tramiteId);
+
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).build();
+
+
+		} catch (ServiceException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes(),se.getAtributos())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+
+	}
+
 }

@@ -1,5 +1,7 @@
 package pe.com.amsac.tramite.bs.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.apache.commons.collections.CollectionUtils;
@@ -9,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -21,29 +24,34 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import pe.com.amsac.tramite.api.file.bean.FileStorageService;
-import pe.com.amsac.tramite.api.response.bean.Mensaje;
-import pe.com.amsac.tramite.api.response.bean.TramiteReporteResponse;
-import pe.com.amsac.tramite.api.response.bean.TramiteResponse;
+import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
+import pe.com.amsac.tramite.api.request.bean.EventSchedule;
+import pe.com.amsac.tramite.api.request.bean.RequestSchedule;
+import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoBodyRequest;
+import pe.com.amsac.tramite.api.response.bean.*;
+import pe.com.amsac.tramite.api.util.CustomMultipartFile;
 import pe.com.amsac.tramite.api.util.ServiceException;
-import pe.com.amsac.tramite.bs.domain.Persona;
-import pe.com.amsac.tramite.bs.domain.TipoDocumento;
-import pe.com.amsac.tramite.bs.domain.Usuario;
+import pe.com.amsac.tramite.bs.domain.*;
 import pe.com.amsac.tramite.bs.repository.TipoDocumentoMongoRepository;
 import pe.com.amsac.tramite.bs.repository.UsuarioMongoRepository;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.request.bean.TramiteRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TramiteBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TramiteDerivacionBodyRequest;
-import pe.com.amsac.tramite.api.response.bean.CommonResponse;
-import pe.com.amsac.tramite.bs.domain.Tramite;
 import pe.com.amsac.tramite.bs.repository.TramiteMongoRepository;
+import pe.com.amsac.tramite.bs.util.TipoAdjuntoConstant;
+import pe.com.amsac.tramite.bs.util.Util;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service
+@Slf4j
 public class TramiteService {
 
 	@Autowired
@@ -72,6 +80,24 @@ public class TramiteService {
 
 	@Autowired
 	private FileStorageService fileStorageService;
+
+	@Autowired
+	private CalendarioService calendarioService;
+
+	@Autowired
+	private ConfiguracionService consiguracionService;
+
+	@Autowired
+	private DocumentoAdjuntoService documentoAdjuntoService;
+
+	@Autowired
+	private UsuarioService usuarioService;
+
+	@Autowired
+	private ScheduleService scheduleService;
+
+	@Autowired
+	private Util util;
 
 	Map<String, Object> filtroParam = new HashMap<>();
 
@@ -165,6 +191,8 @@ public class TramiteService {
 		if(tramiteBodyRequest.getOrigenDocumento().equals("EXTERNO")){
 			registrarDerivacion(tramite);
 			Map param = generarReporteAcuseTramite(tramite);
+			DocumentoAdjuntoResponse documentoAdjuntoResponse = registrarAcuseComoDocumentoDelTramite(param);
+			param.put("documentoAdjuntoId",documentoAdjuntoResponse.getId());
 			enviarAcuseTramite(param);
 		}
 
@@ -433,7 +461,7 @@ public class TramiteService {
 		JasperPrint print = JasperFillManager.fillReport(jasperReport, parameters,source);
 
 		//Directorio donde se guardará una copia fisica
-		String nombreArchivoAcuse = "acuseRecibo-" + new SimpleDateFormat("ddMMyyyyHHmmss").format(new Date()) + ".pdf";
+		String nombreArchivoAcuse = "acuseRecibo-" + new SimpleDateFormat("ddMMyyyyHHmmssSSS").format(new Date()) + ".pdf";
 		//final String reportPdf = env.getProperty("file.base-upload-dir") + File.separator + "acuse" + File.separator + "acuseRecibo.pdf";
 		//final String reportPdf = env.getProperty("file.base-upload-dir") + File.separator + "acuse" + File.separator + nombreArchivoAcuse;
 
@@ -449,11 +477,25 @@ public class TramiteService {
 		param.put("ruta",reportPdf);
 		param.put("numeroTramite",tramite.getNumeroTramite());
 		param.put("correo",user.getEmail());
+		param.put("tramiteId",tramite.getId());
+		param.put("nombreArchivo",nombreArchivoAcuse);
 
 		return param;
 	}
 
-	public void enviarAcuseTramite(Map param){
+	public void enviarAcuseTramite(Map param) throws Exception {
+
+		//Verificamos si hoy es feriado o si estamos fuera de horario de atención
+		Integer fechaHoyEnEntero = Integer.getInteger(new SimpleDateFormat("yyyyMMdd").format(new Date()));
+		if(calendarioService.esFeriado(fechaHoyEnEntero) || !consiguracionService.estamosDentroHorarioDeAtencion() ){
+			//Enviar acusede forma a futuro
+			programarEnvioFuturoDeAcuseDeTramite(param);
+			return;
+		}
+
+		enviarAcuseTramiteAhora(param);
+
+		/*
 		RestTemplate restTemplate = new RestTemplate();
 
 		HttpHeaders headers = new HttpHeaders();
@@ -471,6 +513,68 @@ public class TramiteService {
 		String uri = env.getProperty("app.url.mail") + "/api/mail/sendMailAttach";
 
 		restTemplate.postForEntity( uri, requestEntity, null);
+		*/
+
+	}
+
+	private void enviarAcuseTramiteAhora(Map param){
+		RestTemplate restTemplate = new RestTemplate();
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+		MultiValueMap<String, Object> bodyMap = new LinkedMultiValueMap<>();
+		bodyMap.add("to",param.get("correo").toString());
+		//bodyMap.add("to","evelyn.flores@bitall.com.pe");
+		bodyMap.add("asunto","Acuse de Recibo N° Tramite " + param.get("numeroTramite"));
+		bodyMap.add("cuerpo","<h4>Estimado(a).</h4> </br> <p>Usted ha creado un tramite el cual hemos recibido de forma correcta, los detalles del trámite creado los puede ver en el documento adjunto.</p>");
+		bodyMap.add("files", new FileSystemResource(param.get("ruta").toString()));
+
+		HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(bodyMap, headers);
+
+		String uri = env.getProperty("app.url.mail") + "/api/mail/sendMailAttach";
+
+		restTemplate.postForEntity( uri, requestEntity, null);
+	}
+
+	private void programarEnvioFuturoDeAcuseDeTramite(Map param) throws Exception {
+		//Encontrar el siguiente dia habil
+		Date siguienteDiaHabil = calendarioService.obtenerSiguienteDiaHabil();
+		String horaEnvioCorreoAcuseTramite = consiguracionService.obtenerConfiguracion().getHoraEnvioCorreoAcuseTramite();
+
+		//Dia y hora de envio de acuse, en formato Date
+		String fechaHoraEnvioAcuseTramiteCadena = new SimpleDateFormat("dd/MM/yyyy").format(siguienteDiaHabil).concat(" ").concat(horaEnvioCorreoAcuseTramite);
+		Date fechaHoraEnvioAcuseTramiteDate = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").parse(fechaHoraEnvioAcuseTramiteCadena);
+
+		//Armar el cuerpo a enviar al scheduler
+		Date startAt = fechaHoraEnvioAcuseTramiteDate;
+		Date endAt = util.addMinuteToJavaUtilDate(startAt,5);
+
+		//Creamos el evento
+		EventSchedule eventSchedule = EventSchedule.builder()
+				.headers(util.buildHeaders())
+				.httpMethod(HttpMethod.POST.name())
+				.resource(String.format(env.getProperty("app.url.enviarAcuseTramite"),param.get("tramiteId").toString()))
+				.build();
+		//TODO falta implementar
+		log.info("programar a futuro lo siguiente:"+param);
+		//Creamos el objeto para enviar a crear la tarea
+		/*
+		RequestScheduleAutenticacionService requestSchedule = RequestSchedule.builder()
+				.group("ENVIO_ACUSE_RECIBO_TRAMITE")
+				.priority(10)
+				.startAt(startAt)
+				.endAt(endAt)
+				//.cron("0 1/1 * * * ? *")
+				.cron(util.createCron(startAt))
+				.event(eventSchedule)
+				.build();
+
+		ObjectMapper mapper = new ObjectMapper();
+		log.info("Schedule To Task -> "+mapper.writeValueAsString(requestSchedule));
+
+		scheduleService.scheduleRegister(requestSchedule, HttpMethod.POST);
+		*/
 
 	}
 
@@ -514,4 +618,57 @@ public class TramiteService {
 
 		return tramiteResponseList;
 	}
+
+	private DocumentoAdjuntoResponse registrarAcuseComoDocumentoDelTramite(Map param) throws Exception {
+
+		Path path = Paths.get(param.get("ruta").toString());
+		byte[] archivoAcuseByteArray = Files.readAllBytes(path);
+		CustomMultipartFile file = new CustomMultipartFile(archivoAcuseByteArray,param.get("nombreArchivo").toString(),"application/pdf");
+
+		DocumentoAdjuntoBodyRequest documentoAdjuntoRequest = new DocumentoAdjuntoBodyRequest();
+		documentoAdjuntoRequest.setTramiteId(param.get("tramiteId").toString());
+		documentoAdjuntoRequest.setDescripcion("ACUSE de RECIBO");
+		documentoAdjuntoRequest.setFile(file);
+		documentoAdjuntoRequest.setTipoAdjunto(TipoAdjuntoConstant.ACUSE_RECIBO_TRAMITE_AMSAC);
+
+		return documentoAdjuntoService.registrarDocumentoAdjunto(documentoAdjuntoRequest);
+	}
+
+	public void enviarAcusePorTramiteId(String tramiteId) throws Exception {
+
+		//Obtenemos el tramite
+		Tramite tramite = findById(tramiteId);
+		//El email de usuario
+		Usuario usuario =  usuarioService.obtenerUsuarioById(tramite.getCreatedByUser());
+		String emailDestino = usuario.getEmail();
+
+		//Obtener el documento adjunto acuse
+		DocumentoAdjuntoRequest documentoAdjuntoRequest = new DocumentoAdjuntoRequest();
+		documentoAdjuntoRequest.setTramiteId(tramiteId);
+		documentoAdjuntoRequest.setTipoAdjunto(TipoAdjuntoConstant.ACUSE_RECIBO_TRAMITE_AMSAC);
+		DocumentoAdjuntoResponse documentoAdjuntoResponse = documentoAdjuntoService.obtenerDocumentoAdjuntoList(documentoAdjuntoRequest).get(0);
+
+		//Obtenemos el resource del acuse a enviar
+		documentoAdjuntoRequest = new DocumentoAdjuntoRequest();
+		documentoAdjuntoRequest.setId(documentoAdjuntoResponse.getId());
+		Resource resource = documentoAdjuntoService.obtenerDocumentoAdjunto(documentoAdjuntoRequest);
+
+		RestTemplate restTemplate = new RestTemplate();
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+		MultiValueMap<String, Object> bodyMap = new LinkedMultiValueMap<>();
+		bodyMap.add("to",emailDestino);
+		//bodyMap.add("to","evelyn.flores@bitall.com.pe");
+		bodyMap.add("asunto","Acuse de Recibo N° Tramite " + tramite.getNumeroTramite());
+		bodyMap.add("cuerpo","<h4>Estimado(a).</h4> </br> <p>Usted ha creado un tramite el cual hemos recibido de forma correcta, los detalles del trámite creado los puede ver en el documento adjunto.</p>");
+		bodyMap.add("files", resource); //new FileSystemResource(param.get("ruta").toString()));
+
+		HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(bodyMap, headers);
+
+		String uri = env.getProperty("app.url.mail") + "/api/mail/sendMailAttach";
+
+		restTemplate.postForEntity( uri, requestEntity, null);
+	}
+
 }
