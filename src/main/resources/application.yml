@@ -58,15 +58,15 @@ app:
     user: user-amsac-db
     password: "%40ms%40c2022"
     host: mongoservice
-    #host: 190.119.248.132
+    #host: 190.119.248.141
     port: 57017
     
   ruta:
     adjuntos: tramite
   url:
     #seguridad: http://localhost:8480/amsac-seguridad
-    seguridad: http://amsac-security-api:8100/amsac-seguridad
-    #seguridad: http://190.119.248.132:8180/amsac-seguridad
+    #seguridad: http://amsac-security-api:8100/amsac-seguridad
+    seguridad: https://gatewayapp.amsac.pe/amsac-seguridad
     #mail: http://localhost:8200
     mail: http://amsac-mail-api:8100
     #mail: http://190.119.248.132:8180/amsac-mail

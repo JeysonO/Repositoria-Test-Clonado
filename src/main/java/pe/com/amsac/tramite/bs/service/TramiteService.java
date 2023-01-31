@@ -558,9 +558,9 @@ public class TramiteService {
 				.build();
 		//TODO falta implementar
 		log.info("programar a futuro lo siguiente:"+param);
-		//Creamos el objeto para enviar a crear la tarea
 		/*
-		RequestScheduleAutenticacionService requestSchedule = RequestSchedule.builder()
+		//Creamos el objeto para enviar a crear la tarea
+		RequestSchedule requestSchedule = RequestSchedule.builder()
 				.group("ENVIO_ACUSE_RECIBO_TRAMITE")
 				.priority(10)
 				.startAt(startAt)
@@ -575,6 +575,7 @@ public class TramiteService {
 
 		scheduleService.scheduleRegister(requestSchedule, HttpMethod.POST);
 		*/
+
 
 	}
 
