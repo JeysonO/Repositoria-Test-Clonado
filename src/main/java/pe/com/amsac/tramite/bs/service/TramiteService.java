@@ -112,6 +112,9 @@ public class TramiteService {
 		Map<String, Object> parameters = mapper.map(tramiteRequest,Map.class);
 		parameters.values().removeIf(Objects::isNull);
 		List<Criteria> listCriteria =  new ArrayList<>();
+		if(parameters.containsKey("soloOriginal")){
+			parameters.remove("soloOriginal");
+		}
 		/*if(parameters.containsKey("fechaDocumentoDesde") && parameters.containsKey("fechaDocumentoHasta"))
 			listCriteria.add(Criteria.where("fechaDocumento").gte(parameters.get("fechaDocumentoDesde")).lte(parameters.get("fechaDocumentoHasta")));
 		*/
@@ -343,14 +346,14 @@ public class TramiteService {
 		HttpEntity entity = new HttpEntity<>(null, headers);
 
 		//List<TramiteReporteResponse> tramiteReporteResponseList = buscarTramiteParams(tramiteRequest);
-
+		String soloOriginal = tramiteRequest.getSoloOriginal();
 		List<Tramite> tramiteList = buscarTramiteParams(tramiteRequest);
 		List<TramiteReporteResponse> tramiteReporteResponseList = new ArrayList<>();
 
 		for(Tramite tramite : tramiteList){
 			TramiteReporteResponse tramiteReporteResponse = mapper.map(tramite,TramiteReporteResponse.class);
 			//tramiteReporteResponse.setTramiteDerivacion(tramiteDerivacionService.obtenerTramiteByTramiteId(tramite.getId()));
-			tramiteReporteResponse.setTramiteDerivacion(obtenerTramiteDerivacionReporteResponse(tramiteDerivacionService.obtenerTramiteByTramiteId(tramite.getId()),tramiteRequest.getSoloOriginal()));
+			tramiteReporteResponse.setTramiteDerivacion(obtenerTramiteDerivacionReporteResponse(tramiteDerivacionService.obtenerTramiteByTramiteId(tramite.getId()),soloOriginal));
 
 			String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/" + tramite.getCreatedByUser();
 			ResponseEntity<CommonResponse> response = restTemplate.exchange(uri,HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
@@ -601,14 +604,14 @@ public class TramiteService {
 		HttpEntity entity = new HttpEntity<>(null, headers);
 
 		//List<TramiteReporteResponse> tramiteReporteResponseList = buscarTramiteParams(tramiteRequest);
-
+		String soloOriginal = tramiteRequest.getSoloOriginal();
 		List<Tramite> tramiteList = buscarTramiteParams(tramiteRequest);
 		List<TramiteResponse> tramiteResponseList = new ArrayList<>();
 
 		for(Tramite tramite : tramiteList){
 			TramiteResponse tramiteResponse = mapper.map(tramite,TramiteResponse.class);
 			//tramiteResponse.setTramiteDerivacion(tramiteDerivacionService.obtenerTramiteByTramiteId(tramite.getId()));
-			tramiteResponse.setTramiteDerivacion(obtenerTramiteDerivacionReporteResponse(tramiteDerivacionService.obtenerTramiteByTramiteId(tramite.getId()),tramiteRequest.getSoloOriginal()));
+			tramiteResponse.setTramiteDerivacion(obtenerTramiteDerivacionReporteResponse(tramiteDerivacionService.obtenerTramiteByTramiteId(tramite.getId()),soloOriginal));
 
 			String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/" + tramite.getCreatedByUser();
 			ResponseEntity<CommonResponse> response = restTemplate.exchange(uri,HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
