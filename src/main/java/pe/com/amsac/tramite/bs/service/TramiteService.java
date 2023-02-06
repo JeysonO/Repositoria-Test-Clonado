@@ -420,7 +420,7 @@ public class TramiteService {
 
 		JasperReport jasperReport = JasperCompileManager.compileReport(url);
 
-		DateFormat Formato = new SimpleDateFormat("yyyy/MM/dd hh:MM:ss");
+		DateFormat Formato = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		//String fechaGeneracion = Formato.format(tramite.getCreatedDate());
 		String fechaGeneracion = Formato.format(determinarFechaGeneracion(tramite.getCreatedDate()));
 
