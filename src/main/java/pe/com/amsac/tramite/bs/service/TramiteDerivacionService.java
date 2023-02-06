@@ -1,6 +1,8 @@
 package pe.com.amsac.tramite.bs.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
@@ -14,11 +16,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.request.body.bean.*;
 import pe.com.amsac.tramite.api.request.bean.TramiteDerivacionRequest;
-import pe.com.amsac.tramite.api.response.bean.CommonResponse;
-import pe.com.amsac.tramite.api.response.bean.TramiteDerivacionReporteResponse;
+import pe.com.amsac.tramite.api.response.bean.*;
 import pe.com.amsac.tramite.bs.domain.Persona;
 import pe.com.amsac.tramite.bs.domain.Tramite;
 import pe.com.amsac.tramite.bs.domain.TramiteDerivacion;
@@ -38,6 +40,7 @@ import java.util.*;
 import static java.time.temporal.ChronoUnit.DAYS;
 
 @Service
+@Slf4j
 public class TramiteDerivacionService {
 
 	@Autowired
@@ -863,8 +866,103 @@ public class TramiteDerivacionService {
 
 		tramiteDerivacionMongoRepository.save(registroTramiteDerivacion);
 
+		try{
+			ejecutarAccionesDeAcuerdoAConfiguracion(registroTramiteDerivacion);
+		}catch (Exception ex){
+			log.error("ERROR",ex);
+		}
+
 		return registroTramiteDerivacion;
 
+	}
+
+	private void ejecutarAccionesDeAcuerdoAConfiguracion(TramiteDerivacion registroTramiteDerivacion) throws Exception {
+		//SOLO EJECUTAMOS ESTA PARTE SI ES ORIGINAL
+		if(registroTramiteDerivacion.getForma().equals("ORIGINAL")){
+			//Obtenemos el usuario cargo fin
+			UsuarioBuscarResponse usuarioBuscarResponse = mapper.map(obtenerUsuarioById(registroTramiteDerivacion.getUsuarioFin().getId()),UsuarioBuscarResponse.class);
+
+			//Consultamos si ese cargo fin tiene cargo con derivacion automatica
+			if(usuarioBuscarResponse!=null && !StringUtils.isBlank(usuarioBuscarResponse.getCargoId())){
+				List<ConfiguracionDerivacionResponse> configuracionDerivacionResponseList = obtenerConfiguracionDerivacionResponseByCargoOrigenId(usuarioBuscarResponse.getCargoId());
+				for(ConfiguracionDerivacionResponse configuracionDerivacionResponse : configuracionDerivacionResponseList){
+					//Obtenemos los usuario que tengan el cargo destino id.
+					List<UsuarioCargoResponse> usuarioCargoResponseList = obtenerUsuarioByCargo(configuracionDerivacionResponse.getCargoDestino().getCargo());
+					for (UsuarioCargoResponse usuarioCargoResponse: usuarioCargoResponseList) {
+						//Registrar derivaciones de copia para cada elemento, primero validamos si ya se registro una copia.
+						if(!existeDerivacionCopiaParaUsuarioInicioFinMismoTramite(registroTramiteDerivacion,usuarioCargoResponse)){
+							TramiteDerivacionBodyRequest subsanarTramiteBodyRequest = new TramiteDerivacionBodyRequest();
+							subsanarTramiteBodyRequest.setTramiteId(registroTramiteDerivacion.getTramite().getId());
+							subsanarTramiteBodyRequest.setUsuarioInicio(registroTramiteDerivacion.getUsuarioInicio().getId());
+							subsanarTramiteBodyRequest.setUsuarioFin(usuarioCargoResponse.getUsuario().getId());
+							subsanarTramiteBodyRequest.setComentarioInicio(registroTramiteDerivacion.getComentarioInicio());
+							subsanarTramiteBodyRequest.setEstadoInicio(registroTramiteDerivacion.getEstadoInicio());
+							subsanarTramiteBodyRequest.setFechaInicio(new Date());
+							subsanarTramiteBodyRequest.setForma("COPIA");
+							subsanarTramiteBodyRequest.setId(null);
+							subsanarTramiteBodyRequest.setEstadoFin(null);
+							subsanarTramiteBodyRequest.setFechaFin(null);
+							subsanarTramiteBodyRequest.setComentarioFin(null);
+							registrarTramiteDerivacion(subsanarTramiteBodyRequest);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	private LinkedHashMap<Object, Object> obtenerUsuarioById(String usuarioId){
+		RestTemplate restTemplate = new RestTemplate();
+		String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/"+usuarioId;
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
+		HttpEntity entity = new HttpEntity<>(null, headers);
+		ResponseEntity<CommonResponse> response = restTemplate.exchange(uri,HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+		return response.getBody().getData()!=null?(LinkedHashMap<Object, Object>) response.getBody().getData():null;
+	}
+
+	private List<ConfiguracionDerivacionResponse> obtenerConfiguracionDerivacionResponseByCargoOrigenId(String cargoOrigenId){
+		RestTemplate restTemplate = new RestTemplate();
+		String uri = env.getProperty("app.url.seguridad") + "/configuraciones-derivacion";
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
+
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("cargoOrigenId", cargoOrigenId);
+
+		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(uri);
+		for (Map.Entry<String, Object> entry : params.entrySet()) {
+			builder.queryParam(entry.getKey(), entry.getValue());
+		}
+
+		HttpEntity entity = new HttpEntity<>(null, headers);
+		ResponseEntity<CommonResponse> response = restTemplate.exchange(builder.toUriString(),HttpMethod.GET,entity, CommonResponse.class);
+
+		return response.getBody().getData()!=null?(List<ConfiguracionDerivacionResponse>)response.getBody().getData():new ArrayList<>();
+
+	}
+
+	private List<UsuarioCargoResponse> obtenerUsuarioByCargo(String cargo){
+		RestTemplate restTemplate = new RestTemplate();
+		String uri = env.getProperty("app.url.seguridad") + "/usuario-cargo/"+cargo;
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
+
+		HttpEntity entity = new HttpEntity<>(null, headers);
+		ResponseEntity<CommonResponse> response = restTemplate.exchange(uri,HttpMethod.GET,entity, CommonResponse.class);
+		return response.getBody().getData()!=null?(List<UsuarioCargoResponse>)response.getBody().getData():new ArrayList<>();
+
+	}
+
+	private boolean existeDerivacionCopiaParaUsuarioInicioFinMismoTramite(TramiteDerivacion registroTramiteDerivacion, UsuarioCargoResponse usuarioCargoResponse) throws Exception {
+		TramiteDerivacionRequest tramiteDerivacionRequest = new TramiteDerivacionRequest();
+		tramiteDerivacionRequest.setForma("COPIA");
+		tramiteDerivacionRequest.setTramiteId(registroTramiteDerivacion.getTramite().getId());
+		tramiteDerivacionRequest.setUsuarioInicio(registroTramiteDerivacion.getUsuarioInicio().getId());
+		tramiteDerivacionRequest.setUsuarioFin(usuarioCargoResponse.getUsuario().getId());
+		List<TramiteDerivacion> tramiteDerivacionList = buscarTramiteDerivacionParams(tramiteDerivacionRequest);
+
+		return CollectionUtils.isEmpty(tramiteDerivacionList)?false:true;
 	}
 
 }

@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.annotation.RequestScope;
 import pe.com.amsac.tramite.api.file.bean.FileStorageService;
 import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
 import pe.com.amsac.tramite.api.request.bean.EventSchedule;
@@ -49,9 +50,11 @@ import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@RequestScope
 public class TramiteService {
 
 	@Autowired
@@ -122,8 +125,14 @@ public class TramiteService {
 			filtroParam.put("fechaCreaciontoHasta",formatter.format(parameters.get("fechaCreaciontoHasta")));
 			parameters.remove("fechaCreaciontoHasta");
 		}
+		if(parameters.containsKey("asunto")){
+			listCriteria.add(Criteria.where("asunto").regex(".*"+parameters.get("asunto")+".*"));
+			parameters.remove("asunto");
+		}
+
 		if(!listCriteria.isEmpty())
 			andExpression.add(new Criteria().andOperator(listCriteria.toArray(new Criteria[listCriteria.size()])));
+
 		if((Integer) parameters.get("numeroTramite")==0) {
 			parameters.remove("numeroTramite");
 		}
@@ -340,7 +349,8 @@ public class TramiteService {
 
 		for(Tramite tramite : tramiteList){
 			TramiteReporteResponse tramiteReporteResponse = mapper.map(tramite,TramiteReporteResponse.class);
-			tramiteReporteResponse.setTramiteDerivacion(tramiteDerivacionService.obtenerTramiteByTramiteId(tramite.getId()));
+			//tramiteReporteResponse.setTramiteDerivacion(tramiteDerivacionService.obtenerTramiteByTramiteId(tramite.getId()));
+			tramiteReporteResponse.setTramiteDerivacion(obtenerTramiteDerivacionReporteResponse(tramiteDerivacionService.obtenerTramiteByTramiteId(tramite.getId()),tramiteRequest.getSoloOriginal()));
 
 			String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/" + tramite.getCreatedByUser();
 			ResponseEntity<CommonResponse> response = restTemplate.exchange(uri,HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
@@ -411,7 +421,8 @@ public class TramiteService {
 		JasperReport jasperReport = JasperCompileManager.compileReport(url);
 
 		DateFormat Formato = new SimpleDateFormat("yyyy/MM/dd hh:MM:ss");
-		String fechaGeneracion = Formato.format(tramite.getCreatedDate());
+		//String fechaGeneracion = Formato.format(tramite.getCreatedDate());
+		String fechaGeneracion = Formato.format(determinarFechaGeneracion(tramite.getCreatedDate()));
 
 
 		RestTemplate restTemplate = new RestTemplate();
@@ -485,6 +496,7 @@ public class TramiteService {
 
 	public void enviarAcuseTramite(Map param) throws Exception {
 
+		/*
 		//Verificamos si hoy es feriado o si estamos fuera de horario de atención
 		Integer fechaHoyEnEntero = Integer.getInteger(new SimpleDateFormat("yyyyMMdd").format(new Date()));
 		if(calendarioService.esFeriado(fechaHoyEnEntero) || !consiguracionService.estamosDentroHorarioDeAtencion() ){
@@ -492,6 +504,7 @@ public class TramiteService {
 			programarEnvioFuturoDeAcuseDeTramite(param);
 			return;
 		}
+		*/
 
 		enviarAcuseTramiteAhora(param);
 
@@ -594,7 +607,8 @@ public class TramiteService {
 
 		for(Tramite tramite : tramiteList){
 			TramiteResponse tramiteResponse = mapper.map(tramite,TramiteResponse.class);
-			tramiteResponse.setTramiteDerivacion(tramiteDerivacionService.obtenerTramiteByTramiteId(tramite.getId()));
+			//tramiteResponse.setTramiteDerivacion(tramiteDerivacionService.obtenerTramiteByTramiteId(tramite.getId()));
+			tramiteResponse.setTramiteDerivacion(obtenerTramiteDerivacionReporteResponse(tramiteDerivacionService.obtenerTramiteByTramiteId(tramite.getId()),tramiteRequest.getSoloOriginal()));
 
 			String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/" + tramite.getCreatedByUser();
 			ResponseEntity<CommonResponse> response = restTemplate.exchange(uri,HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
@@ -618,6 +632,13 @@ public class TramiteService {
 		}
 
 		return tramiteResponseList;
+	}
+
+	private List<TramiteDerivacionReporteResponse> obtenerTramiteDerivacionReporteResponse(List<TramiteDerivacionReporteResponse> tramiteDerivacionReporteResponseList, String soloOriginal){
+		if(StringUtils.isBlank(soloOriginal) || soloOriginal.equals("N")){
+			return tramiteDerivacionReporteResponseList;
+		}
+		return tramiteDerivacionReporteResponseList.stream().filter(x -> x.getForma().equals("ORIGINAL")).collect(Collectors.toList());
 	}
 
 	private DocumentoAdjuntoResponse registrarAcuseComoDocumentoDelTramite(Map param) throws Exception {
@@ -670,6 +691,30 @@ public class TramiteService {
 		String uri = env.getProperty("app.url.mail") + "/api/mail/sendMailAttach";
 
 		restTemplate.postForEntity( uri, requestEntity, null);
+	}
+
+	private Date determinarFechaGeneracion(Date fechaCreacionTramite) throws Exception {
+		Date fechaCreacionTramiteFinal = fechaCreacionTramite;
+
+		Integer fechaHoyEnEntero = Integer.getInteger(new SimpleDateFormat("yyyyMMdd").format(new Date()));
+		if(calendarioService.esFeriado(fechaHoyEnEntero) || !consiguracionService.estamosDentroHorarioDeAtencion() ){
+			fechaCreacionTramiteFinal = determinarSiguienteDiaYHoraHabilParaRecepcionarTramite();
+		}
+
+		return fechaCreacionTramiteFinal;
+
+	}
+
+	private Date determinarSiguienteDiaYHoraHabilParaRecepcionarTramite() throws Exception {
+		//Encontrar el siguiente dia habil
+		Date siguienteDiaHabil = calendarioService.obtenerSiguienteDiaHabil();
+		String horaEnvioCorreoAcuseTramite = consiguracionService.obtenerConfiguracion().getHoraEnvioCorreoAcuseTramite();
+
+		//Dia y hora de envio de acuse, en formato Date
+		String fechaHoraEnvioAcuseTramiteCadena = new SimpleDateFormat("dd/MM/yyyy").format(siguienteDiaHabil).concat(" ").concat(horaEnvioCorreoAcuseTramite);
+		Date fechaHoraEnvioAcuseTramiteDate = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").parse(fechaHoraEnvioAcuseTramiteCadena);
+
+		return fechaHoraEnvioAcuseTramiteDate;
 	}
 
 }
