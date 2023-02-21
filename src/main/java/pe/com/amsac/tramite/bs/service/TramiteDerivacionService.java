@@ -965,4 +965,79 @@ public class TramiteDerivacionService {
 		return CollectionUtils.isEmpty(tramiteDerivacionList)?false:true;
 	}
 
+
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
+	public TramiteDerivacion registrarTramiteDerivacionMigracion(TramiteDerivacionMigracionBodyRequest tramiteDerivacionBodyRequest) throws Exception {
+
+		/*
+		//Obtener Usuario Inicio
+		RestTemplate restTemplate = new RestTemplate();
+		String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/"+tramiteDerivacionBodyRequest.getUsuarioInicio();
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
+		HttpEntity entity = new HttpEntity<>(null, headers);
+		ResponseEntity<CommonResponse> response = restTemplate.exchange(uri,HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+
+		//Mapear Persona de Usuario Inicio
+		LinkedHashMap<Object, Object> usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
+		LinkedHashMap<String, String> personaL = (LinkedHashMap<String, String>) usuario.get("persona");
+		personaL.remove("createdDate");
+		personaL.remove("lastModifiedDate");
+		personaL.remove("tipoDocumento");
+		personaL.remove("entityId");
+		Persona persona = mapper.map(personaL,Persona.class);
+		usuario.replace("persona",persona);
+		Usuario userInicio = mapper.map(usuario,Usuario.class);
+
+		//Mapear Usuario Fin
+		uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/"+tramiteDerivacionBodyRequest.getUsuarioFin();
+		response = restTemplate.exchange(uri,HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+		usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
+		personaL = (LinkedHashMap<String, String>) usuario.get("persona");
+		personaL.remove("createdDate");
+		personaL.remove("lastModifiedDate");
+		personaL.remove("tipoDocumento");
+		personaL.remove("entityId");
+		persona = mapper.map(personaL,Persona.class);
+		usuario.replace("persona",persona);
+		Usuario userFin = mapper.map(usuario,Usuario.class);
+
+		Date fechaMaxima = null;
+		if(tramiteDerivacionBodyRequest.getFechaMaximaAtencion()!=null){
+			ZoneId defaultZoneId = ZoneId.systemDefault();
+			LocalDate localDate = tramiteDerivacionBodyRequest.getFechaMaximaAtencion();
+			tramiteDerivacionBodyRequest.setFechaMaximaAtencion(null);
+			fechaMaxima =Date.from(localDate.atStartOfDay(defaultZoneId).toInstant());
+		}
+		*/
+
+		TramiteDerivacion registroTramiteDerivacion = mapper.map(tramiteDerivacionBodyRequest,TramiteDerivacion.class);
+		/*
+		if(fechaMaxima!=null)
+			registroTramiteDerivacion.setFechaMaximaAtencion(fechaMaxima);
+		*/
+		//registroTramiteDerivacion.setUsuarioInicio(userInicio);
+		//registroTramiteDerivacion.setUsuarioFin(userFin);
+		//registroTramiteDerivacion.setFechaInicio(new Date());
+		registroTramiteDerivacion.setTramite(tramiteMongoRepository.findById(tramiteDerivacionBodyRequest.getTramiteId()).get());
+		registroTramiteDerivacion.setEstado("A");
+
+		int sec = obtenerSecuencia(tramiteDerivacionBodyRequest.getTramiteId());
+		registroTramiteDerivacion.setSecuencia(sec);
+
+		tramiteDerivacionMongoRepository.save(registroTramiteDerivacion);
+
+
+		/*
+		try{
+			ejecutarAccionesDeAcuerdoAConfiguracion(registroTramiteDerivacion);
+		}catch (Exception ex){
+			log.error("ERROR",ex);
+		}
+ 		*/
+
+		return registroTramiteDerivacion;
+
+	}
+
 }

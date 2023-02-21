@@ -720,4 +720,51 @@ public class TramiteService {
 		return fechaHoraEnvioAcuseTramiteDate;
 	}
 
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
+	public Tramite registrarTramiteMigracion(TramiteBodyRequest tramiteBodyRequest) throws Exception {
+
+		/*
+		if(StringUtils.isBlank(tramiteBodyRequest.getIdTramiteRelacionado())){
+			Map<String, Object> mapaRetorno = numeroDocumentoRepetido(tramiteBodyRequest);
+			if(mapaRetorno!=null){
+				throw new ServiceException((List<Mensaje>) mapaRetorno.get("errores"), (Map) mapaRetorno.get("atributos"));
+			}
+		}
+		*/
+
+		Tramite tramite = mapper.map(tramiteBodyRequest,Tramite.class);
+		/*
+		List<Tramite> tramiteList = obtenerNumeroTramite();
+
+		int numeroTramite = 1;
+
+		if(!CollectionUtils.isEmpty(tramiteList))
+			numeroTramite = obtenerNumeroTramite().get(0).getNumeroTramite()+1;
+
+		tramite.setNumeroTramite(numeroTramite);
+		*/
+		tramite.setEstado("A");
+		if(tramiteBodyRequest.getOrigenDocumento().equals("EXTERNO")){
+			tramite.setEntidadInterna(null);
+			tramite.setEntidadExterna(null);
+			tramite.setTramitePrioridad(null);
+		}else{
+			tramite.setDependenciaDestino(null);
+		}
+		tramiteMongoRepository.save(tramite);
+		/*
+		if(tramiteBodyRequest.getOrigenDocumento().equals("EXTERNO")){
+			registrarDerivacion(tramite);
+			Map param = generarReporteAcuseTramite(tramite);
+			DocumentoAdjuntoResponse documentoAdjuntoResponse = registrarAcuseComoDocumentoDelTramite(param);
+			param.put("documentoAdjuntoId",documentoAdjuntoResponse.getId());
+			enviarAcuseTramite(param);
+
+		}
+		*/
+
+		return tramite;
+
+	}
+
 }

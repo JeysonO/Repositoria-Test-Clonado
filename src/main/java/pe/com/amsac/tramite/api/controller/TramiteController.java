@@ -203,4 +203,28 @@ public class TramiteController {
 
 	}
 
+	@PostMapping("/registrar-tramite-migracion")
+	public ResponseEntity<CommonResponse> registrarTramiteExternoMigracion(@Valid @RequestBody TramiteBodyRequest tramiteBodyrequest) throws Exception {
+
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.CREATED;
+
+		try {
+			Tramite tramite = tramiteService.registrarTramiteMigracion(tramiteBodyrequest);
+
+			TramiteResponse tramiteResponse = mapper.map(tramite, TramiteResponse.class);
+
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(tramiteResponse).build();
+
+
+		} catch (ServiceException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes(),se.getAtributos())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+
+	}
+
 }
