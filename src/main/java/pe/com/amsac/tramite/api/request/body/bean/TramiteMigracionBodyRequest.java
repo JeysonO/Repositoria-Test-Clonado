@@ -6,7 +6,7 @@ import org.dozer.Mapping;
 import java.util.Date;
 
 @Data
-public class TramiteBodyRequest {
+public class TramiteMigracionBodyRequest {
 
 	private String id;
 
@@ -54,6 +54,11 @@ public class TramiteBodyRequest {
 
 	//Id tramite referencia
 	private String idTramiteRelacionado;
+
+	private int numeroTramite;
+
+	//Fecha recepcion de tramite
+	private Date fechaRecepcionTramite;
 
 	@Mapping("dependenciaDestino.id")
 	public String getDependenciaDestinoId(){return dependenciaDestinoId;}

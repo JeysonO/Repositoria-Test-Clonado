@@ -29,11 +29,13 @@ import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
 import pe.com.amsac.tramite.api.request.bean.EventSchedule;
 import pe.com.amsac.tramite.api.request.bean.RequestSchedule;
 import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoBodyRequest;
+import pe.com.amsac.tramite.api.request.body.bean.TramiteMigracionBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.*;
 import pe.com.amsac.tramite.api.util.CustomMultipartFile;
 import pe.com.amsac.tramite.api.util.ServiceException;
 import pe.com.amsac.tramite.bs.domain.*;
 import pe.com.amsac.tramite.bs.repository.TipoDocumentoMongoRepository;
+import pe.com.amsac.tramite.bs.repository.TramiteMigracionMongoRepository;
 import pe.com.amsac.tramite.bs.repository.UsuarioMongoRepository;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.request.bean.TramiteRequest;
@@ -59,6 +61,9 @@ public class TramiteService {
 
 	@Autowired
 	private TramiteMongoRepository tramiteMongoRepository;
+
+	@Autowired
+	private TramiteMigracionMongoRepository tramiteMigracionMongoRepository;
 
 	@Autowired
 	private TramiteDerivacionService tramiteDerivacionService;
@@ -721,7 +726,7 @@ public class TramiteService {
 	}
 
 	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
-	public Tramite registrarTramiteMigracion(TramiteBodyRequest tramiteBodyRequest) throws Exception {
+	public TramiteMigracion registrarTramiteMigracion(TramiteMigracionBodyRequest tramiteBodyRequest) throws Exception {
 
 		/*
 		if(StringUtils.isBlank(tramiteBodyRequest.getIdTramiteRelacionado())){
@@ -732,7 +737,7 @@ public class TramiteService {
 		}
 		*/
 
-		Tramite tramite = mapper.map(tramiteBodyRequest,Tramite.class);
+		TramiteMigracion tramite = mapper.map(tramiteBodyRequest,TramiteMigracion.class);
 		/*
 		List<Tramite> tramiteList = obtenerNumeroTramite();
 
@@ -751,7 +756,7 @@ public class TramiteService {
 		}else{
 			tramite.setDependenciaDestino(null);
 		}
-		tramiteMongoRepository.save(tramite);
+		tramiteMigracionMongoRepository.save(tramite);
 		/*
 		if(tramiteBodyRequest.getOrigenDocumento().equals("EXTERNO")){
 			registrarDerivacion(tramite);

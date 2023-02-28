@@ -18,12 +18,14 @@ import org.springframework.web.bind.annotation.*;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.request.bean.TramiteRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TramiteBodyRequest;
+import pe.com.amsac.tramite.api.request.body.bean.TramiteMigracionBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.api.response.bean.Meta;
 import pe.com.amsac.tramite.api.response.bean.TramiteResponse;
 import pe.com.amsac.tramite.api.util.EstadoRespuestaConstant;
 import pe.com.amsac.tramite.api.util.ServiceException;
 import pe.com.amsac.tramite.bs.domain.Tramite;
+import pe.com.amsac.tramite.bs.domain.TramiteMigracion;
 import pe.com.amsac.tramite.bs.service.TramiteService;
 
 import javax.servlet.http.HttpServletRequest;
@@ -204,14 +206,14 @@ public class TramiteController {
 	}
 
 	@PostMapping("/registrar-tramite-migracion")
-	public ResponseEntity<CommonResponse> registrarTramiteExternoMigracion(@Valid @RequestBody TramiteBodyRequest tramiteBodyrequest) throws Exception {
+	public ResponseEntity<CommonResponse> registrarTramiteExternoMigracion(@Valid @RequestBody TramiteMigracionBodyRequest tramiteBodyrequest) throws Exception {
 
 		CommonResponse commonResponse = null;
 
 		HttpStatus httpStatus = HttpStatus.CREATED;
 
 		try {
-			Tramite tramite = tramiteService.registrarTramiteMigracion(tramiteBodyrequest);
+			TramiteMigracion tramite = tramiteService.registrarTramiteMigracion(tramiteBodyrequest);
 
 			TramiteResponse tramiteResponse = mapper.map(tramite, TramiteResponse.class);
 
