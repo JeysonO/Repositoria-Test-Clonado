@@ -133,7 +133,25 @@ public class TramiteDerivacionService {
 		Query query = new Query();
 		Criteria criteria = Criteria.where("usuarioFin.id").is(idUser).and("estado").is("P");
 		query.addCriteria(criteria);
+		/*
+		query.with(Sort.by(
+				Sort.Order.desc("tramite.numeroTramite")
+		));
+		*/
+
 		List<TramiteDerivacion> tramitePendienteList = mongoTemplate.find(query, TramiteDerivacion.class);
+
+		if(CollectionUtils.isEmpty(tramitePendienteList))
+			return tramitePendienteList;
+
+		//Ordenamos por numero de tramite
+		Collections.sort(tramitePendienteList, new Comparator<TramiteDerivacion>(){
+			@Override
+			public int compare(TramiteDerivacion a, TramiteDerivacion b)
+			{
+				return b.getTramite().getNumeroTramite() - a.getTramite().getNumeroTramite();
+			}
+		});
 
 		//Por cada usuario origen y fin, obtener la dependencia y cargo
 		RestTemplate restTemplate = new RestTemplate();
