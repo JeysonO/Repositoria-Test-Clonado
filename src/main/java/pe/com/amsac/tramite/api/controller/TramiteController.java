@@ -1,5 +1,6 @@
 package pe.com.amsac.tramite.api.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -213,6 +214,9 @@ public class TramiteController {
 		HttpStatus httpStatus = HttpStatus.CREATED;
 
 		try {
+
+			log.info("Tramite a migrar:"+new ObjectMapper().writeValueAsString(tramiteBodyrequest));
+
 			TramiteMigracion tramite = tramiteService.registrarTramiteMigracion(tramiteBodyrequest);
 
 			TramiteResponse tramiteResponse = mapper.map(tramite, TramiteResponse.class);
