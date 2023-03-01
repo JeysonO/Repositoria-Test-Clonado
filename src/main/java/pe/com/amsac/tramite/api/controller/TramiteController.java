@@ -35,6 +35,7 @@ import javax.validation.Valid;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -216,6 +217,7 @@ public class TramiteController {
 		try {
 
 			log.info("Tramite a migrar:"+new ObjectMapper().writeValueAsString(tramiteBodyrequest));
+			log.info("CreeateDate:"+new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(tramiteBodyrequest.getCreatedDate()));
 
 			TramiteMigracion tramite = tramiteService.registrarTramiteMigracion(tramiteBodyrequest);
 
