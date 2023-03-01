@@ -60,6 +60,11 @@ public class TramiteMigracionBodyRequest {
 	//Fecha recepcion de tramite
 	private Date fechaRecepcionTramite;
 
+	private Date createdDate;
+	private Date lastModifiedDate;
+	private String createdByUser;
+	private String lastModifiedByUser;
+
 	@Mapping("dependenciaDestino.id")
 	public String getDependenciaDestinoId(){return dependenciaDestinoId;}
 
