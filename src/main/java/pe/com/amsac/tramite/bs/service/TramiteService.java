@@ -42,6 +42,7 @@ import pe.com.amsac.tramite.api.request.bean.TramiteRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TramiteBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TramiteDerivacionBodyRequest;
 import pe.com.amsac.tramite.bs.repository.TramiteMongoRepository;
+import pe.com.amsac.tramite.bs.util.EstadoTramiteConstant;
 import pe.com.amsac.tramite.bs.util.TipoAdjuntoConstant;
 import pe.com.amsac.tramite.bs.util.Util;
 
@@ -196,7 +197,8 @@ public class TramiteService {
 			numeroTramite = obtenerNumeroTramite().get(0).getNumeroTramite()+1;
 
 		tramite.setNumeroTramite(numeroTramite);
-		tramite.setEstado("A");
+		//tramite.setEstado("A");
+		tramite.setEstado(EstadoTramiteConstant.REGISTRADO);
 		if(tramiteBodyRequest.getOrigenDocumento().equals("EXTERNO")){
 			tramite.setEntidadInterna(null);
 			tramite.setEntidadExterna(null);
@@ -748,7 +750,7 @@ public class TramiteService {
 
 		tramite.setNumeroTramite(numeroTramite);
 		*/
-		tramite.setEstado("A");
+		//tramite.setEstado("A");
 		if(tramiteBodyRequest.getOrigenDocumento().equals("EXTERNO")){
 			tramite.setEntidadInterna(null);
 			tramite.setEntidadExterna(null);
@@ -770,6 +772,12 @@ public class TramiteService {
 
 		return tramite;
 
+	}
+
+	public void actualizarEstadoTramite(String tramiteId, String estadoTramite){
+		Tramite tramite = tramiteMongoRepository.findById(tramiteId).get();
+		tramite.setEstado(estadoTramite);
+		tramiteMongoRepository.save(tramite);
 	}
 
 }

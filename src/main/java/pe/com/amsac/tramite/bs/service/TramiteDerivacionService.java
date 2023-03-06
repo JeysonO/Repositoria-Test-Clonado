@@ -27,6 +27,7 @@ import pe.com.amsac.tramite.bs.domain.TramiteDerivacion;
 import pe.com.amsac.tramite.bs.domain.Usuario;
 import pe.com.amsac.tramite.bs.repository.TramiteDerivacionMongoRepository;
 import pe.com.amsac.tramite.bs.repository.TramiteMongoRepository;
+import pe.com.amsac.tramite.bs.util.EstadoTramiteConstant;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -316,6 +317,8 @@ public class TramiteDerivacionService {
 
 		TramiteDerivacion registroTramiteDerivacion = registrarTramiteDerivacion(tramiteDerivacionBodyRequest);
 
+		tramiteService.actualizarEstadoTramite(registroTramiteDerivacion.getTramite().getId(),registroTramiteDerivacion.getEstadoInicio());
+
 		//Invocar a servicio para envio de correo
 		//Solo se envia si es diferente de estadoInicio = SUBSANACION
 		//if(registroTramiteDerivacion.getEstadoInicio()!=null && !registroTramiteDerivacion.getEstadoInicio().equals("SUBSANACION"))
@@ -331,7 +334,7 @@ public class TramiteDerivacionService {
 
 		TramiteDerivacion subsanarTramiteActual = tramiteDerivacionMongoRepository.findById(subsanartramiteDerivacionBodyrequest.getId()).get();
 		subsanarTramiteActual.setComentarioFin(subsanartramiteDerivacionBodyrequest.getComentarioInicial());
-		subsanarTramiteActual.setEstadoFin("SUBSANACION");
+		subsanarTramiteActual.setEstadoFin(EstadoTramiteConstant.SUBSANACION);
 		subsanarTramiteActual.setFechaFin(new Date());
 		subsanarTramiteActual.setEstado("A");
 		tramiteDerivacionMongoRepository.save(subsanarTramiteActual);
@@ -363,6 +366,9 @@ public class TramiteDerivacionService {
 		//Enviar correo para subsanacion
 		envioCorreoSubsanacion(nuevoDerivacionTramite);
 
+		//Actualizamos el estado a nivel de tramite
+		tramiteService.actualizarEstadoTramite(subsanarTramiteActual.getTramite().getId(),EstadoTramiteConstant.SUBSANACION);
+
 		return nuevoDerivacionTramite;
 	}
 
@@ -370,25 +376,26 @@ public class TramiteDerivacionService {
 	public TramiteDerivacion registrarDerivacionTramite(DerivarTramiteBodyRequest derivartramiteBodyrequest) throws Exception {
 
 		TramiteDerivacion derivacionTramiteActual = null;
-		if(derivartramiteBodyrequest.getEnConocimientoAtendido()!=null){
-			if(derivartramiteBodyrequest.getEnConocimientoAtendido().equals("S")){
-				AtencionTramiteDerivacionBodyRequest atencionTramiteDerivacionBodyRequest = new AtencionTramiteDerivacionBodyRequest();
-				atencionTramiteDerivacionBodyRequest.setId(derivartramiteBodyrequest.getId());
-				atencionTramiteDerivacionBodyRequest.setEstadoFin("ATENDIDO");
-				atencionTramiteDerivacionBodyRequest.setComentarioFin("CONOCIMIENTO ATENDIDO");
-				derivacionTramiteActual = registrarAtencionTramiteDerivacion(atencionTramiteDerivacionBodyRequest);
-				derivacionTramiteActual.setForma("COPIA");
-			}
+		if(derivartramiteBodyrequest.getEnConocimientoAtendido()!=null && derivartramiteBodyrequest.getEnConocimientoAtendido().equals("S")){
+			AtencionTramiteDerivacionBodyRequest atencionTramiteDerivacionBodyRequest = new AtencionTramiteDerivacionBodyRequest();
+			atencionTramiteDerivacionBodyRequest.setId(derivartramiteBodyrequest.getId());
+			atencionTramiteDerivacionBodyRequest.setEstadoFin(EstadoTramiteConstant.ATENDIDO);
+			atencionTramiteDerivacionBodyRequest.setComentarioFin("CONOCIMIENTO ATENDIDO");
+			derivacionTramiteActual = registrarAtencionTramiteDerivacion(atencionTramiteDerivacionBodyRequest);
+			derivacionTramiteActual.setForma("COPIA");
 		}else{
 			derivacionTramiteActual = tramiteDerivacionMongoRepository.findById(derivartramiteBodyrequest.getId()).get();
 			ZoneId defaultZoneId = ZoneId.systemDefault();
-			derivacionTramiteActual.setEstadoFin("DERIVADO");
+			derivacionTramiteActual.setEstadoFin(EstadoTramiteConstant.DERIVADO);
 			derivacionTramiteActual.setFechaFin(new Date());
 			derivacionTramiteActual.setProveidoAtencion(derivartramiteBodyrequest.getProveidoAtencion());
 			derivacionTramiteActual.setComentarioFin(derivartramiteBodyrequest.getComentarioFin());
 			derivacionTramiteActual.setFechaMaximaAtencion(Date.from(derivartramiteBodyrequest.getFechaMaximaAtencion().atStartOfDay(defaultZoneId).toInstant()));
 			derivacionTramiteActual.setEstado("A");
 			tramiteDerivacionMongoRepository.save(derivacionTramiteActual);
+
+			//Actualizamos el estado a nivel de tramite
+			tramiteService.actualizarEstadoTramite(derivacionTramiteActual.getTramite().getId(),EstadoTramiteConstant.DERIVADO);
 		}
 
 		//Asignar valores manualmente segun condiciones
@@ -405,7 +412,7 @@ public class TramiteDerivacionService {
 		derivacionTramiteBodyRequest.setSecuencia(sec);
 		derivacionTramiteBodyRequest.setUsuarioInicio(usuarioId);
 		derivacionTramiteBodyRequest.setUsuarioFin(derivartramiteBodyrequest.getUsuarioFin());
-		derivacionTramiteBodyRequest.setEstadoInicio("DERIVADO");
+		derivacionTramiteBodyRequest.setEstadoInicio(EstadoTramiteConstant.DERIVADO);
 		derivacionTramiteBodyRequest.setFechaInicio(new Date());
 		if(fechaMaxima!=null)
 			derivacionTramiteBodyRequest.setFechaMaximaAtencion(fechaMaxima);
@@ -427,7 +434,7 @@ public class TramiteDerivacionService {
 	public TramiteDerivacion registrarRecepcionTramiteDerivacion(String id) throws Exception {
 
 		TramiteDerivacion recepcionTramiteActual = tramiteDerivacionMongoRepository.findById(id).get();
-		recepcionTramiteActual.setEstadoFin("RECEPCIONADO");
+		recepcionTramiteActual.setEstadoFin(EstadoTramiteConstant.RECEPCIONADO);
 		recepcionTramiteActual.setFechaFin(new Date());
 		recepcionTramiteActual.setComentarioFin("Se recepciona tramite para verificacion");
 		recepcionTramiteActual.setEstado("A");
@@ -457,6 +464,8 @@ public class TramiteDerivacionService {
 
 		TramiteDerivacion nuevoRecepcionTramite = registrarTramiteDerivacion(recepcionTramiteBodyRequest);
 
+		tramiteService.actualizarEstadoTramite(recepcionTramiteActual.getTramite().getId(),recepcionTramiteActual.getEstadoFin());
+
 		return nuevoRecepcionTramite;
 	}
 
@@ -479,7 +488,7 @@ public class TramiteDerivacionService {
 			atenderTramiteDerivacion.setFechaMaximaAtencion(null);
 		}
 
-		if(atenciontramiteDerivacionBodyrequest.getEstadoFin().equals("SUBSANADO")){
+		if(atenciontramiteDerivacionBodyrequest.getEstadoFin().equals(EstadoTramiteConstant.SUBSANADO)){
 			int sec = obtenerSecuencia(atenderTramiteDerivacion.getTramite().getId());
 
 			TramiteDerivacionBodyRequest subsanarTramiteBodyRequest = mapper.map(atenderTramiteDerivacion, TramiteDerivacionBodyRequest.class);
@@ -503,9 +512,12 @@ public class TramiteDerivacionService {
 		}
 
 		//Ahora se actualiza el estado del tramite
+		tramiteService.actualizarEstadoTramite(idTramite, atenciontramiteDerivacionBodyrequest.getEstadoFin());
+		/*
 		Tramite tramite = tramiteService.findById(idTramite);
 		tramite.setEstado(atenciontramiteDerivacionBodyrequest.getEstadoFin());
 		tramiteService.save(tramite);
+		*/
 
 		return atenderTramiteDerivacion;
 	}
@@ -782,7 +794,7 @@ public class TramiteDerivacionService {
 
 		TramiteDerivacion subsanarTramiteActual = tramiteDerivacionMongoRepository.findById(rechazarTramiteDerivacionBodyRequest.getId()).get();
 		subsanarTramiteActual.setComentarioFin(rechazarTramiteDerivacionBodyRequest.getComentarioInicial());
-		subsanarTramiteActual.setEstadoFin("RECHAZADO");
+		subsanarTramiteActual.setEstadoFin(EstadoTramiteConstant.RECHAZADO);
 		subsanarTramiteActual.setFechaFin(new Date());
 		subsanarTramiteActual.setEstado("A");
 		tramiteDerivacionMongoRepository.save(subsanarTramiteActual);
@@ -803,6 +815,8 @@ public class TramiteDerivacionService {
 		subsanarTramiteBodyRequest.setComentarioFin(null);
 
 		TramiteDerivacion nuevoDerivacionTramite = registrarTramiteDerivacion(subsanarTramiteBodyRequest);
+
+		tramiteService.actualizarEstadoTramite(subsanarTramiteActual.getTramite().getId(),subsanarTramiteActual.getEstadoFin());
 
 		//Enviar correo para subsanacion
 		//envioCorreoSubsanacion(nuevoDerivacionTramite);
@@ -1057,5 +1071,6 @@ public class TramiteDerivacionService {
 		return registroTramiteDerivacion;
 
 	}
+
 
 }

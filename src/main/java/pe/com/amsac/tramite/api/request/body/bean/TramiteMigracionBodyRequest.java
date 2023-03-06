@@ -1,8 +1,10 @@
 package pe.com.amsac.tramite.api.request.body.bean;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import org.dozer.Mapping;
 
+import java.sql.Timestamp;
 import java.util.Date;
 
 @Data
@@ -20,6 +22,7 @@ public class TramiteMigracionBodyRequest {
 	private String dependenciaDestinoId;
 
 	//Datos del documento
+
 	private Date fechaDocumento;
 	private String tipoDocumentoId;
 	private String origenDocumento; //INTERNO, EXTERNO
@@ -59,6 +62,8 @@ public class TramiteMigracionBodyRequest {
 
 	//Fecha recepcion de tramite
 	private Date fechaRecepcionTramite;
+
+	private String estado;
 
 	private Date createdDate;
 	private Date lastModifiedDate;
