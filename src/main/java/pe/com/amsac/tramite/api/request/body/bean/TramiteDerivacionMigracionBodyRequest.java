@@ -17,6 +17,7 @@ public class TramiteDerivacionMigracionBodyRequest {
 	private Date fechaFin;
 	private String proveidoAtencion;
 	private String forma;
+	private String estado;
 
 	private String tramiteId;
 

@@ -1052,7 +1052,7 @@ public class TramiteDerivacionService {
 		//registroTramiteDerivacion.setUsuarioFin(userFin);
 		//registroTramiteDerivacion.setFechaInicio(new Date());
 		registroTramiteDerivacion.setTramite(tramiteMongoRepository.findById(tramiteDerivacionBodyRequest.getTramiteId()).get());
-		registroTramiteDerivacion.setEstado("A");
+		//registroTramiteDerivacion.setEstado("A");
 
 		int sec = obtenerSecuencia(tramiteDerivacionBodyRequest.getTramiteId());
 		registroTramiteDerivacion.setSecuencia(sec);
