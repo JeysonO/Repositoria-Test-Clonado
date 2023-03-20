@@ -1,5 +1,7 @@
 package pe.com.amsac.tramite.bs.domain;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -11,6 +13,7 @@ import javax.persistence.Column;
 import javax.persistence.Id;
 import java.io.Serializable;
 
+@Builder
 @Data
 @Document(collection = "documento_adjunto")
 @AttributeOverrides(value = {
@@ -27,6 +30,8 @@ public class DocumentoAdjunto extends BaseAuditableEntity<String> {
 	private String id;
 
 	private String nombreArchivo;
+
+	private String nombreArchivoServer;
 
 	private String descripcion;
 

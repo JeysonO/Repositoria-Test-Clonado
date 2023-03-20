@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,7 @@ import pe.com.amsac.tramite.api.file.bean.TramitePathFileStorage;
 import pe.com.amsac.tramite.api.file.bean.UploadFileResponse;
 import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
 import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoBodyRequest;
+import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoMigracionBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.DocumentoAdjuntoResponse;
 import pe.com.amsac.tramite.api.file.bean.FileStorageService;
 import pe.com.amsac.tramite.api.response.bean.Mensaje;
@@ -24,7 +26,12 @@ import pe.com.amsac.tramite.bs.domain.Tramite;
 import pe.com.amsac.tramite.bs.repository.DocumentoAdjuntoMongoRepository;
 import pe.com.amsac.tramite.bs.repository.TramiteMongoRepository;
 
+import javax.persistence.Id;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -51,6 +58,9 @@ public class DocumentoAdjuntoService {
 
 	@Autowired
 	private FileStorageService fileStorageService;
+
+	@Autowired
+	private TramiteService tramiteService;
 
 	public List<DocumentoAdjuntoResponse> obtenerDocumentoAdjuntoList(DocumentoAdjuntoRequest documentoAdjuntoRequest) throws Exception {
 
@@ -92,10 +102,12 @@ public class DocumentoAdjuntoService {
 		}
 
 		String fileName = fileStorageService.getFileName(documentoAdjuntoRequest.getFile().getOriginalFilename());
+		String fileNameInServer = UUID.randomUUID().toString() + "." + obtenerExtensionArchivo(fileName);
 
 		DocumentoAdjunto documentoAdjunto = mapper.map(documentoAdjuntoRequest, DocumentoAdjunto.class);
 		documentoAdjunto.setEstado("A");
 		documentoAdjunto.setNombreArchivo(fileName);
+		documentoAdjunto.setNombreArchivoServer(fileNameInServer);
 		documentoAdjunto.setExtension(documentoAdjuntoRequest.getFile().getContentType());
 
 		//Primero registramos el archivo en disco
@@ -118,8 +130,10 @@ public class DocumentoAdjuntoService {
 
 		// Registramos el archivo adjunto
 		// Enviamos reemplazar igual a N siempre, para que no chanque los archivos.
-		fileName = fileStorageService.storeFile(documentoAdjuntoRequest.getFile().getInputStream(), fileName,false);
-		documentoAdjunto.setNombreArchivo(fileName);
+		//fileName = fileStorageService.storeFile(documentoAdjuntoRequest.getFile().getInputStream(), fileName,false);
+		//documentoAdjunto.setNombreArchivo(fileName);
+		fileNameInServer = fileStorageService.storeFile(documentoAdjuntoRequest.getFile().getInputStream(), fileNameInServer,false);
+		documentoAdjunto.setNombreArchivoServer(fileNameInServer);
 
 		//Guardamos en BD
 		documentoAdjuntoMongoRepository.save(documentoAdjunto);
@@ -131,9 +145,10 @@ public class DocumentoAdjuntoService {
 	}
 
 	private String construirRutaArchivo(Tramite tramite, String tipoAdjunto) {
-		DocumentoAdjunto documentoAdjunto = new DocumentoAdjunto();
-		documentoAdjunto.setTramite(tramite);
-		documentoAdjunto.setTipoAdjunto(tipoAdjunto);
+		DocumentoAdjunto documentoAdjunto = DocumentoAdjunto.builder()
+				.tramite(tramite)
+				.tipoAdjunto(tipoAdjunto)
+				.build();
 		return construirRutaArchivo(documentoAdjunto);
 	}
 	private String construirRutaArchivo(DocumentoAdjunto documentoAdjunto) {
@@ -164,7 +179,8 @@ public class DocumentoAdjuntoService {
 	public Resource obtenerArchivo(DocumentoAdjunto documentoAdjunto) throws Exception {
 			fileStorageService.setFileStorageLocation(tramiteRuthFileStorage.setObject(documentoAdjunto).build());
 
-		return fileStorageService.loadFileAsResource(documentoAdjunto.getNombreArchivo());
+		//return fileStorageService.loadFileAsResource(documentoAdjunto.getNombreArchivo());
+		return fileStorageService.loadFileAsResource(documentoAdjunto.getNombreArchivoServer());
 	}
 
 	public DocumentoAdjunto obtenerDocumentoAdjunto(String documentoAdjuntoId) throws Exception {
@@ -211,5 +227,62 @@ public class DocumentoAdjuntoService {
 			}
 		}
 		return mensajes;
+	}
+
+	public void registrarDocumentoAdjuntoMigracion(DocumentoAdjuntoMigracionBodyRequest documentoAdjuntoMigracionBodyRequest ) throws Exception {
+
+		//Se obtiene el archivo de la carpeta determinada
+		String rutaArchivoTramiteActual = documentoAdjuntoMigracionBodyRequest.getCarpetaDocumento() + "/" + documentoAdjuntoMigracionBodyRequest.getNombreArchivo();
+		String rutaCompletaArchivo = "/tramite/file/uploads/"+rutaArchivoTramiteActual;
+		File fileTramiteAntiguo = new File(rutaCompletaArchivo);
+
+		Path path = fileTramiteAntiguo.toPath();
+		String mimeType = Files.probeContentType(path);
+
+		//Validar suma de adjuntos
+		String fileName = documentoAdjuntoMigracionBodyRequest.getNombreOriginalArchivo();//fileStorageService.getFileName(documentoAdjuntoMigracionBodyRequest.getFile().getOriginalFilename());
+		Tramite tramite = tramiteService.findById(documentoAdjuntoMigracionBodyRequest.getTramiteId());
+		String fileNameInServer = UUID.randomUUID().toString() + "." + obtenerExtensionArchivo(fileName);
+
+		DocumentoAdjunto documentoAdjunto = DocumentoAdjunto.builder()
+				.nombreArchivo(fileName)
+				.estado("A")
+				.extension(mimeType)
+				.descripcion(documentoAdjuntoMigracionBodyRequest.getDescripcion())
+				.tramite(tramite)
+				.nombreArchivoServer(fileNameInServer)
+				.build();
+
+		//Primero registramos el archivo en disco
+
+		Tramite tramiteTmp = null;
+
+		if(documentoAdjunto.getTramite()!=null
+				&& documentoAdjunto.getTramite().getId()!=null) {
+			// Se crea el archivo para guardarlo
+			tramiteTmp = tramiteMongoRepository.findById(documentoAdjunto.getTramite().getId()).get();
+
+			// Seteamos la ruta
+			fileStorageService.setFileStorageLocation(
+					construirRutaArchivo(tramiteTmp, documentoAdjunto.getTipoAdjunto()));
+		}else {
+			// Seteamos la ruta
+			fileStorageService.setFileStorageLocation(
+					construirRutaArchivo(documentoAdjunto));
+		}
+
+		// Registramos el archivo adjunto
+		// Enviamos reemplazar igual a N siempre, para que no chanque los archivos.
+		fileNameInServer = fileStorageService.storeFile(new FileInputStream(fileTramiteAntiguo), fileNameInServer,false);
+		documentoAdjunto.setNombreArchivoServer(fileNameInServer);
+
+		//Guardamos en BD
+		documentoAdjuntoMongoRepository.save(documentoAdjunto);
+
+	}
+
+	private String obtenerExtensionArchivo(String fileName){
+		String[] arregloCadena = fileName.split("\\.");
+		return arregloCadena[arregloCadena.length - 1];
 	}
 }
