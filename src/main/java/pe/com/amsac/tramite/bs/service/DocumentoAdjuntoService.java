@@ -135,6 +135,8 @@ public class DocumentoAdjuntoService {
 		fileNameInServer = fileStorageService.storeFile(documentoAdjuntoRequest.getFile().getInputStream(), fileNameInServer,false);
 		documentoAdjunto.setNombreArchivoServer(fileNameInServer);
 
+		//Seteamos tamanio de archivo
+		documentoAdjunto.setSize(documentoAdjuntoRequest.getFile().getSize());
 		//Guardamos en BD
 		documentoAdjuntoMongoRepository.save(documentoAdjunto);
 
@@ -251,6 +253,7 @@ public class DocumentoAdjuntoService {
 				.descripcion(documentoAdjuntoMigracionBodyRequest.getDescripcion())
 				.tramite(tramite)
 				.nombreArchivoServer(fileNameInServer)
+				.size(Files.size(path))
 				.build();
 
 		//Primero registramos el archivo en disco
