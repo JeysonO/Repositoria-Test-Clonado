@@ -147,10 +147,9 @@ public class DocumentoAdjuntoService {
 	}
 
 	private String construirRutaArchivo(Tramite tramite, String tipoAdjunto) {
-		DocumentoAdjunto documentoAdjunto = DocumentoAdjunto.builder()
-				.tramite(tramite)
-				.tipoAdjunto(tipoAdjunto)
-				.build();
+		DocumentoAdjunto documentoAdjunto = new DocumentoAdjunto();
+		documentoAdjunto.setTipoAdjunto(tipoAdjunto);
+		documentoAdjunto.setTramite(tramite);
 		return construirRutaArchivo(documentoAdjunto);
 	}
 	private String construirRutaArchivo(DocumentoAdjunto documentoAdjunto) {
@@ -246,15 +245,14 @@ public class DocumentoAdjuntoService {
 		Tramite tramite = tramiteService.findById(documentoAdjuntoMigracionBodyRequest.getTramiteId());
 		String fileNameInServer = UUID.randomUUID().toString() + "." + obtenerExtensionArchivo(fileName);
 
-		DocumentoAdjunto documentoAdjunto = DocumentoAdjunto.builder()
-				.nombreArchivo(fileName)
-				.estado("A")
-				.extension(mimeType)
-				.descripcion(documentoAdjuntoMigracionBodyRequest.getDescripcion())
-				.tramite(tramite)
-				.nombreArchivoServer(fileNameInServer)
-				.size(Files.size(path))
-				.build();
+		DocumentoAdjunto documentoAdjunto = new DocumentoAdjunto();
+		documentoAdjunto.setNombreArchivo(fileName);
+		documentoAdjunto.setEstado("A");
+		documentoAdjunto.setExtension(mimeType);
+		documentoAdjunto.setDescripcion(documentoAdjuntoMigracionBodyRequest.getDescripcion());
+		documentoAdjunto.setTramite(tramite);
+		documentoAdjunto.setNombreArchivoServer(fileNameInServer);
+		documentoAdjunto.setSize(Files.size(path));
 
 		//Primero registramos el archivo en disco
 

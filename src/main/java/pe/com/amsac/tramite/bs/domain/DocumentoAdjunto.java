@@ -13,7 +13,7 @@ import javax.persistence.Column;
 import javax.persistence.Id;
 import java.io.Serializable;
 
-@Builder
+//@Builder
 @Data
 @Document(collection = "documento_adjunto")
 @AttributeOverrides(value = {
