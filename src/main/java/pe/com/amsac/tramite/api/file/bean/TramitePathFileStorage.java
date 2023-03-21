@@ -2,12 +2,14 @@ package pe.com.amsac.tramite.api.file.bean;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.annotation.RequestScope;
 import pe.com.amsac.tramite.bs.domain.DocumentoAdjunto;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
 
 @Component
+@RequestScope
 public class TramitePathFileStorage extends CreatePathFileStorage<DocumentoAdjunto> {
     @Autowired
     private FileTxProperties fileTxProperties;

@@ -5,8 +5,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.context.annotation.RequestScope;
 import org.springframework.web.multipart.MultipartFile;
 import pe.com.amsac.tramite.api.util.ResourceNotFoundException;
 
@@ -20,7 +22,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Date;
 
-@Service
+@Component
+@RequestScope
 public class FileStorageService {
     private static final Logger log = LoggerFactory.getLogger(FileStorageService.class);
     private Path fileStorageLocation;

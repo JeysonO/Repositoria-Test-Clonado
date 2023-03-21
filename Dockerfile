@@ -8,6 +8,7 @@ COPY ./target/amsac-tramite-api-1.0.jar /app/application.jar
 RUN mkdir -p tramite/logs
 RUN mkdir -p tramite/resource/reporte
 RUN mkdir -p tramite/file
+RUN mkdir -p tramite/file/documento-firma/externo
 
 RUN echo 'deb http://deb.debian.org/debian/ buster contrib non-free' >> /etc/apt/sources.list
 RUN echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections

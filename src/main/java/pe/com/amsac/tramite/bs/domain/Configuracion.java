@@ -18,4 +18,20 @@ public class Configuracion {
 
 	private String horaEnvioCorreoAcuseTramite;
 
+	private String billingUsername;
+
+	private String billingPassword;
+
+	private String urlFirmaBack;
+
+	private String urlLogBack;
+
+	private String firmaEnv;
+
+	private String urlFirmador;
+
+	private String formatoFirma;
+
+	private String firmaParagraphFormat;
+
 }

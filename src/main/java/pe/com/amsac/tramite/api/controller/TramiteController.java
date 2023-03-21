@@ -216,8 +216,12 @@ public class TramiteController {
 
 		try {
 
+			/*
 			log.info("Tramite a migrar:"+new ObjectMapper().writeValueAsString(tramiteBodyrequest));
 			log.info("CreeateDate:"+new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(tramiteBodyrequest.getCreatedDate()));
+			String userTimezoneProp = System.getProperty("user.timezone");
+			log.info("userTimezoneProp:"+userTimezoneProp);
+			*/
 
 			TramiteMigracion tramite = tramiteService.registrarTramiteMigracion(tramiteBodyrequest);
 
