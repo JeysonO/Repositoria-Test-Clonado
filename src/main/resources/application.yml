@@ -17,7 +17,7 @@ spring:
 
   servlet:
     multipart:
-      #enabled: true
+      #enabled: false
       # Threshold after which files are written to disk.
       #file-size-threshold: 2KB
       # Max file size.
@@ -63,6 +63,7 @@ app:
     
   ruta:
     adjuntos: tramite
+    documento-firma-externo: tramite/file/documento-firma/externo/
   url:
     #seguridad: http://localhost:8480/amsac-seguridad
     #seguridad: http://amsac-security-api:8100/amsac-seguridad
@@ -99,3 +100,4 @@ cron:
   #* "0 0 9-17 * * MON-FRI" = on the hour nine-to-five weekdays
   #* "0 0 0 25 12 ?" = every Christmas Day at midnight
   evaluar-vencimiento-tramite-derivacion: 0 0 8 * * *
+
