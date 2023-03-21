@@ -41,6 +41,8 @@ public class DocumentoAdjunto extends BaseAuditableEntity<String> {
 
 	private String estado;
 
+	private Long size;
+
 	@DBRef
 	private Tramite tramite;
 
