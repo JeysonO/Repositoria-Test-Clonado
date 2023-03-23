@@ -757,6 +757,7 @@ public class TramiteService {
 			tramite.setTramitePrioridad(null);
 		}else{
 			tramite.setDependenciaDestino(null);
+			tramite.setEntidadInterna(null);
 		}
 		tramiteMigracionMongoRepository.save(tramite);
 		/*
