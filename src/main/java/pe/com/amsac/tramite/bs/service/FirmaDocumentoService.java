@@ -382,11 +382,10 @@ public class FirmaDocumentoService {
 		Tramite tramite = new Tramite();
 		tramite.setId("sdafasfasdfasf");
 
-		DocumentoAdjunto documentoAdjunto = DocumentoAdjunto.builder()
-				.extension("application/pdf")
-				.nombreArchivo("prueba_firma.pdf")
-				.tramite(tramite)
-				.build();
+		DocumentoAdjunto documentoAdjunto = new DocumentoAdjunto();
+		documentoAdjunto.setExtension("application/pdf");
+		documentoAdjunto.setNombreArchivo("prueba_firma.pdf");
+		documentoAdjunto.setTramite(tramite);
 
 		return documentoAdjunto;
 	}
