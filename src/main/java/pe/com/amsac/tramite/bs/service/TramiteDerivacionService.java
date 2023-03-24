@@ -314,7 +314,10 @@ public class TramiteDerivacionService {
 
 		tramiteDerivacionMongoRepository.save(registroTramiteDerivacion);
 		*/
-
+		//El primer estado inicio hacia otro usuario es DERIVADO
+		if(StringUtils.isBlank(tramiteDerivacionBodyRequest.getEstadoInicio())){
+			tramiteDerivacionBodyRequest.setEstadoInicio(EstadoTramiteConstant.DERIVADO);
+		}
 		TramiteDerivacion registroTramiteDerivacion = registrarTramiteDerivacion(tramiteDerivacionBodyRequest);
 
 		tramiteService.actualizarEstadoTramite(registroTramiteDerivacion.getTramite().getId(),registroTramiteDerivacion.getEstadoInicio());
