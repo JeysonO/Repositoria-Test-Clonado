@@ -809,4 +809,58 @@ public class TramiteService {
 		tramiteMongoRepository.save(tramite);
 	}
 
+	public int totalRegistros(TramiteRequest tramiteRequest) throws Exception {
+		SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+		Query andQuery = new Query();
+		Criteria andCriteria = new Criteria();
+		List<Criteria> andExpression =  new ArrayList<>();
+		Map<String, Object> parameters = mapper.map(tramiteRequest,Map.class);
+		parameters.values().removeIf(Objects::isNull);
+		List<Criteria> listCriteria =  new ArrayList<>();
+		if(parameters.containsKey("soloOriginal")){
+			parameters.remove("soloOriginal");
+		}
+		/*if(parameters.containsKey("fechaDocumentoDesde") && parameters.containsKey("fechaDocumentoHasta"))
+			listCriteria.add(Criteria.where("fechaDocumento").gte(parameters.get("fechaDocumentoDesde")).lte(parameters.get("fechaDocumentoHasta")));
+		*/
+		if(parameters.containsKey("fechaCreacionDesde")){
+			listCriteria.add(Criteria.where("createdDate").gte(parameters.get("fechaCreacionDesde")));
+			filtroParam.put("fechaCreacionDesde",formatter.format(parameters.get("fechaCreacionDesde")));
+			parameters.remove("fechaCreacionDesde");
+		}
+		if(parameters.containsKey("fechaCreaciontoHasta")){
+			listCriteria.add(Criteria.where("createdDate").lte(parameters.get("fechaCreaciontoHasta")));
+			filtroParam.put("fechaCreaciontoHasta",formatter.format(parameters.get("fechaCreaciontoHasta")));
+			parameters.remove("fechaCreaciontoHasta");
+		}
+		if(parameters.containsKey("asunto")){
+			listCriteria.add(Criteria.where("asunto").regex(".*"+parameters.get("asunto")+".*"));
+			parameters.remove("asunto");
+		}
+
+		if(!listCriteria.isEmpty())
+			andExpression.add(new Criteria().andOperator(listCriteria.toArray(new Criteria[listCriteria.size()])));
+
+		if((Integer) parameters.get("numeroTramite")==0) {
+			parameters.remove("numeroTramite");
+		}
+		if(!StringUtils.isBlank(tramiteRequest.getMisTramite())){
+			parameters.remove("misTramite");
+			parameters.put("createdByUser",securityHelper.obtenerUserIdSession());
+		}
+		filtroParam.putAll(parameters);
+		//Retiramos las keys de paginacion
+		parameters.remove("pageNumber");
+		parameters.remove("pageSize");
+
+		Criteria expression = new Criteria();
+		parameters.forEach((key, value) -> expression.and(key).is(value));
+		andExpression.add(expression);
+		andQuery.addCriteria(andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()])));
+
+		long cantidadRegistro = mongoTemplate.count(andQuery, Tramite.class);
+
+		return (int)cantidadRegistro;
+	}
+
 }

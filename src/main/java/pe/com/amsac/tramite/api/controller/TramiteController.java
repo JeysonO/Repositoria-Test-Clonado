@@ -37,7 +37,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -73,6 +75,14 @@ public class TramiteController {
 			}
 			*/
 			List<TramiteResponse> obtenerTramiteList =  tramiteService.buscarTramiteWithParams(tramiteRequest);
+
+			/*
+			Map<String, Object> param = new HashMap<>();
+			param.put("totalRegistrosFiltros", tramiteService.totalRegistros(tramiteRequest));
+			Meta meta = new Meta(EstadoRespuestaConstant.RESULTADO_OK, null);
+			meta.setAtributos(param);
+			*/
+
 			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(obtenerTramiteList).build();
 
 		} catch (ServiceException se) {
@@ -237,6 +247,50 @@ public class TramiteController {
 
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 
+	}
+
+	@GetMapping("/record-count")
+	public ResponseEntity<CommonResponse> cantidadRegistrosBuscarTramiteParams(@Valid TramiteRequest tramiteRequest) throws Exception {
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.OK;
+
+		try {
+
+			int cantidadRegistros = tramiteService.totalRegistros(tramiteRequest);
+
+			Map<String, Object> param = new HashMap<>();
+			param.put("cantidadRegistros", cantidadRegistros);
+
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(param).build();
+
+		} catch (ServiceException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+	}
+
+
+	//Para busqueda de los tramites iniciados por una persona
+	@GetMapping("/tramites-by-usuario-id/record-count")
+	public ResponseEntity<CommonResponse> cantidadRegistrosBuscarTramiteByUsuarioId(@Valid TramiteRequest tramiteRequest) throws Exception {
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.OK;
+
+		String usuarioId = securityHelper.obtenerUserIdSession();
+
+		tramiteRequest.setCreatedByUser(usuarioId);
+		int cantidadRegistros = tramiteService.totalRegistros(tramiteRequest);
+
+		Map<String, Object> param = new HashMap<>();
+		param.put("cantidadRegistros", cantidadRegistros);
+
+		commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(param).build();
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 	}
 
 }

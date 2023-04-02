@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
+import pe.com.amsac.tramite.api.request.bean.TramiteRequest;
 import pe.com.amsac.tramite.api.request.body.bean.*;
 import pe.com.amsac.tramite.api.request.bean.TramiteDerivacionRequest;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
@@ -27,9 +28,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @RestController
 @RequestMapping("/tramites-derivaciones")
@@ -415,5 +414,54 @@ public class TramiteDerivacionController {
 
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 
+	}
+
+	@GetMapping("/tramites-pendientes/record-count")
+	public ResponseEntity<CommonResponse> cantidadRegistrosObtenerTramiteDerivacionPendientes(@Valid TramiteDerivacionRequest tramiteDerivacionRequest) throws Exception {
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.OK;
+
+		try {
+
+			String idUser =  securityHelper.obtenerUserIdSession();
+			tramiteDerivacionRequest.setUsuarioFin(idUser);
+
+			int cantidadRegistros = tramiteDerivacionService.totalRegistros(tramiteDerivacionRequest);
+
+			Map<String, Object> param = new HashMap<>();
+			param.put("cantidadRegistros", cantidadRegistros);
+
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(param).build();
+
+		} catch (ServiceException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+	}
+
+	@GetMapping("/buscar-By-Params/record-count")
+	public ResponseEntity<CommonResponse> cantidadRegistrosObtenerTramiteByParams(@Valid TramiteDerivacionRequest tramiteDerivacionRequest) throws Exception {
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.OK;
+
+		try {
+
+			int cantidadRegistros = tramiteDerivacionService.totalRegistros(tramiteDerivacionRequest);
+
+			Map<String, Object> param = new HashMap<>();
+			param.put("cantidadRegistros", cantidadRegistros);
+
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(param).build();
+
+		} catch (ServiceException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 	}
 }

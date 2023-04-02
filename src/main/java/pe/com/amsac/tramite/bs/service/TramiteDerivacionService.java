@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
+import pe.com.amsac.tramite.api.request.bean.TramiteRequest;
 import pe.com.amsac.tramite.api.request.body.bean.*;
 import pe.com.amsac.tramite.api.request.bean.TramiteDerivacionRequest;
 import pe.com.amsac.tramite.api.response.bean.*;
@@ -148,6 +149,7 @@ public class TramiteDerivacionService {
 			}
 		});
 
+		/*
 		//Por cada usuario origen y fin, obtener la dependencia y cargo
 		RestTemplate restTemplate = new RestTemplate();
 		String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/";
@@ -179,6 +181,7 @@ public class TramiteDerivacionService {
 			tramiteDerivacion.setUsuarioFinNombreCompleto(nombreCompleto);
 
 		}
+		*/
 
 		return tramitePendienteList;
 	}
@@ -1097,6 +1100,60 @@ public class TramiteDerivacionService {
 
 		return registroTramiteDerivacion;
 
+	}
+
+	public int totalRegistros(TramiteDerivacionRequest tramiteDerivacionRequest) throws Exception {
+		Query andQuery = new Query();
+		Criteria andCriteria = new Criteria();
+		List<Criteria> andExpression =  new ArrayList<>();
+		Map<String, Object> parameters = mapper.map(tramiteDerivacionRequest,Map.class);
+		parameters.values().removeIf(Objects::isNull);
+		if(parameters.get("numeroTramite").equals(0)){
+			parameters.remove("numeroTramite");
+		}
+		List<Criteria> listCriteria =  new ArrayList<>();
+		//TODO: Verificar busqueda por parametro tramite.numeroTramite
+		if(parameters.containsKey("tramiteId")){
+			listCriteria.add(Criteria.where("tramite.id").is(parameters.get("tramiteId")));
+			parameters.remove("tramiteId");
+		}
+		if(parameters.containsKey("numeroTramite")){
+			listCriteria.add(Criteria.where("tramite.numeroTramite").is(parameters.get("numeroTramite")));
+			parameters.remove("numeroTramite");
+		}
+		if(parameters.containsKey("asunto")){
+			//listCriteria.add(Criteria.where("tramite.asunto").is(parameters.get("numeroTramite")));
+			listCriteria.add(Criteria.where("tramite.asunto").regex(".*"+parameters.get("asunto")+".*"));
+			parameters.remove("numeroTramite");
+		}
+		if(parameters.containsKey("fechaDerivacionDesde") && parameters.containsKey("fechaDerivacionHasta")){
+			listCriteria.add(Criteria.where("fechaInicio").gte(parameters.get("fechaDerivacionDesde")).lte(parameters.get("fechaDerivacionHasta")));
+			parameters.remove("fechaDerivacionDesde");
+		}
+		if(parameters.containsKey("usuarioInicio")){
+			listCriteria.add(Criteria.where("usuarioInicio.id").is(parameters.get("usuarioInicio")));
+			parameters.remove("fechaDerivacionDesde");
+		}
+		if(parameters.containsKey("usuarioFin")){
+			listCriteria.add(Criteria.where("usuarioFin.id").is(parameters.get("usuarioFin")));
+			parameters.remove("usuarioFin");
+		}
+		if(!listCriteria.isEmpty()) {
+			andExpression.add(new Criteria().andOperator(listCriteria.toArray(new Criteria[listCriteria.size()])));
+		}
+
+		//Retiramos las keys de paginacion
+		parameters.remove("pageNumber");
+		parameters.remove("pageSize");
+
+		Criteria expression = new Criteria();
+		parameters.forEach((key, value) -> expression.and(key).is(value));
+		andExpression.add(expression);
+		andQuery.addCriteria(andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()])));
+
+		long cantidadRegistro = mongoTemplate.count(andQuery, TramiteDerivacion.class);
+
+		return (int)cantidadRegistro;
 	}
 
 

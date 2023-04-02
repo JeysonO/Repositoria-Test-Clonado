@@ -43,6 +43,8 @@ public class TramiteDerivacionResponse {
 
 	private String numeroDocumento;
 
+	private String asunto;
+
 	@Mapping("tramite.id")
 	public String getTramiteId(){return tramiteId;}
 
@@ -63,5 +65,8 @@ public class TramiteDerivacionResponse {
 
 	@Mapping("tramite.numeroDocumento")
 	public String getNumeroDocumento(){return numeroDocumento;}
+
+	@Mapping("tramite.asunto")
+	public String getAsunto(){return asunto;}
 
 }
