@@ -140,6 +140,18 @@ public class TramiteService {
 			listCriteria.add(Criteria.where("asunto").regex(".*"+parameters.get("asunto")+".*"));
 			parameters.remove("asunto");
 		}
+		if(!StringUtils.isBlank(tramiteRequest.getMisTramite())){
+			parameters.remove("misTramite");
+			//parameters.put("createdByUser",securityHelper.obtenerUserIdSession());
+			listCriteria.add(Criteria.where("createdByUser").regex(".*"+securityHelper.obtenerUserIdSession()+".*"));
+		}
+		/*
+		if(!StringUtils.isBlank(tramiteRequest.getCreatedByUser())){
+			parameters.remove("createdByUser");
+			//parameters.put("createdByUser",securityHelper.obtenerUserIdSession());
+			listCriteria.add(Criteria.where("createdByUser").regex(".*"+tramiteRequest.getCreatedByUser()+".*"));
+		}
+		*/
 
 		if(!listCriteria.isEmpty())
 			andExpression.add(new Criteria().andOperator(listCriteria.toArray(new Criteria[listCriteria.size()])));
@@ -147,10 +159,7 @@ public class TramiteService {
 		if((Integer) parameters.get("numeroTramite")==0) {
 			parameters.remove("numeroTramite");
 		}
-		if(!StringUtils.isBlank(tramiteRequest.getMisTramite())){
-			parameters.remove("misTramite");
-			parameters.put("createdByUser",securityHelper.obtenerUserIdSession());
-		}
+
 		filtroParam.putAll(parameters);
 		//Agregamos la paginacion
 		if(tramiteRequest.getPageNumber()>0 && tramiteRequest.getPageSize()>0){
@@ -164,7 +173,19 @@ public class TramiteService {
 		Criteria expression = new Criteria();
 		parameters.forEach((key, value) -> expression.and(key).is(value));
 		andExpression.add(expression);
+
+		//Criteria criteria = Criteria.where("createdByUser").regex(".*63326743b5ebc131b21522e1.*");
+		//andQuery.addCriteria(criteria);
 		andQuery.addCriteria(andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()])));
+
+
+		/*
+		if(andExpression.size()>1)
+			andQuery.addCriteria(andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()])));
+		else
+			andQuery.addCriteria(andExpression.get(0));
+		*/
+
 
 		List<Tramite> tramiteList = mongoTemplate.find(andQuery, Tramite.class);
 
@@ -276,6 +297,8 @@ public class TramiteService {
 		*/
 
 		tramiteRequest.setCreatedByUser(usuarioId);
+		//tramiteRequest.setCreatedByUser("63326743b5ebc131b21522e1");
+		//tramiteRequest.setEstado("RECEPCIONADO");
 		List<Tramite> tramiteList = buscarTramiteParams(tramiteRequest);
 
 		//Ordenamos por fecha de creacion, los mas recientes primero
