@@ -52,8 +52,9 @@ public class FirmaDigitalController {
 	public ResponseEntity<CommonResponse> firmarDocumentoExterno(
 			@RequestParam(value = "textoFirma", required = false) String textoFirma,
 			@RequestParam(value = "positionId", required = false) String positionId,
+			@RequestParam(value = "positionCustom", required = false) String positionCustom,
 			@RequestParam(value = "pin", required = false) String pin,
-			@RequestParam(value = "imagenFirmaDigitalId", required = false) String imagenFirmaDigitalId,
+			@RequestParam(value = "usuarioFirmaLogoId", required = false) String usuarioFirmaLogoId,
 			@RequestParam(value = "email", required = false) String email,
 			@RequestParam(value = "file", required = true) MultipartFile file) throws Exception {
 
@@ -63,7 +64,9 @@ public class FirmaDigitalController {
 				.textoFirma(textoFirma)
 				.positionId(positionId)
 				.pin(pin)
-				.imagenFirmaDigitalId(imagenFirmaDigitalId)
+				//.imagenFirmaDigitalId(imagenFirmaDigitalId)
+				.usuarioFirmaLogoId(usuarioFirmaLogoId)
+				.positionCustom(positionCustom)
 				.email(email)
 				.file(file)
 				.build();

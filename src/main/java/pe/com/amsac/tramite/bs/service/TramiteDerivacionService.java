@@ -7,6 +7,8 @@ import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.env.Environment;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -118,29 +120,21 @@ public class TramiteDerivacionService {
 		return tramitePendienteList;
 	}
 
-	public List<TramiteDerivacion> obtenerTramiteDerivacionPendientes() throws Exception {
-		//Obtener Usuario
+	public List<TramiteDerivacion> obtenerTramiteDerivacionPendientes(TramiteDerivacionRequest tramiteDerivacionRequest) throws Exception {
 		/*
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		if (authentication == null || !authentication.isAuthenticated()) {
-			return null;
-		}
-		DatosToken datosToken = (DatosToken)authentication.getPrincipal();
-
-		String idUser =  datosToken.getIdUser();
-		*/
 		String idUser =  securityHelper.obtenerUserIdSession();
 
 		Query query = new Query();
 		Criteria criteria = Criteria.where("usuarioFin.id").is(idUser).and("estado").is("P");
 		query.addCriteria(criteria);
-		/*
-		query.with(Sort.by(
-				Sort.Order.desc("tramite.numeroTramite")
-		));
+		List<TramiteDerivacion> tramitePendienteList = mongoTemplate.find(query, TramiteDerivacion.class);
 		*/
 
-		List<TramiteDerivacion> tramitePendienteList = mongoTemplate.find(query, TramiteDerivacion.class);
+
+		String idUser =  securityHelper.obtenerUserIdSession();
+		tramiteDerivacionRequest.setUsuarioFin(idUser);
+
+		List<TramiteDerivacion> tramitePendienteList = buscarTramiteDerivacionParams(tramiteDerivacionRequest);
 
 		if(CollectionUtils.isEmpty(tramitePendienteList))
 			return tramitePendienteList;
@@ -205,20 +199,50 @@ public class TramiteDerivacionService {
 		}
 		List<Criteria> listCriteria =  new ArrayList<>();
 		//TODO: Verificar busqueda por parametro tramite.numeroTramite
-		if(parameters.containsKey("tramiteId"))
+		if(parameters.containsKey("tramiteId")){
 			listCriteria.add(Criteria.where("tramite.id").is(parameters.get("tramiteId")));
-		if(parameters.containsKey("numeroTramite"))
+			parameters.remove("tramiteId");
+		}
+		if(parameters.containsKey("numeroTramite")){
 			listCriteria.add(Criteria.where("tramite.numeroTramite").is(parameters.get("numeroTramite")));
-		if(parameters.containsKey("fechaDerivacionDesde") && parameters.containsKey("fechaDerivacionHasta"))
+			parameters.remove("numeroTramite");
+		}
+		if(parameters.containsKey("asunto")){
+			//listCriteria.add(Criteria.where("tramite.asunto").is(parameters.get("numeroTramite")));
+			listCriteria.add(Criteria.where("tramite.asunto").regex(".*"+parameters.get("asunto")+".*"));
+			parameters.remove("numeroTramite");
+		}
+		if(parameters.containsKey("fechaDerivacionDesde") && parameters.containsKey("fechaDerivacionHasta")){
 			listCriteria.add(Criteria.where("fechaInicio").gte(parameters.get("fechaDerivacionDesde")).lte(parameters.get("fechaDerivacionHasta")));
-
+			parameters.remove("fechaDerivacionDesde");
+		}
+		if(parameters.containsKey("usuarioInicio")){
+			listCriteria.add(Criteria.where("usuarioInicio.id").is(parameters.get("usuarioInicio")));
+			parameters.remove("fechaDerivacionDesde");
+		}
+		if(parameters.containsKey("usuarioFin")){
+			listCriteria.add(Criteria.where("usuarioFin.id").is(parameters.get("usuarioFin")));
+			parameters.remove("usuarioFin");
+		}
 		if(!listCriteria.isEmpty()) {
 			andExpression.add(new Criteria().andOperator(listCriteria.toArray(new Criteria[listCriteria.size()])));
 		}
+
+		//Agregamos la paginacion
+		if(tramiteDerivacionRequest.getPageNumber()>0 && tramiteDerivacionRequest.getPageSize()>0){
+			Pageable pageable = PageRequest.of(tramiteDerivacionRequest.getPageNumber(), tramiteDerivacionRequest.getPageSize());
+			andQuery.with(pageable);
+		}
+
+		//Retiramos las keys de paginacion
+		parameters.remove("pageNumber");
+		parameters.remove("pageSize");
+
 		Criteria expression = new Criteria();
 		parameters.forEach((key, value) -> expression.and(key).is(value));
 		andExpression.add(expression);
 		andQuery.addCriteria(andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()])));
+
 		List<TramiteDerivacion> tramiteList = mongoTemplate.find(andQuery, TramiteDerivacion.class);
 
 		//Por cada usuario origen y fin, obtener la dependencia y cargo

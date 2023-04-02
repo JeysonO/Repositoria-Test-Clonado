@@ -69,13 +69,19 @@ public class TramiteDerivacionController {
 	}
 
 	@GetMapping
-	public ResponseEntity<CommonResponse> obtenerTramiteDerivacionPendientes() throws Exception {
+	public ResponseEntity<CommonResponse> obtenerTramiteDerivacionPendientes(@Valid TramiteDerivacionRequest tramiteDerivacionRequest) throws Exception {
 		CommonResponse commonResponse = null;
 
 		HttpStatus httpStatus = HttpStatus.CREATED;
 
 		try {
-			List<TramiteDerivacion> listaTramiteDerivacionPendiente = tramiteDerivacionService.obtenerTramiteDerivacionPendientes();
+			/*
+			En este request se aplican los siguientes filtros
+			estado = P o A, de acuerdo a lo que necesita
+			numeroTramite para un tramite especifico
+			asunto: un like, basicamente esos filtros
+			 */
+			List<TramiteDerivacion> listaTramiteDerivacionPendiente = tramiteDerivacionService.obtenerTramiteDerivacionPendientes(tramiteDerivacionRequest);
 			List<TramiteDerivacionResponse> obtenerTramiteDerivacionPendienteList =  new ArrayList<>();
 			TramiteDerivacionResponse tramiteDerivacionResponse = null;
 			LocalDate fechaMaxima = null;

@@ -34,4 +34,13 @@ public class Configuracion {
 
 	private String firmaParagraphFormat;
 
+	private int margenFirma;
+
+	private int tamanoMaximoHoja;
+
+	private int anchoFirma;
+
+	private int altoFirma;
+
+
 }

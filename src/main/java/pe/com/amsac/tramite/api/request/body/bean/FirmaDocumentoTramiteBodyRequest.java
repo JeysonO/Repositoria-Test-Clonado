@@ -11,6 +11,8 @@ public class FirmaDocumentoTramiteBodyRequest {
 	private String documentoAdjuntoId;
 	private String textoFirma;
 	private String pin;
-	private String imagenFirmaDigitalId;
+	//private String imagenFirmaDigitalId;
 	private String positionId;
+	private String positionCustom;
+	private String usuarioFirmaLogoId;
 }

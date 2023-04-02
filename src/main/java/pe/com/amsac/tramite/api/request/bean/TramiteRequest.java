@@ -2,11 +2,12 @@ package pe.com.amsac.tramite.api.request.bean;
 
 import lombok.Data;
 import org.dozer.Mapping;
+import pe.com.amsac.tramite.api.request.BaseRequest;
 
 import java.util.Date;
 
 @Data
-public class TramiteRequest {
+public class TramiteRequest extends BaseRequest {
 
 	private String createdByUser;
 	private String estado;
@@ -20,4 +21,5 @@ public class TramiteRequest {
 	private String misTramite;
 	private String asunto;
 	private String soloOriginal;
+
 }

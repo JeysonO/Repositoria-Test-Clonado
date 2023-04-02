@@ -1,11 +1,12 @@
 package pe.com.amsac.tramite.api.request.bean;
 
 import lombok.Data;
+import pe.com.amsac.tramite.api.request.BaseRequest;
 
 import java.util.Date;
 
 @Data
-public class TramiteDerivacionRequest{
+public class TramiteDerivacionRequest extends BaseRequest {
 
 	private String usuarioInicio;
 	private String usuarioFin;
@@ -18,5 +19,6 @@ public class TramiteDerivacionRequest{
 	private String forma;
 
 	private String tramiteId;
+	private String asunto;
 
 }

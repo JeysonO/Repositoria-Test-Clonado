@@ -12,6 +12,8 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -150,10 +152,20 @@ public class TramiteService {
 			parameters.put("createdByUser",securityHelper.obtenerUserIdSession());
 		}
 		filtroParam.putAll(parameters);
+		//Agregamos la paginacion
+		if(tramiteRequest.getPageNumber()>0 && tramiteRequest.getPageSize()>0){
+			Pageable pageable = PageRequest.of(tramiteRequest.getPageNumber(), tramiteRequest.getPageSize());
+			andQuery.with(pageable);
+		}
+		//Retiramos las keys de paginacion
+		parameters.remove("pageNumber");
+		parameters.remove("pageSize");
+
 		Criteria expression = new Criteria();
 		parameters.forEach((key, value) -> expression.and(key).is(value));
 		andExpression.add(expression);
 		andQuery.addCriteria(andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()])));
+
 		List<Tramite> tramiteList = mongoTemplate.find(andQuery, Tramite.class);
 
 		return tramiteList;
@@ -252,7 +264,8 @@ public class TramiteService {
 		return tramiteList;
 	}
 
-	public List<Tramite> buscarTramiteParamsByUsuarioId(String usuarioId){
+	public List<Tramite> buscarTramiteParamsByUsuarioId(String usuarioId, TramiteRequest tramiteRequest) throws Exception {
+		/*
 		Query query = new Query();
 		Criteria criteria = Criteria.where("createdByUser").is(usuarioId);
 		query.addCriteria(criteria);
@@ -260,6 +273,20 @@ public class TramiteService {
 				Sort.Order.desc("createdDate")
 		));
 		List<Tramite> tramiteList = mongoTemplate.find(query, Tramite.class);
+		*/
+
+		tramiteRequest.setCreatedByUser(usuarioId);
+		List<Tramite> tramiteList = buscarTramiteParams(tramiteRequest);
+
+		//Ordenamos por fecha de creacion, los mas recientes primero
+		Collections.sort(tramiteList, new Comparator<Tramite>(){
+			@Override
+			public int compare(Tramite a, Tramite b)
+			{
+				return Long.compare(a.getCreatedDate().getTime(), b.getCreatedDate().getTime());
+			}
+		});
+
 		return tramiteList;
 	}
 
@@ -618,7 +645,8 @@ public class TramiteService {
 		for(Tramite tramite : tramiteList){
 			TramiteResponse tramiteResponse = mapper.map(tramite,TramiteResponse.class);
 			//tramiteResponse.setTramiteDerivacion(tramiteDerivacionService.obtenerTramiteByTramiteId(tramite.getId()));
-			tramiteResponse.setTramiteDerivacion(obtenerTramiteDerivacionReporteResponse(tramiteDerivacionService.obtenerTramiteByTramiteId(tramite.getId()),soloOriginal));
+			//Se comenta esta parte porque no es necesario devolver el listado de derivaciones
+			//tramiteResponse.setTramiteDerivacion(obtenerTramiteDerivacionReporteResponse(tramiteDerivacionService.obtenerTramiteByTramiteId(tramite.getId()),soloOriginal));
 
 			String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/" + tramite.getCreatedByUser();
 			ResponseEntity<CommonResponse> response = restTemplate.exchange(uri,HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});

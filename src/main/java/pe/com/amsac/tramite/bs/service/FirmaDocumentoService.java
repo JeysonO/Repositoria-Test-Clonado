@@ -83,6 +83,9 @@ public class FirmaDocumentoService {
 	private UsuarioService usuarioService;
 
 	@Autowired
+	private UsuarioFirmaLogoService usuarioFirmaLogoService;
+
+	@Autowired
 	private ImagenFirmaDigitalService imagenFirmaDigitalService;
 
 	@Autowired
@@ -96,11 +99,13 @@ public class FirmaDocumentoService {
 		String usuarioId = securityHelper.obtenerUserIdSession();
 
 		//Obtenemos los datos del usuario
-		UsuarioDTOResponse usuarioBuscarResponse = mapper.map(obtenerUsuarioById(usuarioId), UsuarioDTOResponse.class);
+		//UsuarioDTOResponse usuarioBuscarResponse = mapper.map(obtenerUsuarioById(usuarioId), UsuarioDTOResponse.class);
 
 		//Validar mandatoriedad de datos
 		//Validamos si el usuario tiene credenciales para firmar o etsa habilitado para firmar
-		List<UsuarioFirma> usuarioFirmaLista = usuarioFirmaService.obtenerUsuarioFirmaByUsuario(usuarioBuscarResponse.getUsuario());
+		//List<UsuarioFirma> usuarioFirmaLista = usuarioFirmaService.obtenerUsuarioFirmaByUsuario(usuarioBuscarResponse.getUsuario());
+		/*
+		List<UsuarioFirma> usuarioFirmaLista = usuarioFirmaService.obtenerUsuarioFirmaByUsuarioId(usuarioId);
 		if(CollectionUtils.isEmpty(usuarioFirmaLista) || !"A".equals(usuarioFirmaLista.get(0).getEstado())){
 			List<Mensaje> mensajes = new ArrayList<>();
 			mensajes.add(new Mensaje("E001","ERROR","No tiene permisos para firmar o no tiene configurado sus credenciales en el sistema, contactar con el administrador"));
@@ -108,6 +113,14 @@ public class FirmaDocumentoService {
 		}
 
 		UsuarioFirma usuarioFirma = usuarioFirmaLista.get(0);
+		*/
+
+		UsuarioFirma usuarioFirma = usuarioFirmaService.obtenerUsuarioFirmaByUsuarioId(usuarioId);
+		if(!"A".equals(usuarioFirma.getEstado())){
+			List<Mensaje> mensajes = new ArrayList<>();
+			mensajes.add(new Mensaje("E001","ERROR","No tiene permisos para firmar o no tiene configurado sus credenciales en el sistema, contactar con el administrador"));
+			throw new ServiceException(mensajes);
+		}
 
 		//Crear indicador UUID para le archivo
 		String uuidParaArchivoFirmado = UUID.randomUUID().toString();
@@ -119,8 +132,9 @@ public class FirmaDocumentoService {
 
 		//Armamos la entidad y registramos en la tabla de correspondencia nombre archivo y archivo a firmar.
 		//String idDocumentoAdjuntoAFirmar = firmaDocumentoTramiteBodyRequest.getDocumentoAdjuntoId();
-		DocumentoAdjunto documentoAdjuntoAfirmar = crearDocumentoAdjuntoFirmarTest(); //documentoAdjuntoService.obtenerDocumentoAdjunto(idDocumentoAdjuntoAFirmar);
+		//DocumentoAdjunto documentoAdjuntoAfirmar = documentoAdjuntoService.obtenerDocumentoAdjunto(firmaDocumentoTramiteBodyRequest.getDocumentoAdjuntoId());
 		//Resource archivoAFirmar = documentoAdjuntoService.obtenerArchivo(documentoAdjuntoAfirmar);
+		DocumentoAdjunto documentoAdjuntoAfirmar = crearDocumentoAdjuntoFirmarTest(); //documentoAdjuntoService.obtenerDocumentoAdjunto(idDocumentoAdjuntoAFirmar);
 		Resource archivoAFirmar = crearResourceFirmarTest("/Users/ealvino/Downloads/prueba_firma.pdf");
 
 		//Se arma el nombre del archivo firma, que se le concatena la primera inicial del apellido paterno.
@@ -128,7 +142,8 @@ public class FirmaDocumentoService {
 		String[] arregloCadena = nombreArchivoFirmado.split("\\.");
 		String extension = arregloCadena[arregloCadena.length - 1];
 		nombreArchivoFirmado = this.obtenerNombreArchivo(arregloCadena);
-		nombreArchivoFirmado = nombreArchivoFirmado + "-" + usuarioBuscarResponse.getApePaterno().substring(0,1).toUpperCase() + "." + extension;
+		//nombreArchivoFirmado = nombreArchivoFirmado + "-" + usuarioBuscarResponse.getApePaterno().substring(0,1).toUpperCase() + "." + extension;
+		nombreArchivoFirmado = nombreArchivoFirmado + "-" + usuarioFirma.getSiglaFirma() + "." + extension;
 
 		if(!extension.toUpperCase().equals("PDF")){
 			List<Mensaje> mensajes = new ArrayList<>();
@@ -150,10 +165,12 @@ public class FirmaDocumentoService {
 		String idTransaccionFirma = firmaDocumento.getId();
 
 		//Imagen para la firma
-		ImagenFirmaDigital imagenFirmaDigital = obtenerImagenDeFirma(firmaDocumentoTramiteBodyRequest.getImagenFirmaDigitalId(), usuarioFirma);
+		//ImagenFirmaDigital imagenFirmaDigital = obtenerImagenDeFirma(firmaDocumentoTramiteBodyRequest.getImagenFirmaDigitalId(), usuarioFirma);
+		UsuarioFirmaLogo usuarioFirmaLogo = obtenerImagenDeFirma(firmaDocumentoTramiteBodyRequest.getUsuarioFirmaLogoId());
 		//byte[] fileContent = obtenerImagenDeFirma(firmaDocumentoTramiteBodyRequest.getImagenFirmaDigitalId(), usuarioFirmaLista.get(0).getRutaImagenFirma());
 		//ImagenFirmaDigital imagenFirmaDigital = imagenFirmaDigitalService.obtenerImagenFirmaDigitalById(firmaDocumentoTramiteBodyRequest.getImagenFirmaDigitalId());
-		byte[] fileContent = FileUtils.readFileToByteArray(new File(imagenFirmaDigital.getRuta()));
+		//byte[] fileContent = FileUtils.readFileToByteArray(new File(usuarioFirmaLogo.getRutaImagenFirma()));
+		byte[] fileContent = FileUtils.readFileToByteArray(usuarioFirmaLogoService.loadFileAsResource(usuarioFirmaLogo).getFile());
 		//byte[] fileContent = FileUtils.readFileToByteArray(new File("/Users/ealvino/ealvino/Tools/share_folder/firma amsac/logo-amsac.png"));
 		String encodedImagenString = Base64.getEncoder().encodeToString(fileContent);
 
@@ -180,7 +197,7 @@ public class FirmaDocumentoService {
 		multipartBodyBuilder.part("billing_username", configuracion.getBillingUsername());
 		multipartBodyBuilder.part("billing_password", configuracion.getBillingPassword());
 		multipartBodyBuilder.part("img", encodedImagenString);
-		multipartBodyBuilder.part("img_size", imagenFirmaDigital.getSize());
+		multipartBodyBuilder.part("img_size", usuarioFirmaLogo.getSize());
 		multipartBodyBuilder.part("position", imagenFirmaPosition.getPositionpxl());
 		multipartBodyBuilder.part("paragraph_format", paragraphFormat);
 
@@ -219,6 +236,7 @@ public class FirmaDocumentoService {
 		//Obtenemos el id del usuario que desea firmar
 		String usuarioId = securityHelper.obtenerUserIdSession();
 
+		/*
 		//Obtenemos los datos del usuario
 		UsuarioDTOResponse usuarioBuscarResponse = mapper.map(obtenerUsuarioById(usuarioId), UsuarioDTOResponse.class);
 
@@ -232,6 +250,14 @@ public class FirmaDocumentoService {
 		}
 
 		UsuarioFirma usuarioFirma = usuarioFirmaLista.get(0);
+		*/
+
+		UsuarioFirma usuarioFirma = usuarioFirmaService.obtenerUsuarioFirmaByUsuarioId(usuarioId);
+		if(!"A".equals(usuarioFirma.getEstado())){
+			List<Mensaje> mensajes = new ArrayList<>();
+			mensajes.add(new Mensaje("E001","ERROR","No tiene permisos para firmar o no tiene configurado sus credenciales en el sistema, contactar con el administrador"));
+			throw new ServiceException(mensajes);
+		}
 
 		//Crear indicador UUID para le archivo
 		String uuidParaArchivoFirmado = UUID.randomUUID().toString();
@@ -246,7 +272,8 @@ public class FirmaDocumentoService {
 		String[] arregloCadena = nombreArchivoFirmado.split("\\.");
 		String extension = arregloCadena[arregloCadena.length - 1];
 		nombreArchivoFirmado = this.obtenerNombreArchivo(arregloCadena);
-		nombreArchivoFirmado = nombreArchivoFirmado + "-" + usuarioBuscarResponse.getApePaterno().substring(0,1).toUpperCase() + "." + extension;
+		//nombreArchivoFirmado = nombreArchivoFirmado + "-" + usuarioBuscarResponse.getApePaterno().substring(0,1).toUpperCase() + "." + extension;
+		nombreArchivoFirmado = nombreArchivoFirmado + "-" + usuarioFirma.getSiglaFirma() + "." + extension;
 
 		if(!extension.toUpperCase().equals("PDF")){
 			List<Mensaje> mensajes = new ArrayList<>();
@@ -269,10 +296,12 @@ public class FirmaDocumentoService {
 		String idTransaccionFirma = firmaDocumento.getId();
 
 		//Imagen para la firma
-		ImagenFirmaDigital imagenFirmaDigital = obtenerImagenDeFirma(firmaDocumentoTramiteExternoBodyRequest.getImagenFirmaDigitalId(), usuarioFirma);
+		//ImagenFirmaDigital imagenFirmaDigital = obtenerImagenDeFirma(firmaDocumentoTramiteExternoBodyRequest.getImagenFirmaDigitalId(), usuarioFirma);
+		UsuarioFirmaLogo usuarioFirmaLogo = obtenerImagenDeFirma(firmaDocumentoTramiteExternoBodyRequest.getUsuarioFirmaLogoId());
 		//byte[] fileContent = obtenerImagenDeFirma(firmaDocumentoTramiteBodyRequest.getImagenFirmaDigitalId(), usuarioFirmaLista.get(0).getRutaImagenFirma());
 		//ImagenFirmaDigital imagenFirmaDigital = imagenFirmaDigitalService.obtenerImagenFirmaDigitalById(firmaDocumentoTramiteBodyRequest.getImagenFirmaDigitalId());
-		byte[] fileContent = FileUtils.readFileToByteArray(new File(imagenFirmaDigital.getRuta()));
+		//byte[] fileContent = FileUtils.readFileToByteArray(new File(usuarioFirmaLogo.getRutaImagenFirma()));
+		byte[] fileContent = FileUtils.readFileToByteArray(usuarioFirmaLogoService.loadFileAsResource(usuarioFirmaLogo).getFile());
 		//byte[] fileContent = FileUtils.readFileToByteArray(new File("/Users/ealvino/ealvino/Tools/share_folder/firma amsac/logo-amsac.png"));
 		String encodedImagenString = Base64.getEncoder().encodeToString(fileContent);
 
@@ -299,7 +328,7 @@ public class FirmaDocumentoService {
 		multipartBodyBuilder.part("billing_username", configuracion.getBillingUsername());
 		multipartBodyBuilder.part("billing_password", configuracion.getBillingPassword());
 		multipartBodyBuilder.part("img", encodedImagenString);
-		multipartBodyBuilder.part("img_size", imagenFirmaDigital.getSize());
+		multipartBodyBuilder.part("img_size", usuarioFirmaLogo.getSize());
 		multipartBodyBuilder.part("position", imagenFirmaPosition.getPositionpxl());
 		multipartBodyBuilder.part("paragraph_format", paragraphFormat);
 
@@ -358,24 +387,28 @@ public class FirmaDocumentoService {
 		return response.getBody().getData()!=null?(LinkedHashMap<Object, Object>) response.getBody().getData():null;
 	}
 
-	private ImagenFirmaDigital obtenerImagenDeFirma(String imagenFirmaDigitalId, UsuarioFirma usuarioFirma) throws Exception {
-		ImagenFirmaDigital imagenFirmaDigital = null;
+	//private ImagenFirmaDigital obtenerImagenDeFirma(String imagenFirmaDigitalId, UsuarioFirmaLogo usuarioFirmaLogo) throws Exception {
+	private UsuarioFirmaLogo obtenerImagenDeFirma(String usuarioFirmaLogoId) throws Exception {
+		//ImagenFirmaDigital imagenFirmaDigital = null;
+		UsuarioFirmaLogo usuarioFirmaLogo = usuarioFirmaLogoService.obtenerUsuarioFirmaLogoById(usuarioFirmaLogoId);
 		//Validamos mandatoriedad
-		if(StringUtils.isBlank(imagenFirmaDigitalId) && StringUtils.isBlank(usuarioFirma.getRutaImagenFirma())){
+		if(usuarioFirmaLogo==null){
 			List<Mensaje> mensajes = new ArrayList<>();
 			mensajes.add(new Mensaje("E002","ERROR","No tiene una referencia para la imagen de la firma"));
 			throw new ServiceException(mensajes);
 		}
-
+		/*
 		if(StringUtils.isBlank(imagenFirmaDigitalId)){
 			imagenFirmaDigital = new ImagenFirmaDigital();
-			imagenFirmaDigital.setRuta(usuarioFirma.getRutaImagenFirma());
-			imagenFirmaDigital.setSize(usuarioFirma.getSize());
+			imagenFirmaDigital.setRuta(usuarioFirmaLogo.getRutaImagenFirma());
+			imagenFirmaDigital.setSize(usuarioFirmaLogo.getSize());
 		}
 		else{
 			imagenFirmaDigital = imagenFirmaDigitalService.obtenerImagenFirmaDigitalById(imagenFirmaDigitalId);
 		}
 		return imagenFirmaDigital;
+		*/
+		return usuarioFirmaLogo;
 	}
 
 	private DocumentoAdjunto crearDocumentoAdjuntoFirmarTest(){
@@ -484,6 +517,13 @@ public class FirmaDocumentoService {
 		} catch (MalformedURLException var4) {
 			throw new ResourceNotFoundException("Archivo no encontrado " + firmaDocumentoId);
 		}
+	}
+
+	public String generarPosition(Configuracion configuracion, ImagenFirmaPosition imagenFirmaPosition){
+
+		//TODO: FALTA COLOCAR CODIGO PARA GENERAR LA POSITION
+		return null;
+
 	}
 
 }

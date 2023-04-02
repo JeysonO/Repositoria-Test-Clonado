@@ -60,7 +60,7 @@ public class TramiteController {
 	public ResponseEntity<CommonResponse> buscarTramiteParams(@Valid TramiteRequest tramiteRequest) throws Exception {
 		CommonResponse commonResponse = null;
 
-		HttpStatus httpStatus = HttpStatus.CREATED;
+		HttpStatus httpStatus = HttpStatus.OK;
 
 		try {
 			/*
@@ -85,13 +85,13 @@ public class TramiteController {
 
 	//Para busqueda de los tramites iniciados por una persona
 	@GetMapping("/tramites-by-usuario-id")
-	public ResponseEntity<CommonResponse> buscarTramiteByUsuarioId() throws Exception {
+	public ResponseEntity<CommonResponse> buscarTramiteByUsuarioId(@Valid TramiteRequest tramiteRequest) throws Exception {
 		CommonResponse commonResponse = null;
 
 		HttpStatus httpStatus = HttpStatus.CREATED;
 
 		String usuarioId = securityHelper.obtenerUserIdSession();
-		List<Tramite> listaTramite = tramiteService.buscarTramiteParamsByUsuarioId(usuarioId);
+		List<Tramite> listaTramite = tramiteService.buscarTramiteParamsByUsuarioId(usuarioId, tramiteRequest);
 		List<TramiteResponse> obtenerTramiteList =  new ArrayList<>();
 		TramiteResponse tramiteResponse = null;
 		for (Tramite temp : listaTramite) {
