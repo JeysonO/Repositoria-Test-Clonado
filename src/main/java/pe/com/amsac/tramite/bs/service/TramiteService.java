@@ -671,6 +671,7 @@ public class TramiteService {
 			//Se comenta esta parte porque no es necesario devolver el listado de derivaciones
 			//tramiteResponse.setTramiteDerivacion(obtenerTramiteDerivacionReporteResponse(tramiteDerivacionService.obtenerTramiteByTramiteId(tramite.getId()),soloOriginal));
 
+			log.info("Buscar usuario para usuario id:"+tramite.getCreatedByUser()+", tramite:"+tramiteResponse.getNumeroTramite());
 			String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/" + tramite.getCreatedByUser();
 			ResponseEntity<CommonResponse> response = restTemplate.exchange(uri,HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
 
