@@ -64,10 +64,11 @@ app:
   ruta:
     adjuntos: tramite
     documento-firma-externo: tramite/file/documento-firma/externo/
+    logo-firma: tramite/file/logo-firma/
   url:
     #seguridad: http://localhost:8480/amsac-seguridad
-    #seguridad: http://amsac-security-api:8100/amsac-seguridad
-    seguridad: https://gatewayapp.amsac.pe/amsac-seguridad
+    seguridad: http://amsac-security-api:8100/amsac-seguridad
+    #seguridad: https://gatewayapp.amsac.pe/amsac-seguridad
     #mail: http://localhost:8200
     mail: http://amsac-mail-api:8100
     #mail: http://190.119.248.132:8180/amsac-mail
