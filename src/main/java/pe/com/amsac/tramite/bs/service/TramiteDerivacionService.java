@@ -232,7 +232,7 @@ public class TramiteDerivacionService {
 		}
 
 		//Agregamos la paginacion
-		if(tramiteDerivacionRequest.getPageNumber()>0 && tramiteDerivacionRequest.getPageSize()>0){
+		if(tramiteDerivacionRequest.getPageNumber()>=0 && tramiteDerivacionRequest.getPageSize()>0){
 			Pageable pageable = PageRequest.of(tramiteDerivacionRequest.getPageNumber(), tramiteDerivacionRequest.getPageSize());
 			andQuery.with(pageable);
 		}

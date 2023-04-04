@@ -162,7 +162,7 @@ public class TramiteService {
 
 		filtroParam.putAll(parameters);
 		//Agregamos la paginacion
-		if(tramiteRequest.getPageNumber()>0 && tramiteRequest.getPageSize()>0){
+		if(tramiteRequest.getPageNumber()>=0 && tramiteRequest.getPageSize()>0){
 			Pageable pageable = PageRequest.of(tramiteRequest.getPageNumber(), tramiteRequest.getPageSize());
 			andQuery.with(pageable);
 		}
