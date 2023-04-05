@@ -194,27 +194,34 @@ public class TramiteDerivacionService {
 	public List<TramiteDerivacion> buscarTramiteDerivacionParams(TramiteDerivacionRequest tramiteDerivacionRequest) throws Exception {
 		Query andQuery = new Query();
 		Criteria andCriteria = new Criteria();
+		Criteria orCriteria = new Criteria();
+		Criteria criteriaOr = null;
+		Criteria criteriaGlobal = new Criteria();
 		List<Criteria> andExpression =  new ArrayList<>();
+		List<Criteria> orExpression =  new ArrayList<>();
 		Map<String, Object> parameters = mapper.map(tramiteDerivacionRequest,Map.class);
 		parameters.values().removeIf(Objects::isNull);
 		if(parameters.get("numeroTramite").equals(0)){
 			parameters.remove("numeroTramite");
 		}
 		List<Criteria> listCriteria =  new ArrayList<>();
-		//TODO: Verificar busqueda por parametro tramite.numeroTramite
-		if(parameters.containsKey("tramiteId")){
-			listCriteria.add(Criteria.where("tramite.id").is(parameters.get("tramiteId")));
+		List<Criteria> listOrCriteria =  new ArrayList<>();
+
+		List<String> tramiteIds = obtenerTramitesId(tramiteDerivacionRequest);
+		if(!CollectionUtils.isEmpty(tramiteIds)){
+			listOrCriteria.add(Criteria.where("tramite.id").in(tramiteIds.toArray()));
 			parameters.remove("tramiteId");
-		}
-		if(parameters.containsKey("numeroTramite")){
-			listCriteria.add(Criteria.where("tramite.numeroTramite").is(parameters.get("numeroTramite")));
 			parameters.remove("numeroTramite");
+			parameters.remove("asunto");
+
+			for (String tramiteId : tramiteIds) {
+				Criteria expression = new Criteria();
+				expression.and("tramite.id").is(tramiteId);
+				orExpression.add(expression);
+			}
+			//orQuery.addCriteria(orCriteria.orOperator(orExpression.toArray(new Criteria[orExpression.size()])));
 		}
-		if(parameters.containsKey("asunto")){
-			//listCriteria.add(Criteria.where("tramite.asunto").is(parameters.get("numeroTramite")));
-			listCriteria.add(Criteria.where("tramite.asunto").regex(".*"+parameters.get("asunto")+".*"));
-			parameters.remove("numeroTramite");
-		}
+
 		if(parameters.containsKey("fechaDerivacionDesde") && parameters.containsKey("fechaDerivacionHasta")){
 			listCriteria.add(Criteria.where("fechaInicio").gte(parameters.get("fechaDerivacionDesde")).lte(parameters.get("fechaDerivacionHasta")));
 			parameters.remove("fechaDerivacionDesde");
@@ -244,7 +251,20 @@ public class TramiteDerivacionService {
 		Criteria expression = new Criteria();
 		parameters.forEach((key, value) -> expression.and(key).is(value));
 		andExpression.add(expression);
-		andQuery.addCriteria(andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()])));
+
+		//andQuery.addCriteria(andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()])));
+
+		if(!CollectionUtils.isEmpty(listOrCriteria))
+			criteriaOr = orCriteria.orOperator(orExpression.toArray(new Criteria[orExpression.size()]));
+
+		Criteria criteriaAnd = andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()]));
+
+		if(criteriaOr!=null)
+			criteriaGlobal = criteriaGlobal.andOperator(criteriaAnd,criteriaOr);
+		else
+			criteriaGlobal = criteriaGlobal.andOperator(criteriaAnd);
+
+		andQuery.addCriteria(criteriaGlobal);
 
 		List<TramiteDerivacion> tramiteList = mongoTemplate.find(andQuery, TramiteDerivacion.class);
 
@@ -1154,6 +1174,37 @@ public class TramiteDerivacionService {
 		long cantidadRegistro = mongoTemplate.count(andQuery, TramiteDerivacion.class);
 
 		return (int)cantidadRegistro;
+	}
+
+	private List<String> obtenerTramitesId(TramiteDerivacionRequest tramiteDerivacionRequest){
+
+		List<String> idTramites = new ArrayList<>();
+		List<Criteria> listCriteria =  new ArrayList<>();
+		List<Criteria> andExpression =  new ArrayList<>();
+		Criteria andCriteria = new Criteria();
+		Query andQuery = new Query();
+
+		if(!StringUtils.isBlank(tramiteDerivacionRequest.getTramiteId())){
+			listCriteria.add(Criteria.where("id").is(tramiteDerivacionRequest.getTramiteId()));
+		}
+		if(tramiteDerivacionRequest.getNumeroTramite()>0){
+			listCriteria.add(Criteria.where("numeroTramite").is(tramiteDerivacionRequest.getNumeroTramite()));
+		}
+		if(!StringUtils.isBlank(tramiteDerivacionRequest.getAsunto())){
+			listCriteria.add(Criteria.where("asunto").regex(".*"+tramiteDerivacionRequest.getAsunto()+".*","i"));
+		}
+		if(!listCriteria.isEmpty()) {
+			andExpression.add(new Criteria().andOperator(listCriteria.toArray(new Criteria[listCriteria.size()])));
+
+			andQuery.addCriteria(andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()])));
+
+			List<Tramite> tramiteList = mongoTemplate.find(andQuery, Tramite.class);
+			if(!CollectionUtils.isEmpty(tramiteList)){
+				tramiteList.stream().forEach(x -> idTramites.add(x.getId()));
+			}
+		}
+
+		return idTramites;
 	}
 
 

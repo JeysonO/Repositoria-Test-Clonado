@@ -137,7 +137,7 @@ public class TramiteService {
 			parameters.remove("fechaCreaciontoHasta");
 		}
 		if(parameters.containsKey("asunto")){
-			listCriteria.add(Criteria.where("asunto").regex(".*"+parameters.get("asunto")+".*"));
+			listCriteria.add(Criteria.where("asunto").regex(".*"+parameters.get("asunto")+".*","i"));
 			parameters.remove("asunto");
 		}
 		if(!StringUtils.isBlank(tramiteRequest.getMisTramite())){
