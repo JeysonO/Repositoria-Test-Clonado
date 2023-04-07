@@ -1,25 +1,29 @@
 package pe.com.amsac.tramite.bs.domain;
 
 import lombok.Data;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import pe.com.amsac.tramite.api.util.BaseAuditableEntity;
 
-import javax.persistence.AttributeOverride;
-import javax.persistence.AttributeOverrides;
-import javax.persistence.Column;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 
+import static javax.persistence.TemporalType.TIMESTAMP;
+
 @Data
 @Document(collection = "tramite")
+@EntityListeners(AuditingEntityListener.class)
 @AttributeOverrides(value = {
 		@AttributeOverride(name = "createdDate", column = @Column(name = "createdDate", updatable = false)),
 		@AttributeOverride(name = "createdByUser", column = @Column(name = "createdByUser", updatable = false)),
 		@AttributeOverride(name = "lastModifiedDate", column = @Column(name = "lastModifiedDate", nullable = false)),
 		@AttributeOverride(name = "lastModifiedByUser", column = @Column(name = "lastModifiedByUser", nullable = false))})
-
 public class Tramite extends BaseAuditableEntity<String> {
 
 	private static final long serialVersionUID = 7857201376677339392L;

@@ -6,11 +6,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.annotation.RequestScope;
 import org.springframework.web.multipart.MultipartFile;
-import pe.com.amsac.tramite.api.util.ResourceNotFoundException;
+import pe.com.amsac.tramite.api.config.exceptions.ResourceNotFoundException;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -131,6 +130,24 @@ public class FileStorageService {
         return nombreArchivo;
     }
 
+    public Resource loadFileAsResource(String rutaArchivo, String fileName) throws Exception {
+        try {
+            log.info("Dentro de loadFileAsResource");
+            String fulFilePath = rutaArchivo.concat(File.separator).concat(fileName);
+            //log.info("Ruta completa archivo a cargar: " + rutaArchivo.concat(File.separator).concat(fileName));
+            //String fulFilePath = rutaArchivo.concat(File.separator).concat(fileName);
+            log.info("fulFilePath: " + fulFilePath);
+            Resource resource = new UrlResource("file:" + fulFilePath);
+            if (resource.exists()) {
+                return resource;
+            } else {
+                throw new ResourceNotFoundException("Archivo no encontrato " + fileName);
+            }
+        } catch (MalformedURLException var4) {
+            throw new ResourceNotFoundException("Archivo no encontrado " + fileName);
+        }
+    }
+
     public Resource loadFileAsResource(String fileName) throws Exception {
         try {
             log.info("Dentro de loadFileAsResource");
@@ -182,4 +199,39 @@ public class FileStorageService {
 
         outputStream.close();
     }
+
+    public String storeFile(String ruta, InputStream file, String nombreOriginal, boolean reemplazar) {
+        String fileName = StringUtils.cleanPath(nombreOriginal);
+
+        try {
+            if (fileName.contains("..")) {
+                throw new FileStorageException("Nombre de archivo no tiene formato valido" + fileName);
+            } else {
+                System.out.println("Ruta completa archivo guardar: " + ruta.concat(File.separator).concat(fileName));
+                String fullFilePath = ruta.concat(File.separator).concat(fileName);
+                File targetFile = new File(fullFilePath);
+                if (reemplazar) {
+                    this.copyInputStreamToFile(file, targetFile);
+                } else {
+                    boolean existe = targetFile.exists();
+                    if (existe) {
+                        String[] arregloCadena = fileName.split("\\.");
+                        String extension = arregloCadena[arregloCadena.length - 1];
+                        String soloNombreArchivo = this.obtenerNombreArchivo(arregloCadena);
+                        soloNombreArchivo = soloNombreArchivo + "-[" + DateUtils.formatDate(new Date(), "HHmmssSSS") + "]";
+                        fileName = soloNombreArchivo + "." + extension;
+                        fullFilePath = ruta.concat(File.separator).concat(fileName);
+                        targetFile = new File(fullFilePath);
+                    }
+
+                    this.copyInputStreamToFile(file, targetFile);
+                }
+
+                return fileName;
+            }
+        } catch (IOException var11) {
+            throw new FileStorageException("No se puede registrar el archivo " + fileName + ". Vuelva a intentar!");
+        }
+    }
+
 }

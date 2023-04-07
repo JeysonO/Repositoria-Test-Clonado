@@ -36,11 +36,16 @@ public class Configuracion {
 
 	private int margenFirma;
 
-	private int tamanoMaximoHoja;
+	private int tamanoAltoHoja;
+
+	private int tamanoAnchoHoja;
 
 	private int anchoFirma;
 
 	private int altoFirma;
 
+	private int cantidadFirmasVertical;
+
+	private int cantidadFirmasHorizontal;
 
 }

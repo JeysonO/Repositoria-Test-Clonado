@@ -9,4 +9,5 @@ import java.util.List;
 public interface ImagenFirmaPositionMongoRepository extends MongoRepository<ImagenFirmaPosition, String> {
 
     public List<ImagenFirmaPosition> findByEstado(String estado);
+    public List<ImagenFirmaPosition> findByOrientacionAndEstado(String orientacion, String estado);
 }

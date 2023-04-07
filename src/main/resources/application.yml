@@ -45,7 +45,15 @@ server:
 
 ##Properties
 app:
-  #keycloak:
+  api:
+    error:
+      internal_server_error: Ocurrió un error inesperado, por favor intente en breve.
+      bad_request: Request no tiene la estructura adecuada, verifique la documentación y vuelva a intentar.
+      resource_not_found: No se encontro recurso(s) para los parametros enviado(s) %s
+      bad_request_no_id: Debe enviar ID para actalizar el recurso deseado.
+      bad_request_id_save: No Debe enviar ID para el registro del recurso.
+
+    #keycloak:
     #grant-type: password
     #url-create-user: http://keycloack:8080/admin/realms/app-realm/users
     #url: http://keycloack:8080/realms/app-realm/protocol/openid-connect/token

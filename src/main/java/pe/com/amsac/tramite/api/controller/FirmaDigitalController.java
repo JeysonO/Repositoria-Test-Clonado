@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import pe.com.amsac.tramite.api.config.KeycloakProperties;
+import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
 import pe.com.amsac.tramite.api.request.body.bean.EventAlertaBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.FirmaDocumentoTramiteBodyRequest;
@@ -25,6 +26,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @CrossOrigin(origins = "*", methods= {RequestMethod.GET,RequestMethod.POST,RequestMethod.PUT,RequestMethod.DELETE})
@@ -40,11 +43,28 @@ public class FirmaDigitalController {
 
 		log.info(">> firmarDocumentoTramite");
 
+		/*
 		firmaDocumentoService.firmarDocumentoTramite(firmaDocumentoTramiteBodyRequest);
 
 		CommonResponse commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK,null)).build();
 
 		return new ResponseEntity<CommonResponse>(commonResponse, HttpStatus.OK);
+		*/
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.OK;
+
+		try {
+
+			firmaDocumentoService.firmarDocumentoTramite(firmaDocumentoTramiteBodyRequest);
+
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).build();
+
+		} catch (ServiceException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 
     }
 
@@ -60,6 +80,7 @@ public class FirmaDigitalController {
 
 		log.info(">> firmarDocumentoExterno");
 
+		/*
 		FirmaDocumentoTramiteExternoBodyRequest firmaDocumentoTramiteExternoBodyRequest = FirmaDocumentoTramiteExternoBodyRequest.builder()
 				.textoFirma(textoFirma)
 				.positionId(positionId)
@@ -76,6 +97,33 @@ public class FirmaDigitalController {
 		CommonResponse commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK,null)).build();
 
 		return new ResponseEntity<CommonResponse>(commonResponse, HttpStatus.OK);
+		*/
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.OK;
+
+		try {
+
+			FirmaDocumentoTramiteExternoBodyRequest firmaDocumentoTramiteExternoBodyRequest = FirmaDocumentoTramiteExternoBodyRequest.builder()
+					.textoFirma(textoFirma)
+					.positionId(positionId)
+					.pin(pin)
+					//.imagenFirmaDigitalId(imagenFirmaDigitalId)
+					.usuarioFirmaLogoId(usuarioFirmaLogoId)
+					.positionCustom(positionCustom)
+					.email(email)
+					.file(file)
+					.build();
+
+			firmaDocumentoService.firmarDocumentoExterno(firmaDocumentoTramiteExternoBodyRequest);
+
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).build();
+
+		} catch (ServiceException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 
 	}
 

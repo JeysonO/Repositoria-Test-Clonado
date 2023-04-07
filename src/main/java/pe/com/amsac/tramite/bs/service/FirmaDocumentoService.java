@@ -1,58 +1,41 @@
 package pe.com.amsac.tramite.bs.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.env.Environment;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.*;
 import org.springframework.http.client.MultipartBodyBuilder;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.multipart.MultipartFile;
+import pe.com.amsac.tramite.api.config.DatosToken;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
-import pe.com.amsac.tramite.api.file.bean.FileStorageService;
-import pe.com.amsac.tramite.api.file.bean.TramitePathFileStorage;
-import pe.com.amsac.tramite.api.file.bean.UploadFileResponse;
-import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
+import pe.com.amsac.tramite.api.config.exceptions.ResourceNotFoundException;
+import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.FirmaDocumentoTramiteBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.FirmaDocumentoTramiteExternoBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.*;
 import pe.com.amsac.tramite.api.util.CustomMultipartFile;
-import pe.com.amsac.tramite.api.util.ResourceNotFoundException;
-import pe.com.amsac.tramite.api.util.ServiceException;
 import pe.com.amsac.tramite.bs.domain.*;
-import pe.com.amsac.tramite.bs.repository.DocumentoAdjuntoMongoRepository;
 import pe.com.amsac.tramite.bs.repository.FirmaDocumentoRepository;
-import pe.com.amsac.tramite.bs.repository.TramiteMongoRepository;
-import pe.com.amsac.tramite.bs.repository.UsuarioFirmaMongoRepository;
 import pe.com.amsac.tramite.bs.util.EstadoFirmaDocumentoConstant;
-import pe.com.amsac.tramite.bs.util.TipoAdjuntoConstant;
 import pe.com.amsac.tramite.bs.util.TipoDocumentoFirmaConstant;
 
-import java.awt.*;
 import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
-import java.util.regex.Pattern;
 
 @Slf4j
 @Service
@@ -131,11 +114,11 @@ public class FirmaDocumentoService {
 		String passwordComponenteFirma = usuarioFirma.getPasswordServicioFirma(); //usuarioFirmaLista.get(0).getPasswordServicioFirma();
 
 		//Armamos la entidad y registramos en la tabla de correspondencia nombre archivo y archivo a firmar.
+		DocumentoAdjunto documentoAdjuntoAfirmar = documentoAdjuntoService.obtenerDocumentoAdjunto(firmaDocumentoTramiteBodyRequest.getDocumentoAdjuntoId());
+		Resource archivoAFirmar = documentoAdjuntoService.obtenerArchivo(documentoAdjuntoAfirmar);
 		//String idDocumentoAdjuntoAFirmar = firmaDocumentoTramiteBodyRequest.getDocumentoAdjuntoId();
-		//DocumentoAdjunto documentoAdjuntoAfirmar = documentoAdjuntoService.obtenerDocumentoAdjunto(firmaDocumentoTramiteBodyRequest.getDocumentoAdjuntoId());
-		//Resource archivoAFirmar = documentoAdjuntoService.obtenerArchivo(documentoAdjuntoAfirmar);
-		DocumentoAdjunto documentoAdjuntoAfirmar = crearDocumentoAdjuntoFirmarTest(); //documentoAdjuntoService.obtenerDocumentoAdjunto(idDocumentoAdjuntoAFirmar);
-		Resource archivoAFirmar = crearResourceFirmarTest("/Users/ealvino/Downloads/prueba_firma.pdf");
+		//DocumentoAdjunto documentoAdjuntoAfirmar = crearDocumentoAdjuntoFirmarTest();// documentoAdjuntoService.obtenerDocumentoAdjunto(idDocumentoAdjuntoAFirmar);
+		//Resource archivoAFirmar = crearResourceFirmarTest("/Users/ealvino/Downloads/prueba_firma.pdf");
 
 		//Se arma el nombre del archivo firma, que se le concatena la primera inicial del apellido paterno.
 		String nombreArchivoFirmado = documentoAdjuntoAfirmar.getNombreArchivo();
@@ -159,6 +142,7 @@ public class FirmaDocumentoService {
 				.contentType(documentoAdjuntoAfirmar.getExtension())
 				.estado(EstadoFirmaDocumentoConstant.PENDIENTE_FIRMA)
 				.fechaRegistro(new Date())
+				.idDocumentoAdjuntoOrigen(firmaDocumentoTramiteBodyRequest.getDocumentoAdjuntoId())
 				.build();
 		firmaDocumentoRepository.save(firmaDocumento);
 
@@ -175,7 +159,7 @@ public class FirmaDocumentoService {
 		String encodedImagenString = Base64.getEncoder().encodeToString(fileContent);
 
 		//Posicion de la firma
-		ImagenFirmaPosition imagenFirmaPosition = imagenFirmaPositionService.obtenerImagenFirmaPositionById(firmaDocumentoTramiteBodyRequest.getPositionId());
+		ImagenFirmaPosition imagenFirmaPosition = generarPosition(firmaDocumentoTramiteBodyRequest.getPositionId(), firmaDocumentoTramiteBodyRequest.getPositionCustom());//imagenFirmaPositionService.obtenerImagenFirmaPositionById(firmaDocumentoTramiteBodyRequest.getPositionId());
 
 		//Colocamos el mensaje en el paragraph format
 		String textoFirma = StringUtils.isBlank(firmaDocumentoTramiteBodyRequest.getTextoFirma())?"":firmaDocumentoTramiteBodyRequest.getTextoFirma();
@@ -306,7 +290,7 @@ public class FirmaDocumentoService {
 		String encodedImagenString = Base64.getEncoder().encodeToString(fileContent);
 
 		//Posicion de la firma
-		ImagenFirmaPosition imagenFirmaPosition = imagenFirmaPositionService.obtenerImagenFirmaPositionById(firmaDocumentoTramiteExternoBodyRequest.getPositionId());
+		ImagenFirmaPosition imagenFirmaPosition = generarPosition(firmaDocumentoTramiteExternoBodyRequest.getPositionId(), firmaDocumentoTramiteExternoBodyRequest.getPositionCustom()); //imagenFirmaPositionService.obtenerImagenFirmaPositionById(firmaDocumentoTramiteExternoBodyRequest.getPositionId());
 
 		//Colocamos el mensaje en el paragraph format
 		String textoFirma = StringUtils.isBlank(firmaDocumentoTramiteExternoBodyRequest.getTextoFirma())?"":firmaDocumentoTramiteExternoBodyRequest.getTextoFirma();
@@ -394,7 +378,7 @@ public class FirmaDocumentoService {
 		//Validamos mandatoriedad
 		if(usuarioFirmaLogo==null){
 			List<Mensaje> mensajes = new ArrayList<>();
-			mensajes.add(new Mensaje("E002","ERROR","No tiene una referencia para la imagen de la firma"));
+			mensajes.add(new Mensaje("E002","ERROR","No tiene imagen de firma Cargada, cargue un logo de firma y vuelva a intentar"));
 			throw new ServiceException(mensajes);
 		}
 		/*
@@ -456,7 +440,8 @@ public class FirmaDocumentoService {
 	private void procesarDocumentoTramite(String nombreArchivo, byte[] archivoFirmado) throws Exception {
 
 		FirmaDocumento firmaDocumento = firmaDocumentoRepository.findById(nombreArchivo).get();
-		/*
+		createSecurityContextHolder(firmaDocumento.getCreatedByUser());
+
 		CustomMultipartFile file = new CustomMultipartFile(archivoFirmado,firmaDocumento.getNombreOriginalDocumento(),firmaDocumento.getContentType());
 
 		DocumentoAdjuntoBodyRequest documentoAdjuntoRequest = new DocumentoAdjuntoBodyRequest();
@@ -465,7 +450,7 @@ public class FirmaDocumentoService {
 		documentoAdjuntoRequest.setFile(file);
 		//documentoAdjuntoRequest.setTipoAdjunto(TipoAdjuntoConstant.);
 		documentoAdjuntoService.registrarDocumentoAdjunto(documentoAdjuntoRequest);
-		*/
+
 
 		//Actualizamos el estado en firma documento
 		firmaDocumento.setEstado(EstadoFirmaDocumentoConstant.FIRMADO);
@@ -473,7 +458,7 @@ public class FirmaDocumentoService {
 		firmaDocumentoRepository.save(firmaDocumento);
 
 		//TODO: Esto es temporla para pruebas
-		FileUtils.writeByteArrayToFile(new File("/Users/ealvino/Downloads/"+nombreArchivo+".pdf"), archivoFirmado);
+		//FileUtils.writeByteArrayToFile(new File("/Users/ealvino/Downloads/"+nombreArchivo+".pdf"), archivoFirmado);
 	}
 
 	private void procesarDocumentoExterno(String nombreArchivo, byte[] archivoFirmado) throws Exception {
@@ -519,11 +504,34 @@ public class FirmaDocumentoService {
 		}
 	}
 
-	public String generarPosition(Configuracion configuracion, ImagenFirmaPosition imagenFirmaPosition){
+	public ImagenFirmaPosition generarPosition(String positionId, String positionCustom) throws Exception {
 
-		//TODO: FALTA COLOCAR CODIGO PARA GENERAR LA POSITION
-		return null;
+		if(!StringUtils.isBlank(positionId))
+			return imagenFirmaPositionService.obtenerImagenFirmaPositionById(positionId);
 
+		String positionX=positionCustom.split(",")[0];
+		String positionY=positionCustom.split(",")[1];
+
+		Integer finalPositionX = Integer.valueOf(positionX)+200;
+		Integer finalPositiony = Integer.valueOf(positionY)+50;
+
+		String positionFinalXYFirma = positionX + "," + positionY + "," + String.valueOf(finalPositionX) + "," + String.valueOf(finalPositiony);
+
+		ImagenFirmaPosition imagenFirmaPosition = new ImagenFirmaPosition();
+		imagenFirmaPosition.setPositionpxl(positionFinalXYFirma);
+
+		return imagenFirmaPosition;
+
+	}
+
+	//Crear el segurity context
+	private void createSecurityContextHolder(String idUser){
+		DatosToken datosToken = new DatosToken();
+		datosToken.setIdUser(idUser);
+
+		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(datosToken, null, null);
+
+		SecurityContextHolder.getContext().setAuthentication(authentication);
 	}
 
 }

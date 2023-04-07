@@ -16,14 +16,12 @@ import java.util.Date;
 @Builder
 @Data
 @Document(collection = "firma_documento")
-/*
 @AttributeOverrides(value = {
 		@AttributeOverride(name = "createdDate", column = @Column(name = "createdDate", updatable = false)),
 		@AttributeOverride(name = "createdByUser", column = @Column(name = "createdByUser", updatable = false)),
 		@AttributeOverride(name = "lastModifiedDate", column = @Column(name = "lastModifiedDate", nullable = false)),
 		@AttributeOverride(name = "lastModifiedByUser", column = @Column(name = "lastModifiedByUser", nullable = false))})
-*/
-public class FirmaDocumento { //extends BaseAuditableEntity<String> {
+public class FirmaDocumento extends BaseAuditableEntity<String> {
 
 	private static final long serialVersionUID = 7857201376677339392L;
 
@@ -52,11 +50,11 @@ public class FirmaDocumento { //extends BaseAuditableEntity<String> {
 
 	private String email;
 
-	/*
+	private String idDocumentoAdjuntoOrigen;
+
 	@Override
 	public Serializable getEntityId() {
 		return getId();
 	}
-	*/
 
 }

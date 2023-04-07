@@ -1,4 +1,4 @@
-package pe.com.amsac.tramite.api.util;
+package pe.com.amsac.tramite.api.config.exceptions;
 
 import lombok.Data;
 import pe.com.amsac.tramite.api.response.bean.Mensaje;

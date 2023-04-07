@@ -1,39 +1,17 @@
 package pe.com.amsac.tramite.bs.service;
 
-import org.apache.commons.lang3.StringUtils;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.MultiValueMap;
-import pe.com.amsac.tramite.api.config.SecurityHelper;
-import pe.com.amsac.tramite.api.file.bean.FileStorageService;
-import pe.com.amsac.tramite.api.file.bean.TramitePathFileStorage;
-import pe.com.amsac.tramite.api.request.body.bean.FirmaDocumentoTramiteBodyRequest;
-import pe.com.amsac.tramite.api.request.body.bean.UsuarioBodyRequest;
+import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.request.body.bean.UsuarioFirmaBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.Mensaje;
-import pe.com.amsac.tramite.api.util.ServiceException;
 import pe.com.amsac.tramite.bs.domain.*;
-import pe.com.amsac.tramite.bs.repository.DocumentoAdjuntoMongoRepository;
-import pe.com.amsac.tramite.bs.repository.FirmaDocumentoRepository;
-import pe.com.amsac.tramite.bs.repository.TramiteMongoRepository;
 import pe.com.amsac.tramite.bs.repository.UsuarioFirmaMongoRepository;
-import pe.com.amsac.tramite.bs.util.TipoDocumentoFirmaConstant;
 
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 public class UsuarioFirmaService {
@@ -49,7 +27,15 @@ public class UsuarioFirmaService {
 
 	public UsuarioFirma obtenerUsuarioFirmaByUsuarioId(String usuarioId) throws Exception {
 
-		return usuarioFirmaMongoRepository.obtenerUsuarioFirmaByUsuarioId(usuarioId).get(0);
+		List<UsuarioFirma> usuarioFirmaList = usuarioFirmaMongoRepository.obtenerUsuarioFirmaByUsuarioId(usuarioId);
+
+		if(CollectionUtils.isEmpty(usuarioFirmaList)){
+			List<Mensaje> mensajes = new ArrayList<>();
+			mensajes.add(new Mensaje("E001","ERROR","Usuario no tiene registro habilitado para firmar"));
+			throw new ServiceException(mensajes);
+		}
+
+		return usuarioFirmaList.get(0);
 
 	}
 

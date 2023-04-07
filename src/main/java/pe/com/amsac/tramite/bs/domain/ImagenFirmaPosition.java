@@ -22,6 +22,8 @@ public class ImagenFirmaPosition extends BaseEntity {
 
 	private String estado;
 
+	private String orientacion;
+
 	@Override
 	public Serializable getEntityId() {
 		return getId();
