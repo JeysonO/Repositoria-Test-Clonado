@@ -301,7 +301,7 @@ public class FirmaDocumentoService {
 		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 		MultipartBodyBuilder multipartBodyBuilder = new MultipartBodyBuilder();
 
-		multipartBodyBuilder.part("file_in", firmaDocumentoTramiteExternoBodyRequest.getFile(), MediaType.APPLICATION_PDF);
+		multipartBodyBuilder.part("file_in", firmaDocumentoTramiteExternoBodyRequest.getFile().getResource(), MediaType.APPLICATION_PDF);
 		multipartBodyBuilder.part("url_out", configuracion.getUrlFirmaBack()+idTransaccionFirma);
 		multipartBodyBuilder.part("urlback", configuracion.getUrlLogBack()+idTransaccionFirma);
 		multipartBodyBuilder.part("env", configuracion.getFirmaEnv());
