@@ -1101,6 +1101,9 @@ public class TramiteDerivacionService {
 		//registroTramiteDerivacion.setUsuarioInicio(userInicio);
 		//registroTramiteDerivacion.setUsuarioFin(userFin);
 		//registroTramiteDerivacion.setFechaInicio(new Date());
+		if(registroTramiteDerivacion.getEstadoInicio().equals("NOTIFICACION")){
+			registroTramiteDerivacion.setUsuarioFin(null);
+		}
 		registroTramiteDerivacion.setTramite(tramiteMongoRepository.findById(tramiteDerivacionBodyRequest.getTramiteId()).get());
 		//registroTramiteDerivacion.setEstado("A");
 
