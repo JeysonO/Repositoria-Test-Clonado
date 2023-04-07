@@ -3,6 +3,7 @@ package pe.com.amsac.tramite.api.util;
 import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 
 import java.io.Serializable;
 import java.util.List;

@@ -2,6 +2,7 @@ package pe.com.amsac.tramite.api.util;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
+import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 
 import java.io.Serializable;
 import java.util.List;
