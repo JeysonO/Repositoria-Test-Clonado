@@ -331,6 +331,7 @@ public class FirmaDocumentoService {
 
  */
 
+		log.info("Se envia a firmar el documento");
 		// multipart/form-data request body
 		MultiValueMap<String, HttpEntity<?>> multipartBody = multipartBodyBuilder.build();
 
@@ -340,6 +341,7 @@ public class FirmaDocumentoService {
 		ResponseEntity<String> responseEntity = restTemplate.postForEntity(configuracion.getUrlFirmador(), httpEntity,
 				String.class);
 
+		log.info("Se actualiza el registro de firma documento");
 		//Actulizamos con el id que retorna el firmador
 		firmaDocumento.setIdTransaccionFirma(responseEntity.getBody());
 		firmaDocumentoRepository.save(firmaDocumento);

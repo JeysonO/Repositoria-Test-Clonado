@@ -122,6 +122,8 @@ public class FirmaDigitalController {
 		} catch (ServiceException se) {
 			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
 			httpStatus = HttpStatus.CONFLICT;
+		} catch (Exception ex) {
+			ex.printStackTrace();
 		}
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 
