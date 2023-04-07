@@ -8,13 +8,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.api.response.bean.Meta;
-import pe.com.amsac.tramite.api.response.bean.UsuarioFirmaCreateResponse;
 import pe.com.amsac.tramite.api.response.bean.UsuarioFirmaLogoCreateResponse;
 import pe.com.amsac.tramite.api.util.EstadoRespuestaConstant;
-import pe.com.amsac.tramite.api.util.ServiceException;
-import pe.com.amsac.tramite.bs.domain.UsuarioFirma;
 import pe.com.amsac.tramite.bs.domain.UsuarioFirmaLogo;
 import pe.com.amsac.tramite.bs.service.UsuarioFirmaLogoService;
 

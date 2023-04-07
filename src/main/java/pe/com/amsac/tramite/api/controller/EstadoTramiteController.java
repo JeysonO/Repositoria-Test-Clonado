@@ -10,12 +10,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.request.body.bean.EstadoTramiteBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.api.response.bean.EstadoTramiteResponse;
 import pe.com.amsac.tramite.api.response.bean.Meta;
 import pe.com.amsac.tramite.api.util.EstadoRespuestaConstant;
-import pe.com.amsac.tramite.api.util.ServiceException;
 import pe.com.amsac.tramite.bs.domain.EstadoTramite;
 import pe.com.amsac.tramite.bs.service.EstadoTramiteService;
 

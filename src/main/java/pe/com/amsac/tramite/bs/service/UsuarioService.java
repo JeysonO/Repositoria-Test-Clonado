@@ -1,6 +1,5 @@
 package pe.com.amsac.tramite.bs.service;
 
-import com.fasterxml.jackson.databind.deser.SettableAnyProperty;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dozer.Mapper;
@@ -15,10 +14,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import pe.com.amsac.tramite.api.config.KeycloakProperties;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
+import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.request.body.bean.UsuarioBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.api.response.bean.Mensaje;
-import pe.com.amsac.tramite.api.util.ServiceException;
 import pe.com.amsac.tramite.bs.domain.Persona;
 import pe.com.amsac.tramite.bs.domain.Usuario;
 import pe.com.amsac.tramite.bs.repository.UsuarioMongoRepository;
@@ -90,7 +89,7 @@ public class UsuarioService {
 
 	}
 
-	public String generateUsername(UsuarioBodyRequest usuarioBodyRequest) throws ServiceException{
+	public String generateUsername(UsuarioBodyRequest usuarioBodyRequest) throws ServiceException {
 
 		if(!StringUtils.isBlank(usuarioBodyRequest.getUsuario()))
 			return usuarioBodyRequest.getUsuario();

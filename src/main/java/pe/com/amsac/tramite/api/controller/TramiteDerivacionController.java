@@ -1,8 +1,5 @@
 package pe.com.amsac.tramite.api.controller;
 
-import net.sf.jasperreports.engine.JRException;
-import net.sf.jasperreports.engine.JasperExportManager;
-import net.sf.jasperreports.engine.JasperPrint;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dozer.Mapper;
@@ -11,21 +8,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
-import pe.com.amsac.tramite.api.request.bean.TramiteRequest;
+import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.request.body.bean.*;
 import pe.com.amsac.tramite.api.request.bean.TramiteDerivacionRequest;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.api.response.bean.Meta;
 import pe.com.amsac.tramite.api.response.bean.TramiteDerivacionResponse;
 import pe.com.amsac.tramite.api.util.EstadoRespuestaConstant;
-import pe.com.amsac.tramite.api.util.ServiceException;
 import pe.com.amsac.tramite.bs.domain.TramiteDerivacion;
 import pe.com.amsac.tramite.bs.service.TramiteDerivacionService;
 
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;

@@ -11,13 +11,13 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
 import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoMigracionBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.WrapperDocumentoAdjuntoMigracionBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.*;
 import pe.com.amsac.tramite.api.util.EstadoRespuestaConstant;
-import pe.com.amsac.tramite.api.util.ServiceException;
 import pe.com.amsac.tramite.bs.service.DocumentoAdjuntoService;
 
 import javax.servlet.http.HttpServletRequest;

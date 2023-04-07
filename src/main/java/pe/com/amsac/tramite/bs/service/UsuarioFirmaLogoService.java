@@ -1,25 +1,21 @@
 package pe.com.amsac.tramite.bs.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.utils.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
+import pe.com.amsac.tramite.api.config.exceptions.ResourceNotFoundException;
 import pe.com.amsac.tramite.api.file.bean.FileStorageException;
-import pe.com.amsac.tramite.api.util.ResourceNotFoundException;
 import pe.com.amsac.tramite.bs.domain.UsuarioFirma;
 import pe.com.amsac.tramite.bs.domain.UsuarioFirmaLogo;
 import pe.com.amsac.tramite.bs.repository.UsuarioFirmaLogoMongoRepository;
-import pe.com.amsac.tramite.bs.repository.UsuarioFirmaMongoRepository;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
-import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -28,7 +24,6 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;

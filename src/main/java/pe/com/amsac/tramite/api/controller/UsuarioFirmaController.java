@@ -8,14 +8,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.request.body.bean.UsuarioFirmaBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.api.response.bean.Meta;
-import pe.com.amsac.tramite.api.response.bean.UsuarioCreateResponse;
 import pe.com.amsac.tramite.api.response.bean.UsuarioFirmaCreateResponse;
 import pe.com.amsac.tramite.api.util.EstadoRespuestaConstant;
-import pe.com.amsac.tramite.api.util.ServiceException;
-import pe.com.amsac.tramite.bs.domain.Usuario;
 import pe.com.amsac.tramite.bs.domain.UsuarioFirma;
 import pe.com.amsac.tramite.bs.service.UsuarioFirmaService;
 

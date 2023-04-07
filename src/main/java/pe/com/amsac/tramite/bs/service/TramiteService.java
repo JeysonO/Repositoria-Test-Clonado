@@ -1,6 +1,5 @@
 package pe.com.amsac.tramite.bs.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
@@ -26,15 +25,14 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.annotation.RequestScope;
+import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.file.bean.FileStorageService;
 import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
 import pe.com.amsac.tramite.api.request.bean.EventSchedule;
-import pe.com.amsac.tramite.api.request.bean.RequestSchedule;
 import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TramiteMigracionBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.*;
 import pe.com.amsac.tramite.api.util.CustomMultipartFile;
-import pe.com.amsac.tramite.api.util.ServiceException;
 import pe.com.amsac.tramite.bs.domain.*;
 import pe.com.amsac.tramite.bs.repository.TipoDocumentoMongoRepository;
 import pe.com.amsac.tramite.bs.repository.TramiteMigracionMongoRepository;
