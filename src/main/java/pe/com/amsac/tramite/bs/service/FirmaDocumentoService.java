@@ -435,6 +435,7 @@ public class FirmaDocumentoService {
 	}
 	public void recepcionarLogDocumento(String nombreArchivo, String archivoLog){
 		FirmaDocumento firmaDocumento = firmaDocumentoRepository.findById(nombreArchivo).get();
+		createSecurityContextHolder(firmaDocumento.getCreatedByUser());
 		firmaDocumento.setLogFirmador(archivoLog);
 		firmaDocumentoRepository.save(firmaDocumento);
 	}
