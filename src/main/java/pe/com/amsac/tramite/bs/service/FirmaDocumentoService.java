@@ -468,6 +468,7 @@ public class FirmaDocumentoService {
 
 		FileUtils.writeByteArrayToFile(new File( environment.getProperty("app.ruta.documento-firma-externo")+nombreArchivo+".pdf"), archivoFirmado);
 		FirmaDocumento firmaDocumento = firmaDocumentoRepository.findById(nombreArchivo).get();
+		createSecurityContextHolder(firmaDocumento.getCreatedByUser());
 		firmaDocumento.setEstado(EstadoFirmaDocumentoConstant.FIRMADO);
 		firmaDocumento.setFechaFirmaDocumento(new Date());
 		firmaDocumentoRepository.save(firmaDocumento);
