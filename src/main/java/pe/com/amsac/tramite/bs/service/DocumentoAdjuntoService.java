@@ -4,6 +4,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -307,5 +308,16 @@ public class DocumentoAdjuntoService {
 						.concat(File.separator)
 						.concat("adjuntos"));
 		return ruta;
+	}
+
+	public InputStreamResource obtenerDocumentoAdjuntoBlob(DocumentoAdjuntoRequest documentoAdjuntoRequest) throws Exception {
+		DocumentoAdjunto documentoAdjunto = obtenerDocumentoAdjunto(documentoAdjuntoRequest.getId());
+		return obtenerArchivoBlob(documentoAdjunto);
+	}
+
+	public InputStreamResource obtenerArchivoBlob(DocumentoAdjunto documentoAdjunto) throws Exception {
+		String rutaArchivo = crearRutaDocumentoAdjunto(documentoAdjunto);
+		//Obtenemos el archivo
+		return fileStorageService.loadFileAsResourceBlob(rutaArchivo, documentoAdjunto.getNombreArchivoServer());
 	}
 }

@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -147,5 +148,42 @@ public class DocumentoAdjuntoController {
 
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 
+	}
+
+	@GetMapping("/downloadblobfile/{documentoAdjuntoId}")
+	public ResponseEntity<Resource> downloadblobfile(@PathVariable String documentoAdjuntoId)
+			throws Exception {
+		try {
+			DocumentoAdjuntoRequest documentoAdjuntoRequest = new DocumentoAdjuntoRequest();
+			documentoAdjuntoRequest.setId(documentoAdjuntoId);
+
+			InputStreamResource resource = documentoAdjuntoService.obtenerDocumentoAdjuntoBlob(documentoAdjuntoRequest);
+
+			/*
+			String contentType = null;
+			try {
+				contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
+			} catch (IOException ex) {
+				LOGGER.info("No se puede determinar el MimeType.");
+			}
+
+			if (contentType == null) {
+				contentType = "application/octet-stream";
+			}
+			*/
+			HttpHeaders headers = new HttpHeaders();
+			headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+			headers.add("Pragma", "no-cache");
+			headers.add("Expires", "0");
+
+			return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM)
+					//.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+					.headers(headers)
+					//.contentLength(resource.contentLength())
+					.body(resource);
+
+		} catch (Exception e) {
+			throw e;
+		}
 	}
 }

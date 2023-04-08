@@ -3,6 +3,7 @@ package pe.com.amsac.tramite.api.file.bean;
 import org.apache.http.client.utils.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Component;
@@ -11,10 +12,7 @@ import org.springframework.web.context.annotation.RequestScope;
 import org.springframework.web.multipart.MultipartFile;
 import pe.com.amsac.tramite.api.config.exceptions.ResourceNotFoundException;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -233,5 +231,23 @@ public class FileStorageService {
             throw new FileStorageException("No se puede registrar el archivo " + fileName + ". Vuelva a intentar!");
         }
     }
+
+    public InputStreamResource loadFileAsResourceBlob(String rutaArchivo, String fileName) throws Exception {
+        try {
+
+            String fulFilePath = rutaArchivo.concat(File.separator).concat(fileName);
+            //String fulFilePath = "/Users/ealvino/Downloads/28e1c3f5-0dd2-4a1c-af36-0b7b1378facb.pdf";
+            File file = new File(fulFilePath);
+            InputStreamResource resource = new InputStreamResource(new FileInputStream(file));
+            if (resource.exists()) {
+                return resource;
+            } else {
+                throw new ResourceNotFoundException("Archivo no encontrato " + fileName);
+            }
+        } catch (Exception var4) {
+            throw new ResourceNotFoundException("Archivo no encontrado " + fileName);
+        }
+    }
+
 
 }
