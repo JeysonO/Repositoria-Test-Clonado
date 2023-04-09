@@ -50,6 +50,8 @@ public class TramiteDerivacionResponse {
 
 	private Date fechaFin;
 
+	private Date fechaDocumento;
+
 	@Mapping("tramite.id")
 	public String getTramiteId(){return tramiteId;}
 
@@ -73,5 +75,8 @@ public class TramiteDerivacionResponse {
 
 	@Mapping("tramite.asunto")
 	public String getAsunto(){return asunto;}
+
+	@Mapping("tramite.fechaDocumento")
+	public Date getFechaDocumento(){return fechaDocumento;}
 
 }
