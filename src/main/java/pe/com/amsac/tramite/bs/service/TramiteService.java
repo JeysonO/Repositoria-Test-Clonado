@@ -103,6 +103,9 @@ public class TramiteService {
 	private UsuarioService usuarioService;
 
 	@Autowired
+	private FormaRecepcionService formaRecepcionService;
+
+	@Autowired
 	private ScheduleService scheduleService;
 
 	@Autowired
@@ -237,6 +240,8 @@ public class TramiteService {
 			tramite.setEntidadInterna(null);
 			tramite.setEntidadExterna(null);
 			tramite.setTramitePrioridad(null);
+			//Se setea la forma de recepcion siempre como digital
+			tramite.setFormaRecepcion(formaRecepcionService.findByFormaRecepcion("DIGITAL").get(0));
 		}else{
 			tramite.setDependenciaDestino(null);
 		}
