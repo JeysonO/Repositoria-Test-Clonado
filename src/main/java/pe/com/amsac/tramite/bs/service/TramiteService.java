@@ -220,14 +220,17 @@ public class TramiteService {
 
 		Tramite tramite = mapper.map(tramiteBodyRequest,Tramite.class);
 
-		List<Tramite> tramiteList = obtenerNumeroTramite();
+		//List<Tramite> tramiteList = obtenerNumeroTramite();
+		/*
+		Tramite tramiteList = obtenerNumeroTramite();
 
 		int numeroTramite = 1;
 
 		if(!CollectionUtils.isEmpty(tramiteList))
 			numeroTramite = obtenerNumeroTramite().get(0).getNumeroTramite()+1;
-
 		tramite.setNumeroTramite(numeroTramite);
+		*/
+		tramite.setNumeroTramite(obtenerNumeroTramite());
 		//tramite.setEstado("A");
 		tramite.setEstado(EstadoTramiteConstant.REGISTRADO);
 		if(tramiteBodyRequest.getOrigenDocumento().equals("EXTERNO")){
@@ -254,7 +257,8 @@ public class TramiteService {
 	public void registrarDerivacion(Tramite tramite) throws Exception {
 		//Obtener 1er Usuario de Seguridad-UsuarioCargo
 		RestTemplate restTemplate = new RestTemplate();
-		String uri = env.getProperty("app.url.seguridad") + "/usuario-cargo/recepcion_mesa_partes";
+		//String uri = env.getProperty("app.url.seguridad") + "/usuario-cargo/recepcion_mesa_partes";
+		String uri = env.getProperty("app.url.seguridad") + "/usuario-app-rol/MESA_PARTES";
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
 		HttpEntity entity = new HttpEntity<>(null, headers);
@@ -272,15 +276,20 @@ public class TramiteService {
 		tramiteDerivacionService.registrarTramiteDerivacion(tramiteDerivacionBodyRequest);
 	}
 
-	public List<Tramite> obtenerNumeroTramite(){
+	public int obtenerNumeroTramite(){
 		Query query = new Query();
-		Criteria criteria = Criteria.where("estado").is("A");
-		query.addCriteria(criteria);
+		//Criteria criteria = Criteria.where("estado").is("A");
+		//query.addCriteria(criteria);
 		query.with(Sort.by(
 				Sort.Order.desc("numeroTramite")
 		));
-		List<Tramite> tramiteList = mongoTemplate.find(query, Tramite.class);
-		return tramiteList;
+		//List<Tramite> tramiteList = mongoTemplate.findOne(query, Tramite.class);
+		Tramite tramite = mongoTemplate.findOne(query, Tramite.class);
+		int numeroTramite = 1;
+		if(tramite!=null){
+			numeroTramite = tramite.getNumeroTramite()+1; //numeroTramite = obtenerNumeroTramite().get(0).getNumeroTramite()+1;
+		}
+		return numeroTramite;
 	}
 
 	public List<Tramite> buscarTramiteParamsByUsuarioId(String usuarioId, TramiteRequest tramiteRequest) throws Exception {
@@ -321,7 +330,7 @@ public class TramiteService {
 
 	public Map numeroDocumentoRepetido(TramiteBodyRequest tramiteBodyRequest) throws Exception {
 		//Obtener persona del Usuario creador de Tramite
-		String usuarioId = securityHelper.obtenerUserIdSession();
+		//String usuarioId = securityHelper.obtenerUserIdSession();
 		RestTemplate restTemplate = new RestTemplate();
 		String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-externo-by-id";
 		HttpHeaders headers = new HttpHeaders();
