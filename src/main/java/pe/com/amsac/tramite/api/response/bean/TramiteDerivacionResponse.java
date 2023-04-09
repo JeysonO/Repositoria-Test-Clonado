@@ -4,6 +4,7 @@ import lombok.Data;
 import org.dozer.Mapping;
 
 import java.time.LocalDate;
+import java.util.Date;
 
 @Data
 public class TramiteDerivacionResponse {
@@ -44,6 +45,10 @@ public class TramiteDerivacionResponse {
 	private String numeroDocumento;
 
 	private String asunto;
+
+	private Date fechaInicio;
+
+	private Date fechaFin;
 
 	@Mapping("tramite.id")
 	public String getTramiteId(){return tramiteId;}
