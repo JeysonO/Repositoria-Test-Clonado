@@ -30,5 +30,9 @@ public class FormaRecepcionService {
 	public List<FormaRecepcion> findByAllFormaRecepcion() throws Exception{
 		return formaRecepcionMongoRepository.findByEstado("A");
 	}
+
+	public List<FormaRecepcion> findByFormaRecepcion(String formaRecepcion) throws Exception{
+		return formaRecepcionMongoRepository.findByFormaRecepcion(formaRecepcion);
+	}
 	
 }

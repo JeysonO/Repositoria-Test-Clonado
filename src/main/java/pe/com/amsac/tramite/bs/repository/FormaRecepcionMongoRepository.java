@@ -8,4 +8,7 @@ import java.util.List;
 public interface FormaRecepcionMongoRepository extends MongoRepository<FormaRecepcion, String> {
 
     List<FormaRecepcion> findByEstado(String estado);
+
+    List<FormaRecepcion> findByFormaRecepcion(String formaRecepcion);
+
 }
