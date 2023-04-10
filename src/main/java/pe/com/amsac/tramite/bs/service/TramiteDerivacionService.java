@@ -1180,14 +1180,21 @@ public class TramiteDerivacionService {
 	public int totalRegistros(TramiteDerivacionRequest tramiteDerivacionRequest) throws Exception {
 		Query andQuery = new Query();
 		Criteria andCriteria = new Criteria();
+
+		Criteria orCriteria = new Criteria();
+		Criteria criteriaOr = null;
+		Criteria criteriaGlobal = new Criteria();
+		List<Criteria> orExpression =  new ArrayList<>();
+
 		List<Criteria> andExpression =  new ArrayList<>();
 		Map<String, Object> parameters = mapper.map(tramiteDerivacionRequest,Map.class);
 		parameters.values().removeIf(Objects::isNull);
 		if(parameters.get("numeroTramite").equals(0)){
 			parameters.remove("numeroTramite");
 		}
+
+		/*
 		List<Criteria> listCriteria =  new ArrayList<>();
-		//TODO: Verificar busqueda por parametro tramite.numeroTramite
 		if(parameters.containsKey("tramiteId")){
 			listCriteria.add(Criteria.where("tramite.id").is(parameters.get("tramiteId")));
 			parameters.remove("tramiteId");
@@ -1201,6 +1208,25 @@ public class TramiteDerivacionService {
 			listCriteria.add(Criteria.where("tramite.asunto").regex(".*"+parameters.get("asunto")+".*"));
 			parameters.remove("numeroTramite");
 		}
+		*/
+		List<Criteria> listCriteria =  new ArrayList<>();
+		List<Criteria> listOrCriteria =  new ArrayList<>();
+
+		List<String> tramiteIds = obtenerTramitesId(tramiteDerivacionRequest);
+		if(!CollectionUtils.isEmpty(tramiteIds)){
+			listOrCriteria.add(Criteria.where("tramite.id").in(tramiteIds.toArray()));
+			parameters.remove("tramiteId");
+			parameters.remove("numeroTramite");
+			parameters.remove("asunto");
+
+			for (String tramiteId : tramiteIds) {
+				Criteria expression = new Criteria();
+				expression.and("tramite.id").is(tramiteId);
+				orExpression.add(expression);
+			}
+			//orQuery.addCriteria(orCriteria.orOperator(orExpression.toArray(new Criteria[orExpression.size()])));
+		}
+
 		if(parameters.containsKey("fechaDerivacionDesde") && parameters.containsKey("fechaDerivacionHasta")){
 			listCriteria.add(Criteria.where("fechaInicio").gte(parameters.get("fechaDerivacionDesde")).lte(parameters.get("fechaDerivacionHasta")));
 			parameters.remove("fechaDerivacionDesde");
@@ -1224,7 +1250,20 @@ public class TramiteDerivacionService {
 		Criteria expression = new Criteria();
 		parameters.forEach((key, value) -> expression.and(key).is(value));
 		andExpression.add(expression);
-		andQuery.addCriteria(andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()])));
+
+		//andQuery.addCriteria(andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()])));
+
+		if(!CollectionUtils.isEmpty(listOrCriteria))
+			criteriaOr = orCriteria.orOperator(orExpression.toArray(new Criteria[orExpression.size()]));
+
+		Criteria criteriaAnd = andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()]));
+
+		if(criteriaOr!=null)
+			criteriaGlobal = criteriaGlobal.andOperator(criteriaAnd,criteriaOr);
+		else
+			criteriaGlobal = criteriaGlobal.andOperator(criteriaAnd);
+
+		andQuery.addCriteria(criteriaGlobal);
 
 		long cantidadRegistro = mongoTemplate.count(andQuery, TramiteDerivacion.class);
 
