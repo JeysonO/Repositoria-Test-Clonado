@@ -53,14 +53,14 @@
                 <text><![CDATA[Estado Inicio]]></text>
             </staticText>
             <staticText>
-                <reportElement style="Column header" x="260" y="0" width="100" height="30" forecolor="#736343" uuid="8f89861f-ddb2-4caa-ae8b-d611b08fceaa"/>
-                <textElement textAlignment="Center"/>
-                <text><![CDATA[Comentario Inicio]]></text>
-            </staticText>
-            <staticText>
                 <reportElement style="Column header" x="200" y="0" width="60" height="30" forecolor="#736343" uuid="8f89861f-ddb2-4caa-ae8b-d611b08fceaa"/>
                 <textElement textAlignment="Center"/>
                 <text><![CDATA[Fecha Inicio]]></text>
+            </staticText>
+            <staticText>
+                <reportElement style="Column header" x="260" y="0" width="100" height="30" forecolor="#736343" uuid="8f89861f-ddb2-4caa-ae8b-d611b08fceaa"/>
+                <textElement textAlignment="Center"/>
+                <text><![CDATA[Comentario Inicio]]></text>
             </staticText>
             <staticText>
                 <reportElement style="Column header" x="360" y="0" width="100" height="30" forecolor="#736343" uuid="3c5ee563-c272-48bd-b660-de721b24e95d"/>
