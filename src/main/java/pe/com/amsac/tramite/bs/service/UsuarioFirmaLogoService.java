@@ -3,12 +3,17 @@ package pe.com.amsac.tramite.bs.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.config.exceptions.ResourceNotFoundException;
 import pe.com.amsac.tramite.api.file.bean.FileStorageException;
+import pe.com.amsac.tramite.api.file.bean.FileStorageService;
+import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
+import pe.com.amsac.tramite.bs.domain.DocumentoAdjunto;
 import pe.com.amsac.tramite.bs.domain.UsuarioFirma;
 import pe.com.amsac.tramite.bs.domain.UsuarioFirmaLogo;
 import pe.com.amsac.tramite.bs.repository.UsuarioFirmaLogoMongoRepository;
@@ -36,7 +41,16 @@ public class UsuarioFirmaLogoService {
 	private UsuarioFirmaLogoMongoRepository usuarioFirmaLogoMongoRepository;
 
 	@Autowired
+	private SecurityHelper securityHelper;
+
+	@Autowired
+	private UsuarioFirmaService usuarioFirmaService;
+
+	@Autowired
 	private Environment environment;
+
+	@Autowired
+	private FileStorageService fileStorageService;
 
 	public List<UsuarioFirmaLogo> obtenerUsuarioFirmaLogoByUsuarioFirmaId(String usuarioFirmaId) throws Exception {
 
@@ -166,6 +180,25 @@ public class UsuarioFirmaLogoService {
 		} catch (Exception var4) {
 			throw new FileStorageException("No se puede crear la ruta donde el archivo sera creado.");
 		}
+	}
+
+	public List<UsuarioFirmaLogo> obtenerUsuarioFirmaLogoByUsuario() throws Exception {
+		String usuarioId = securityHelper.obtenerUserIdSession();
+
+		UsuarioFirma usuarioFirma =  usuarioFirmaService.obtenerUsuarioFirmaByUsuarioId(usuarioId);
+
+		return usuarioFirmaLogoMongoRepository.obtenerUsuarioFirmaLogoByUsuarioFirmaId(usuarioFirma.getId());
+
+	}
+
+	public InputStreamResource obtenerUsuarioImagenLogoBlob(String usuarioFirmaLogoId) throws Exception {
+		UsuarioFirmaLogo usuarioFirmaLogo = usuarioFirmaLogoMongoRepository.findById(usuarioFirmaLogoId).get();
+		String usuarioFirmaId = usuarioFirmaLogo.getUsuarioFirma().getId();
+
+		String rutaArchivo = environment.getProperty("app.ruta.logo-firma") + usuarioFirmaId;
+
+		//Obtenemos el archivo
+		return fileStorageService.loadFileAsResourceBlob(rutaArchivo, usuarioFirmaLogo.getNombreArchivo());
 	}
 
 }

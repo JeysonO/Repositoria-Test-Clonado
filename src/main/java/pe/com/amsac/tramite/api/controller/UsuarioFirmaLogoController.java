@@ -4,11 +4,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
+import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.api.response.bean.Meta;
 import pe.com.amsac.tramite.api.response.bean.UsuarioFirmaLogoCreateResponse;
@@ -110,5 +115,63 @@ public class UsuarioFirmaLogoController { //extends CustomAPIController<UsuarioR
 		return new ResponseEntity<CommonResponse>(commonResponse,httpStatus);
 
 	}
+
+	@GetMapping("/usuario-firma-by_usuario")
+	public ResponseEntity<CommonResponse> obtenerUsuarioFirmaLogoByUsuarioId() throws Exception {
+
+		log.info("obtenerUsuarioFirmaLogoByUsuarioId");
+
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.OK;
+
+		try{
+
+			List<UsuarioFirmaLogo> usuarioFirmaLogoList = usuarioFirmaLogoService.obtenerUsuarioFirmaLogoByUsuario();
+			List<UsuarioFirmaLogoCreateResponse> usuarioFirmaLogoResponseList = new ArrayList<>();
+
+			if(!CollectionUtils.isEmpty(usuarioFirmaLogoList)){
+				for(UsuarioFirmaLogo usuarioFirmaLogoTmp:usuarioFirmaLogoList){
+					usuarioFirmaLogoResponseList.add(mapper.map(usuarioFirmaLogoTmp, UsuarioFirmaLogoCreateResponse.class));
+				}
+			}
+
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK,null)).data(usuarioFirmaLogoResponseList).build();
+
+		}catch(ServiceException se){
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR,se.getMensajes())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse,httpStatus);
+
+	}
+
+	@GetMapping("/downloadblobfile/{usuarioFirmaLogoId}")
+	public ResponseEntity<Resource> downloadfileblob(@PathVariable String usuarioFirmaLogoId) throws Exception {
+
+		try{
+
+			log.info("obtenerUsuarioFirmaLogoByUsuarioId");
+
+			InputStreamResource resource = usuarioFirmaLogoService.obtenerUsuarioImagenLogoBlob(usuarioFirmaLogoId);
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+			headers.add("Pragma", "no-cache");
+			headers.add("Expires", "0");
+
+			return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM)
+					//.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+					.headers(headers)
+					//.contentLength(resource.contentLength())
+					.body(resource);
+
+		}catch(Exception e){
+			throw e;
+		}
+
+	}
+
 
 }

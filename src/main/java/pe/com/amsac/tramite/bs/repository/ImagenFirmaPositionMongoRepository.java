@@ -10,4 +10,6 @@ public interface ImagenFirmaPositionMongoRepository extends MongoRepository<Imag
 
     public List<ImagenFirmaPosition> findByEstado(String estado);
     public List<ImagenFirmaPosition> findByOrientacionAndEstado(String orientacion, String estado);
+    public List<ImagenFirmaPosition> findByPositionAndOrientacionAndEstado(String position, String orientacion, String estado);
+
 }

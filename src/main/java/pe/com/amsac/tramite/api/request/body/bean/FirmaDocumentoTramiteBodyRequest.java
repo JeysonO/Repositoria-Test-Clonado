@@ -16,7 +16,9 @@ public class FirmaDocumentoTramiteBodyRequest {
 	@NotBlank
 	private String pin;
 	//private String imagenFirmaDigitalId;
-	private String positionId;
+	//private String positionId;
+	private String position;
+	private String orientacion;
 	private String positionCustom;
 	@NotBlank
 	private String usuarioFirmaLogoId;

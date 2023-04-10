@@ -159,7 +159,8 @@ public class FirmaDocumentoService {
 		String encodedImagenString = Base64.getEncoder().encodeToString(fileContent);
 
 		//Posicion de la firma
-		ImagenFirmaPosition imagenFirmaPosition = generarPosition(firmaDocumentoTramiteBodyRequest.getPositionId(), firmaDocumentoTramiteBodyRequest.getPositionCustom());//imagenFirmaPositionService.obtenerImagenFirmaPositionById(firmaDocumentoTramiteBodyRequest.getPositionId());
+		//ImagenFirmaPosition imagenFirmaPosition = generarPosition(firmaDocumentoTramiteBodyRequest.getPositionId(), firmaDocumentoTramiteBodyRequest.getPositionCustom());//imagenFirmaPositionService.obtenerImagenFirmaPositionById(firmaDocumentoTramiteBodyRequest.getPositionId());
+		ImagenFirmaPosition imagenFirmaPosition = generarPosition(firmaDocumentoTramiteBodyRequest);//imagenFirmaPositionService.obtenerImagenFirmaPositionById(firmaDocumentoTramiteBodyRequest.getPositionId());
 
 		//Colocamos el mensaje en el paragraph format
 		String textoFirma = StringUtils.isBlank(firmaDocumentoTramiteBodyRequest.getTextoFirma())?"":firmaDocumentoTramiteBodyRequest.getTextoFirma();
@@ -523,6 +524,31 @@ public class FirmaDocumentoService {
 
 		ImagenFirmaPosition imagenFirmaPosition = new ImagenFirmaPosition();
 		imagenFirmaPosition.setPositionpxl(positionFinalXYFirma);
+
+		return imagenFirmaPosition;
+
+	}
+
+	public ImagenFirmaPosition generarPosition(FirmaDocumentoTramiteBodyRequest firmaDocumentoTramiteBodyRequest) throws Exception {
+
+		ImagenFirmaPosition imagenFirmaPosition = null;
+
+		//Se obtiene la posicion de la tabla
+		if(!StringUtils.isBlank(firmaDocumentoTramiteBodyRequest.getPosition())){
+			imagenFirmaPosition = imagenFirmaPositionService.obtenerImagenFirmaPositionByPositionAndOrientacion(firmaDocumentoTramiteBodyRequest.getPosition(), firmaDocumentoTramiteBodyRequest.getOrientacion()).get(0);
+		}else{//Se genera la posicion customizada
+			String positionCustom = firmaDocumentoTramiteBodyRequest.getPositionCustom();
+			String positionX=positionCustom.split(",")[0];
+			String positionY=positionCustom.split(",")[1];
+
+			Integer finalPositionX = Integer.valueOf(positionX)+200;
+			Integer finalPositiony = Integer.valueOf(positionY)+50;
+
+			String positionFinalXYFirma = positionX + "," + positionY + "," + String.valueOf(finalPositionX) + "," + String.valueOf(finalPositiony);
+
+			imagenFirmaPosition = new ImagenFirmaPosition();
+			imagenFirmaPosition.setPositionpxl(positionFinalXYFirma);
+		}
 
 		return imagenFirmaPosition;
 
