@@ -25,6 +25,7 @@ public class TramiteReporteResponse {
 	private String persona;
 	private String tipoPersona;
 	private String estado;
+	private String forma;
 	private Date createdDate;
 
 	private List<TramiteDerivacionReporteResponse> tramiteDerivacion;
