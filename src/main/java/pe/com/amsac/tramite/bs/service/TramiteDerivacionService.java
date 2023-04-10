@@ -918,8 +918,9 @@ public class TramiteDerivacionService {
 		//Si esta ordenado de mayor a menos por las secuencia, entonces el segunco registro sera el ultimo derivado
 		TramiteDerivacion tramiteDerivacionAnterior = tramiteDerivacionList.get(1);
 
-		TramiteDerivacionBodyRequest subsanarTramiteBodyRequest = mapper.map(subsanarTramiteActual, TramiteDerivacionBodyRequest.class);
+		TramiteDerivacionBodyRequest subsanarTramiteBodyRequest = new TramiteDerivacionBodyRequest(); // mapper.map(subsanarTramiteActual, TramiteDerivacionBodyRequest.class);
 		subsanarTramiteBodyRequest.setSecuencia(sec);
+		subsanarTramiteBodyRequest.setTramiteId(subsanarTramiteActual.getTramite().getId());
 		subsanarTramiteBodyRequest.setUsuarioInicio(usuarioId);
 		//subsanarTramiteBodyRequest.setUsuarioFin(subsanarTramiteActual.getUsuarioInicio().getId());
 		subsanarTramiteBodyRequest.setUsuarioFin(tramiteDerivacionAnterior.getUsuarioInicio().getId());
