@@ -52,6 +52,12 @@ public class TramiteDerivacionResponse {
 
 	private Date fechaDocumento;
 
+	private String origenDocumento;
+
+	private String usuarioCreacion;
+
+	private String dependenciaEmpresa;
+
 	@Mapping("tramite.id")
 	public String getTramiteId(){return tramiteId;}
 
@@ -78,5 +84,8 @@ public class TramiteDerivacionResponse {
 
 	@Mapping("tramite.fechaDocumento")
 	public Date getFechaDocumento(){return fechaDocumento;}
+
+	@Mapping("tramite.origenDocumento")
+	public String getOrigenDocumento(){return origenDocumento;}
 
 }

@@ -291,7 +291,30 @@ public class TramiteDerivacionService {
 		ResponseEntity<CommonResponse> response = null;
 		String uriBusqueda;
 		String nombreCompleto;
+
+		//Se obtiene datos del tramite
+		String usuarioCreacion = null;
+		String dependenciaEmpresa = null;
+		if(!CollectionUtils.isEmpty(tramiteList)){
+			uriBusqueda = uri + tramiteList.get(0).getTramite().getCreatedByUser();
+			response = restTemplate.exchange(uriBusqueda, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+			LinkedHashMap<Object, Object> usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
+			usuarioCreacion = ((LinkedHashMap)response.getBody().getData()).get("nombre").toString() + " " + ((LinkedHashMap)response.getBody().getData()).get("apePaterno").toString() + ((((LinkedHashMap)response.getBody().getData()).get("apeMaterno")!=null)?" "+((LinkedHashMap)response.getBody().getData()).get("apeMaterno").toString():"");
+
+			if(tramiteList.get(0).getTramite().getOrigenDocumento().equals("EXTERNO")){
+				LinkedHashMap<String, String> persona = (LinkedHashMap<String, String>) usuario.get("persona");
+				Persona personaDto = mapper.map(persona,Persona.class);
+				dependenciaEmpresa = personaDto.getRazonSocialNombre();
+			}else{
+				dependenciaEmpresa = ((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre").toString();
+			}
+		}
+
+
 		for(TramiteDerivacion tramiteDerivacion : tramiteList){
+			tramiteDerivacion.setUsuarioCreacion(usuarioCreacion);
+			tramiteDerivacion.setDependenciaEmpresa(dependenciaEmpresa);
+
 			//Se completan datos de usuario inicio
 			uriBusqueda = uri + tramiteDerivacion.getUsuarioInicio().getId();
 			response = restTemplate.exchange(uriBusqueda, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
