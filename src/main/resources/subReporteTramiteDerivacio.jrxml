@@ -20,7 +20,7 @@
     <field name="estadoFin" class="java.lang.String"/>
     <field name="comentarioFin" class="java.lang.String"/>
     <field name="fechaFin" class="java.util.Date"/>
-    <field name="fechaMaximaAtencion" class="java.time.LocalDate"/>
+    <field name="forma" class="java.lang.String"/>
 
     <background>
         <band splitType="Stretch"/>
