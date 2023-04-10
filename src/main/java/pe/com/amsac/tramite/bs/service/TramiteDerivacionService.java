@@ -912,7 +912,7 @@ public class TramiteDerivacionService {
 			@Override
 			public int compare(TramiteDerivacion a, TramiteDerivacion b)
 			{
-				return a.getSecuencia() - b.getSecuencia();
+				return b.getSecuencia() - a.getSecuencia();
 			}
 		});
 		//Si esta ordenado de mayor a menos por las secuencia, entonces el segunco registro sera el ultimo derivado
