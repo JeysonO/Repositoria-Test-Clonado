@@ -58,6 +58,8 @@ public class TramiteDerivacionResponse {
 
 	private String dependenciaEmpresa;
 
+	private String dependenciaDestinoNombre;
+
 	@Mapping("tramite.id")
 	public String getTramiteId(){return tramiteId;}
 
@@ -87,5 +89,10 @@ public class TramiteDerivacionResponse {
 
 	@Mapping("tramite.origenDocumento")
 	public String getOrigenDocumento(){return origenDocumento;}
+
+	@Mapping("tramite.dependenciaDestino.nombre")
+	public String getDependenciaDestinoNombre(){return dependenciaDestinoNombre;}
+
+
 
 }
