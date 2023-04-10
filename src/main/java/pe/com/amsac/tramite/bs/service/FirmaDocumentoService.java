@@ -291,7 +291,9 @@ public class FirmaDocumentoService {
 		String encodedImagenString = Base64.getEncoder().encodeToString(fileContent);
 
 		//Posicion de la firma
-		ImagenFirmaPosition imagenFirmaPosition = generarPosition(firmaDocumentoTramiteExternoBodyRequest.getPositionId(), firmaDocumentoTramiteExternoBodyRequest.getPositionCustom()); //imagenFirmaPositionService.obtenerImagenFirmaPositionById(firmaDocumentoTramiteExternoBodyRequest.getPositionId());
+		//ImagenFirmaPosition imagenFirmaPosition = generarPosition(firmaDocumentoTramiteExternoBodyRequest.getPositionId(), firmaDocumentoTramiteExternoBodyRequest.getPositionCustom()); //imagenFirmaPositionService.obtenerImagenFirmaPositionById(firmaDocumentoTramiteExternoBodyRequest.getPositionId());
+		FirmaDocumentoTramiteBodyRequest firmaDocumentoTramiteBodyRequest = mapper.map(firmaDocumentoTramiteExternoBodyRequest, FirmaDocumentoTramiteBodyRequest.class);
+		ImagenFirmaPosition imagenFirmaPosition = generarPosition(firmaDocumentoTramiteBodyRequest);
 
 		//Colocamos el mensaje en el paragraph format
 		String textoFirma = StringUtils.isBlank(firmaDocumentoTramiteExternoBodyRequest.getTextoFirma())?"":firmaDocumentoTramiteExternoBodyRequest.getTextoFirma();

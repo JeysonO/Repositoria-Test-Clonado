@@ -71,7 +71,9 @@ public class FirmaDigitalController {
 	@PostMapping("/firmar-documento-externo")
 	public ResponseEntity<CommonResponse> firmarDocumentoExterno(
 			@RequestParam(value = "textoFirma", required = false) String textoFirma,
-			@RequestParam(value = "positionId", required = false) String positionId,
+			//@RequestParam(value = "positionId", required = false) String positionId,
+			@RequestParam(value = "position", required = false) String position,
+			@RequestParam(value = "orientacion", required = false) String orientacion,
 			@RequestParam(value = "positionCustom", required = false) String positionCustom,
 			@RequestParam(value = "pin", required = false) String pin,
 			@RequestParam(value = "usuarioFirmaLogoId", required = false) String usuarioFirmaLogoId,
@@ -106,7 +108,8 @@ public class FirmaDigitalController {
 
 			FirmaDocumentoTramiteExternoBodyRequest firmaDocumentoTramiteExternoBodyRequest = FirmaDocumentoTramiteExternoBodyRequest.builder()
 					.textoFirma(textoFirma)
-					.positionId(positionId)
+					.position(position)
+					.orientacion(orientacion)
 					.pin(pin)
 					//.imagenFirmaDigitalId(imagenFirmaDigitalId)
 					.usuarioFirmaLogoId(usuarioFirmaLogoId)

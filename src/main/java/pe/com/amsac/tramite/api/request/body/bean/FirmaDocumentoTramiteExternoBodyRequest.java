@@ -12,7 +12,9 @@ public class FirmaDocumentoTramiteExternoBodyRequest {
 	private String pin;
 	//private String imagenFirmaDigitalId;
 	private String usuarioFirmaLogoId;
-	private String positionId;
+	//private String positionId;
+	private String position;
+	private String orientacion;
 	private String positionCustom;
 	private String email;
 	private MultipartFile file;

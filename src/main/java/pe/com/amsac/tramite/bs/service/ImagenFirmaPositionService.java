@@ -32,4 +32,10 @@ public class ImagenFirmaPositionService {
 
 	}
 
+	public List<ImagenFirmaPosition> obtenerImagenFirmaPositionByPositionAndOrientacion(String position, String orientacion) throws Exception {
+
+		return imagenFirmaPositionMongoRepository.findByPositionAndOrientacionAndEstado(position, orientacion, "A");
+
+	}
+
 }
