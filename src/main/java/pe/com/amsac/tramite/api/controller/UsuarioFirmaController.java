@@ -66,7 +66,7 @@ public class UsuarioFirmaController { //extends CustomAPIController<UsuarioRespo
 
 		CommonResponse commonResponse = null;
 
-		HttpStatus httpStatus = HttpStatus.CREATED;
+		HttpStatus httpStatus = HttpStatus.OK;
 
 		try{
 			UsuarioFirma usuarioFirma = usuarioFirmaService.obtenerUsuarioFirmaByUsuarioId(usuarioId);
@@ -137,36 +137,29 @@ public class UsuarioFirmaController { //extends CustomAPIController<UsuarioRespo
 
 	}
 
-    /*
-	@PutMapping
-    public ResponseEntity<UsuarioResponse> actualizarUsuario(@Valid @RequestBody UsuarioBodyRequest usuarioBodyrequest) throws Exception{
-    	try {
-    		
-    		UsuarioResponse usuarioResponse = usuarioFacade.actualizarUsuario(usuarioBodyrequest);
-        	
-        	return new ResponseEntity<UsuarioResponse>(usuarioResponse,HttpStatus.CREATED);
-    	}catch (Exception e) {
-    		log.error("Error en actualizarUsuario", e);
-			throw e;
+	@GetMapping("/usuario")
+	public ResponseEntity<CommonResponse> obtenerUsuarioFirmaByUsuario() throws Exception {
+
+		log.info("obtenerUsuarioFirmaByEstado");
+
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.OK;
+
+		try{
+			UsuarioFirma usuarioFirma = usuarioFirmaService.obtenerUsuarioFirmaByUsuario();
+
+			UsuarioFirmaCreateResponse usuarioFirmaResponse = mapper.map(usuarioFirma, UsuarioFirmaCreateResponse.class);
+
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK,null)).data(usuarioFirmaResponse).build();
+
+		}catch(ServiceException se){
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR,se.getMensajes())).build();
+			httpStatus = HttpStatus.CONFLICT;
 		}
-    }
 
-	@PostMapping("/crear-usuario-rol-aplicacion")
-	public ResponseEntity<UsuarioCreateResponse> registrarUsuarioAndRolAplicacion(@Valid @RequestBody UsuarioBodyRequest usuarioBodyrequest) throws Exception{
-
-		UsuarioCreateResponse usuarioResponse = usuarioFacade.registrarUsuarioAndRolAplicacion(usuarioBodyrequest);
-
-		return new ResponseEntity<UsuarioCreateResponse>(usuarioResponse,HttpStatus.CREATED);
+		return new ResponseEntity<CommonResponse>(commonResponse,httpStatus);
 
 	}
 
-	@PostMapping("/reestablecer-password")
-	public ResponseEntity<UsuarioCreateResponse> reestablecerContraseña(@Valid @RequestBody ReestablecerPasswordBodyRequest usuarioBodyrequest) throws Exception {
-
-		UsuarioCreateResponse usuarioResponse = usuarioFacade.reestablecerPassword(usuarioBodyrequest);
-
-		return new ResponseEntity<UsuarioCreateResponse>(usuarioResponse,HttpStatus.OK);
-
-	}
-	*/
 }

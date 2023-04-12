@@ -4,6 +4,7 @@ import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.request.body.bean.UsuarioFirmaBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.Mensaje;
@@ -21,6 +22,9 @@ public class UsuarioFirmaService {
 
 	@Autowired
 	private UsuarioFirmaMongoRepository usuarioFirmaMongoRepository;
+
+	@Autowired
+	private SecurityHelper securityHelper;
 
 	@Autowired
 	private UsuarioFirmaLogoService usuarioFirmaLogoService;
@@ -81,6 +85,22 @@ public class UsuarioFirmaService {
 		}
 
 		return mensajes;
+
+	}
+
+	public UsuarioFirma obtenerUsuarioFirmaByUsuario() throws Exception {
+
+		String usuarioId = securityHelper.obtenerUserIdSession();
+
+		List<UsuarioFirma> usuarioFirmaList = usuarioFirmaMongoRepository.obtenerUsuarioFirmaByUsuarioId(usuarioId);
+
+		if(CollectionUtils.isEmpty(usuarioFirmaList)){
+			List<Mensaje> mensajes = new ArrayList<>();
+			mensajes.add(new Mensaje("E001","ERROR","Usuario no tiene registro habilitado para firmar"));
+			throw new ServiceException(mensajes);
+		}
+
+		return usuarioFirmaList.get(0);
 
 	}
 
