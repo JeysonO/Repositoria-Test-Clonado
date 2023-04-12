@@ -155,7 +155,7 @@ public class UsuarioFirmaController { //extends CustomAPIController<UsuarioRespo
 
 		}catch(ServiceException se){
 			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR,se.getMensajes())).build();
-			httpStatus = HttpStatus.CONFLICT;
+			//httpStatus = HttpStatus.CONFLICT;
 		}
 
 		return new ResponseEntity<CommonResponse>(commonResponse,httpStatus);
