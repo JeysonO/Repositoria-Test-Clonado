@@ -30,9 +30,15 @@ public class TramiteDerivacion extends BaseAuditableEntity<String> {
 	@DBRef(db = "amsac-seguridad")
 	private Usuario usuarioInicio;
 
+	@DBRef(db = "amsac-seguridad")
+	private Dependencia dependenciaUsuarioInicio;
+
 	//private String usuarioFin;
 	@DBRef(db = "amsac-seguridad")
 	private Usuario usuarioFin;
+
+	@DBRef(db = "amsac-seguridad")
+	private Dependencia dependenciaUsuarioFin;
 
 	private String estadoInicio;
 

@@ -21,4 +21,7 @@ public class TramiteDerivacionRequest extends BaseRequest {
 	private String tramiteId;
 	private String asunto;
 
+	private String dependenciaIdUsuarioInicio;
+	private String dependenciaIdUsuarioFin;
+
 }

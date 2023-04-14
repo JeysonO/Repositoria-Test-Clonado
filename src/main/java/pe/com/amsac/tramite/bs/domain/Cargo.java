@@ -30,7 +30,7 @@ public class Cargo extends BaseAuditableEntity<String> {
 
 	private String estado;
 
-	@DBRef
+	@DBRef(db = "amsac-seguridad")
 	private Dependencia dependencia;
 
 	@Override

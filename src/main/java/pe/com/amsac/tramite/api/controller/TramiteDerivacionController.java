@@ -1,5 +1,6 @@
 package pe.com.amsac.tramite.api.controller;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dozer.Mapper;
@@ -140,6 +141,11 @@ public class TramiteDerivacionController {
 
 			String usuarioInicioId = securityHelper.obtenerUserIdSession();
 			tramiteDerivacionBodyrequest.setUsuarioInicio(usuarioInicioId);
+
+			String dependenciaIdUserSession = securityHelper.obtenerDependenciaIdUserSession();
+			if(!StringUtils.isBlank(dependenciaIdUserSession)){
+				tramiteDerivacionBodyrequest.setDependenciaIdUsuarioInicio(dependenciaIdUserSession);
+			}
 
 			TramiteDerivacion tramiteDerivacion = tramiteDerivacionService.registrar(tramiteDerivacionBodyrequest);
 
@@ -419,6 +425,9 @@ public class TramiteDerivacionController {
 
 			String idUser =  securityHelper.obtenerUserIdSession();
 			tramiteDerivacionRequest.setUsuarioFin(idUser);
+
+			String dependenciaId =  securityHelper.obtenerDependenciaIdUserSession();
+			tramiteDerivacionRequest.setDependenciaIdUsuarioFin(dependenciaId);
 
 			int cantidadRegistros = tramiteDerivacionService.totalRegistros(tramiteDerivacionRequest);
 

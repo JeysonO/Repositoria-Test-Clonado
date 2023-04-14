@@ -285,4 +285,20 @@ public class TramiteController {
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 	}
 
+	@PutMapping("/actualizar-tramite-migracion")
+	public ResponseEntity<CommonResponse> actualizarDependenciaUsuarioCreacionTramite(@Valid @RequestBody TramiteMigracionBodyRequest tramiteBodyrequest) throws Exception {
+
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.OK;
+
+		tramiteService.actualizarDependenciaUsuarioCreacionTramite(tramiteBodyrequest.getId(), tramiteBodyrequest.getDependenciaUsuarioCreacionId());
+
+		commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).build();
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+
+	}
+
+
 }

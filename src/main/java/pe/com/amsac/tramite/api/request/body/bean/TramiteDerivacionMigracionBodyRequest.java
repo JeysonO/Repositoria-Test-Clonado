@@ -21,6 +21,9 @@ public class TramiteDerivacionMigracionBodyRequest {
 
 	private String tramiteId;
 
+	private String dependenciaIdUsuarioInicio;
+	private String dependenciaIdUsuarioFin;
+
 	@Mapping("tramite.id")
 	public String getTramiteId(){return tramiteId;}
 
@@ -29,5 +32,11 @@ public class TramiteDerivacionMigracionBodyRequest {
 
 	@Mapping("usuarioInicio.id")
 	public String getUsuarioInicio(){return usuarioInicio;}
+
+	@Mapping("dependenciaUsuarioInicio.id")
+	public String getDependenciaIdUsuarioInicio(){return dependenciaIdUsuarioInicio;}
+
+	@Mapping("dependenciaUsuarioFin.id")
+	public String getDependenciaIdUsuarioFin(){return dependenciaIdUsuarioFin;}
 	
 }

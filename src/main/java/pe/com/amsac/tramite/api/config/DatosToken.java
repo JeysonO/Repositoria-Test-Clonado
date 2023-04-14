@@ -23,4 +23,7 @@ public class DatosToken {
     private String idUser;
 
     private String token;
+
+    private String dependenciaId;
+
 }

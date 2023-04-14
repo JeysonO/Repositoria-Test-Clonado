@@ -20,14 +20,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
-import pe.com.amsac.tramite.api.request.bean.TramiteRequest;
 import pe.com.amsac.tramite.api.request.body.bean.*;
 import pe.com.amsac.tramite.api.request.bean.TramiteDerivacionRequest;
 import pe.com.amsac.tramite.api.response.bean.*;
-import pe.com.amsac.tramite.bs.domain.Persona;
-import pe.com.amsac.tramite.bs.domain.Tramite;
-import pe.com.amsac.tramite.bs.domain.TramiteDerivacion;
-import pe.com.amsac.tramite.bs.domain.Usuario;
+import pe.com.amsac.tramite.bs.domain.*;
 import pe.com.amsac.tramite.bs.repository.TramiteDerivacionMongoRepository;
 import pe.com.amsac.tramite.bs.repository.TramiteMongoRepository;
 import pe.com.amsac.tramite.bs.util.EstadoTramiteConstant;
@@ -148,6 +144,10 @@ public class TramiteDerivacionService {
 
 		String idUser =  securityHelper.obtenerUserIdSession();
 		tramiteDerivacionRequest.setUsuarioFin(idUser);
+		String dependenciaIdUserSession = securityHelper.obtenerDependenciaIdUserSession();
+		if(!StringUtils.isBlank(dependenciaIdUserSession)){
+			tramiteDerivacionRequest.setDependenciaIdUsuarioFin(dependenciaIdUserSession);
+		}
 
 		List<TramiteDerivacion> tramitePendienteList = buscarTramiteDerivacionParams(tramiteDerivacionRequest);
 
@@ -247,6 +247,14 @@ public class TramiteDerivacionService {
 		if(parameters.containsKey("usuarioFin")){
 			listCriteria.add(Criteria.where("usuarioFin.id").is(parameters.get("usuarioFin")));
 			parameters.remove("usuarioFin");
+		}
+		if(parameters.containsKey("dependenciaIdUsuarioInicio")){
+			listCriteria.add(Criteria.where("dependenciaUsuarioInicio.id").is(parameters.get("dependenciaIdUsuarioInicio")));
+			parameters.remove("dependenciaIdUsuarioInicio");
+		}
+		if(parameters.containsKey("dependenciaIdUsuarioFin")){
+			listCriteria.add(Criteria.where("dependenciaUsuarioFin.id").is(parameters.get("dependenciaIdUsuarioFin")));
+			parameters.remove("dependenciaIdUsuarioFin");
 		}
 		if(!listCriteria.isEmpty()) {
 			andExpression.add(new Criteria().andOperator(listCriteria.toArray(new Criteria[listCriteria.size()])));
@@ -433,6 +441,7 @@ public class TramiteDerivacionService {
 	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
 	public TramiteDerivacion subsanarTramiteDerivacion(SubsanacionTramiteDerivacionBodyRequest subsanartramiteDerivacionBodyrequest) throws Exception {
 		String usuarioId = securityHelper.obtenerUserIdSession();
+		String dependenciaIdUserSession = securityHelper.obtenerDependenciaIdUserSession();
 
 		TramiteDerivacion subsanarTramiteActual = tramiteDerivacionMongoRepository.findById(subsanartramiteDerivacionBodyrequest.getId()).get();
 		subsanarTramiteActual.setComentarioFin(subsanartramiteDerivacionBodyrequest.getComentarioInicial());
@@ -443,15 +452,35 @@ public class TramiteDerivacionService {
 
 		int sec = obtenerSecuencia(subsanarTramiteActual.getTramite().getId());
 
+		TramiteDerivacionRequest tramiteDerivacionRequest = new TramiteDerivacionRequest();
+		tramiteDerivacionRequest.setTramiteId(subsanarTramiteActual.getTramite().getId());
+		tramiteDerivacionRequest.setUsuarioFin(subsanarTramiteActual.getUsuarioFin().getId());
+		List<TramiteDerivacion> tramiteDerivacionList = buscarTramiteDerivacionParams(tramiteDerivacionRequest);
+		//Ordenamos por numero de tramite
+		Collections.sort(tramiteDerivacionList, new Comparator<TramiteDerivacion>(){
+			@Override
+			public int compare(TramiteDerivacion a, TramiteDerivacion b)
+			{
+				return b.getSecuencia() - a.getSecuencia();
+			}
+		});
+		//Si esta ordenado de mayor a menos por las secuencia, entonces el segunco registro sera el ultimo derivado
+		TramiteDerivacion tramiteDerivacionAnterior = tramiteDerivacionList.get(1);
+
 		LocalDate fechaMaxima = null;
 		if(subsanarTramiteActual.getFechaMaximaAtencion()!=null){
 			fechaMaxima = subsanarTramiteActual.getFechaMaximaAtencion().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 			subsanarTramiteActual.setFechaMaximaAtencion(null);
 		}
-		TramiteDerivacionBodyRequest subsanarTramiteBodyRequest = mapper.map(subsanarTramiteActual, TramiteDerivacionBodyRequest.class);
+		TramiteDerivacionBodyRequest subsanarTramiteBodyRequest = new TramiteDerivacionBodyRequest(); // mapper.map(subsanarTramiteActual, TramiteDerivacionBodyRequest.class);
 		subsanarTramiteBodyRequest.setSecuencia(sec);
 		subsanarTramiteBodyRequest.setUsuarioInicio(usuarioId);
-		subsanarTramiteBodyRequest.setUsuarioFin(subsanarTramiteActual.getUsuarioInicio().getId());
+		subsanarTramiteBodyRequest.setDependenciaIdUsuarioInicio(dependenciaIdUserSession);
+		//subsanarTramiteBodyRequest.setUsuarioFin(subsanarTramiteActual.getUsuarioInicio().getId());
+		subsanarTramiteBodyRequest.setUsuarioFin(tramiteDerivacionAnterior.getUsuarioInicio().getId());
+		if(tramiteDerivacionAnterior.getDependenciaUsuarioInicio()!=null){
+			subsanarTramiteBodyRequest.setDependenciaIdUsuarioFin(tramiteDerivacionAnterior.getDependenciaUsuarioInicio().getId());
+		}
 		subsanarTramiteBodyRequest.setComentarioInicio(subsanarTramiteActual.getComentarioFin());
 		subsanarTramiteBodyRequest.setEstadoInicio(subsanarTramiteActual.getEstadoFin());
 		subsanarTramiteBodyRequest.setFechaInicio(new Date());
@@ -503,6 +532,7 @@ public class TramiteDerivacionService {
 		//Asignar valores manualmente segun condiciones
 		int sec = obtenerSecuencia(derivacionTramiteActual.getTramite().getId());
 		String usuarioId = securityHelper.obtenerUserIdSession();
+		String dependenciaIdUserSession = securityHelper.obtenerDependenciaIdUserSession();
 		LocalDate fechaMaxima = null;
 		if(derivacionTramiteActual.getFechaMaximaAtencion()!=null){
 			fechaMaxima = derivacionTramiteActual.getFechaMaximaAtencion().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
@@ -513,7 +543,9 @@ public class TramiteDerivacionService {
 		TramiteDerivacionBodyRequest derivacionTramiteBodyRequest = mapper.map(derivacionTramiteActual, TramiteDerivacionBodyRequest.class);
 		derivacionTramiteBodyRequest.setSecuencia(sec);
 		derivacionTramiteBodyRequest.setUsuarioInicio(usuarioId);
+		derivacionTramiteBodyRequest.setDependenciaIdUsuarioInicio(dependenciaIdUserSession);
 		derivacionTramiteBodyRequest.setUsuarioFin(derivartramiteBodyrequest.getUsuarioFin());
+		derivacionTramiteBodyRequest.setDependenciaIdUsuarioFin(derivartramiteBodyrequest.getDependenciaIdUsuarioFin());
 		derivacionTramiteBodyRequest.setEstadoInicio(EstadoTramiteConstant.DERIVADO);
 		derivacionTramiteBodyRequest.setFechaInicio(new Date());
 		if(fechaMaxima!=null)
@@ -553,7 +585,11 @@ public class TramiteDerivacionService {
 		TramiteDerivacionBodyRequest recepcionTramiteBodyRequest = mapper.map(recepcionTramiteActual, TramiteDerivacionBodyRequest.class);
 		recepcionTramiteBodyRequest.setSecuencia(sec);
 		recepcionTramiteBodyRequest.setUsuarioInicio(recepcionTramiteActual.getUsuarioFin().getId());
+		if(recepcionTramiteActual.getDependenciaUsuarioInicio()!=null)
+			recepcionTramiteBodyRequest.setDependenciaIdUsuarioInicio(recepcionTramiteActual.getDependenciaUsuarioInicio().getId());
 		recepcionTramiteBodyRequest.setUsuarioFin(recepcionTramiteActual.getUsuarioFin().getId());
+		if(recepcionTramiteActual.getDependenciaUsuarioFin()!=null)
+			recepcionTramiteBodyRequest.setDependenciaIdUsuarioFin(recepcionTramiteActual.getDependenciaUsuarioFin().getId());
 		recepcionTramiteBodyRequest.setEstadoInicio(recepcionTramiteActual.getEstadoFin());
 		recepcionTramiteBodyRequest.setFechaInicio(new Date());
 		recepcionTramiteBodyRequest.setComentarioInicio(recepcionTramiteActual.getComentarioFin());
@@ -574,6 +610,7 @@ public class TramiteDerivacionService {
 	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
 	public TramiteDerivacion registrarAtencionTramiteDerivacion(AtencionTramiteDerivacionBodyRequest atenciontramiteDerivacionBodyrequest) throws Exception {
 		String usuarioId = securityHelper.obtenerUserIdSession();
+		String dependenciaIdUserSession = securityHelper.obtenerDependenciaIdUserSession();
 
 		TramiteDerivacion atenderTramiteDerivacion = tramiteDerivacionMongoRepository.findById(atenciontramiteDerivacionBodyrequest.getId()).get();
 		atenderTramiteDerivacion.setEstadoFin(atenciontramiteDerivacionBodyrequest.getEstadoFin());
@@ -596,7 +633,10 @@ public class TramiteDerivacionService {
 			TramiteDerivacionBodyRequest subsanarTramiteBodyRequest = mapper.map(atenderTramiteDerivacion, TramiteDerivacionBodyRequest.class);
 			subsanarTramiteBodyRequest.setSecuencia(sec);
 			subsanarTramiteBodyRequest.setUsuarioInicio(usuarioId);
+			subsanarTramiteBodyRequest.setDependenciaIdUsuarioInicio(dependenciaIdUserSession);
 			subsanarTramiteBodyRequest.setUsuarioFin(atenderTramiteDerivacion.getUsuarioInicio().getId());
+			if(atenderTramiteDerivacion.getDependenciaUsuarioInicio()!=null)
+				subsanarTramiteBodyRequest.setDependenciaIdUsuarioFin(atenderTramiteDerivacion.getDependenciaUsuarioInicio().getId());
 			subsanarTramiteBodyRequest.setComentarioInicio(atenciontramiteDerivacionBodyrequest.getComentarioFin());
 			subsanarTramiteBodyRequest.setEstadoInicio(atenderTramiteDerivacion.getEstadoFin());
 			subsanarTramiteBodyRequest.setFechaInicio(new Date());
@@ -893,6 +933,7 @@ public class TramiteDerivacionService {
 	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
 	public TramiteDerivacion rechazarTramiteDerivacion(RechazarTramiteDerivacionBodyRequest rechazarTramiteDerivacionBodyRequest) throws Exception {
 		String usuarioId = securityHelper.obtenerUserIdSession();
+		String dependenciaIdUserSession = securityHelper.obtenerDependenciaIdUserSession();
 
 		TramiteDerivacion subsanarTramiteActual = tramiteDerivacionMongoRepository.findById(rechazarTramiteDerivacionBodyRequest.getId()).get();
 		subsanarTramiteActual.setComentarioFin(rechazarTramiteDerivacionBodyRequest.getComentarioInicial());
@@ -922,8 +963,12 @@ public class TramiteDerivacionService {
 		subsanarTramiteBodyRequest.setSecuencia(sec);
 		subsanarTramiteBodyRequest.setTramiteId(subsanarTramiteActual.getTramite().getId());
 		subsanarTramiteBodyRequest.setUsuarioInicio(usuarioId);
+		subsanarTramiteBodyRequest.setDependenciaIdUsuarioInicio(dependenciaIdUserSession);
 		//subsanarTramiteBodyRequest.setUsuarioFin(subsanarTramiteActual.getUsuarioInicio().getId());
 		subsanarTramiteBodyRequest.setUsuarioFin(tramiteDerivacionAnterior.getUsuarioInicio().getId());
+		if(tramiteDerivacionAnterior.getDependenciaUsuarioInicio()!=null)
+			subsanarTramiteBodyRequest.setDependenciaIdUsuarioFin(tramiteDerivacionAnterior.getDependenciaUsuarioInicio().getId());
+
 		subsanarTramiteBodyRequest.setComentarioInicio(subsanarTramiteActual.getComentarioFin());
 		subsanarTramiteBodyRequest.setEstadoInicio(subsanarTramiteActual.getEstadoFin());
 		subsanarTramiteBodyRequest.setFechaInicio(new Date());
@@ -1015,6 +1060,21 @@ public class TramiteDerivacionService {
 		int sec = obtenerSecuencia(tramiteDerivacionBodyRequest.getTramiteId());
 		registroTramiteDerivacion.setSecuencia(sec);
 
+		if(!StringUtils.isBlank(tramiteDerivacionBodyRequest.getDependenciaIdUsuarioInicio())){
+			Dependencia dependencia =  new Dependencia();
+			dependencia.setId(tramiteDerivacionBodyRequest.getDependenciaIdUsuarioInicio());
+			registroTramiteDerivacion.setDependenciaUsuarioInicio(dependencia);
+		}else{
+			registroTramiteDerivacion.setDependenciaUsuarioInicio(null);
+		}
+		if(!StringUtils.isBlank(tramiteDerivacionBodyRequest.getDependenciaIdUsuarioFin())){
+			Dependencia dependencia =  new Dependencia();
+			dependencia.setId(tramiteDerivacionBodyRequest.getDependenciaIdUsuarioFin());
+			registroTramiteDerivacion.setDependenciaUsuarioFin(dependencia);
+		}else{
+			registroTramiteDerivacion.setDependenciaUsuarioFin(null);
+		}
+
 		tramiteDerivacionMongoRepository.save(registroTramiteDerivacion);
 
 		try{
@@ -1045,7 +1105,11 @@ public class TramiteDerivacionService {
 							TramiteDerivacionBodyRequest subsanarTramiteBodyRequest = new TramiteDerivacionBodyRequest();
 							subsanarTramiteBodyRequest.setTramiteId(registroTramiteDerivacion.getTramite().getId());
 							subsanarTramiteBodyRequest.setUsuarioInicio(registroTramiteDerivacion.getUsuarioInicio().getId());
+							if(registroTramiteDerivacion.getDependenciaUsuarioInicio()!=null){
+								subsanarTramiteBodyRequest.setDependenciaIdUsuarioInicio(registroTramiteDerivacion.getDependenciaUsuarioInicio().getId());
+							}
 							subsanarTramiteBodyRequest.setUsuarioFin(usuarioCargoResponse.getUsuario().getId());
+							subsanarTramiteBodyRequest.setDependenciaIdUsuarioFin(usuarioCargoResponse.getCargo().getDependencia().getId());
 							subsanarTramiteBodyRequest.setComentarioInicio(registroTramiteDerivacion.getComentarioInicio());
 							subsanarTramiteBodyRequest.setEstadoInicio(registroTramiteDerivacion.getEstadoInicio());
 							subsanarTramiteBodyRequest.setFechaInicio(new Date());
@@ -1110,7 +1174,13 @@ public class TramiteDerivacionService {
 		tramiteDerivacionRequest.setForma("COPIA");
 		tramiteDerivacionRequest.setTramiteId(registroTramiteDerivacion.getTramite().getId());
 		tramiteDerivacionRequest.setUsuarioInicio(registroTramiteDerivacion.getUsuarioInicio().getId());
+
+		if(registroTramiteDerivacion.getDependenciaUsuarioInicio()!=null)
+			tramiteDerivacionRequest.setDependenciaIdUsuarioInicio(registroTramiteDerivacion.getDependenciaUsuarioInicio().getId());
+
 		tramiteDerivacionRequest.setUsuarioFin(usuarioCargoResponse.getUsuario().getId());
+		tramiteDerivacionRequest.setDependenciaIdUsuarioFin(usuarioCargoResponse.getCargo().getDependencia().getId());
+
 		List<TramiteDerivacion> tramiteDerivacionList = buscarTramiteDerivacionParams(tramiteDerivacionRequest);
 
 		return CollectionUtils.isEmpty(tramiteDerivacionList)?false:true;
@@ -1250,11 +1320,19 @@ public class TramiteDerivacionService {
 		}
 		if(parameters.containsKey("usuarioInicio")){
 			listCriteria.add(Criteria.where("usuarioInicio.id").is(parameters.get("usuarioInicio")));
-			parameters.remove("fechaDerivacionDesde");
+			parameters.remove("usuarioInicio");
 		}
 		if(parameters.containsKey("usuarioFin")){
 			listCriteria.add(Criteria.where("usuarioFin.id").is(parameters.get("usuarioFin")));
 			parameters.remove("usuarioFin");
+		}
+		if(parameters.containsKey("dependenciaIdUsuarioInicio")){
+			listCriteria.add(Criteria.where("dependenciaUsuarioInicio.id").is(parameters.get("dependenciaIdUsuarioInicio")));
+			parameters.remove("dependenciaIdUsuarioInicio");
+		}
+		if(parameters.containsKey("dependenciaIdUsuarioFin")){
+			listCriteria.add(Criteria.where("dependenciaUsuarioFin.id").is(parameters.get("dependenciaIdUsuarioFin")));
+			parameters.remove("dependenciaIdUsuarioFin");
 		}
 		if(!listCriteria.isEmpty()) {
 			andExpression.add(new Criteria().andOperator(listCriteria.toArray(new Criteria[listCriteria.size()])));

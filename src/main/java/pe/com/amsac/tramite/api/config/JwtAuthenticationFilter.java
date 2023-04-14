@@ -18,7 +18,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.filter.OncePerRequestFilter;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
-import pe.com.amsac.tramite.bs.domain.Usuario;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -67,6 +66,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 */
+
+                //Agregamos el cargoId
+                String dependenciaId = request.getHeader("dependenciaId");
+                datosToken.setDependenciaId(dependenciaId);
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(datosToken, null, null);
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 

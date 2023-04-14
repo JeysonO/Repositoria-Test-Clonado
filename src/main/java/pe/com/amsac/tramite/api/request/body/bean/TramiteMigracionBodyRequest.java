@@ -70,6 +70,8 @@ public class TramiteMigracionBodyRequest {
 	private String createdByUser;
 	private String lastModifiedByUser;
 
+	private String dependenciaUsuarioCreacionId;
+
 	@Mapping("dependenciaDestino.id")
 	public String getDependenciaDestinoId(){return dependenciaDestinoId;}
 

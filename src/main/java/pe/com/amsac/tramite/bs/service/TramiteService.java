@@ -143,8 +143,12 @@ public class TramiteService {
 		}
 		if(!StringUtils.isBlank(tramiteRequest.getMisTramite())){
 			parameters.remove("misTramite");
-			//parameters.put("createdByUser",securityHelper.obtenerUserIdSession());
-			listCriteria.add(Criteria.where("createdByUser").regex(".*"+securityHelper.obtenerUserIdSession()+".*"));
+			parameters.put("createdByUser",securityHelper.obtenerUserIdSession());
+			//listCriteria.add(Criteria.where("createdByUser").regex(".*"+securityHelper.obtenerUserIdSession()+".*"));
+			String dependenciaIdUserSession = securityHelper.obtenerDependenciaIdUserSession();
+			if(!StringUtils.isBlank(dependenciaIdUserSession)){
+				parameters.put("dependenciaUsuarioCreacion.id",dependenciaIdUserSession);
+			}
 		}
 		/*
 		if(!StringUtils.isBlank(tramiteRequest.getCreatedByUser())){
@@ -240,10 +244,18 @@ public class TramiteService {
 			tramite.setEntidadInterna(null);
 			tramite.setEntidadExterna(null);
 			tramite.setTramitePrioridad(null);
+			tramite.setDependenciaUsuarioCreacion(null);
 			//Se setea la forma de recepcion siempre como digital
 			tramite.setFormaRecepcion(formaRecepcionService.findByFormaRecepcion("DIGITAL").get(0));
 		}else{
 			tramite.setDependenciaDestino(null);
+			//Obtenemos el cargo que llega en el header para registrar el tramite
+			String dependenciaIdUserSession = securityHelper.obtenerDependenciaIdUserSession();
+			if(!StringUtils.isBlank(dependenciaIdUserSession)){
+				Dependencia dependencia = new Dependencia();
+				dependencia.setId(dependenciaIdUserSession);
+				tramite.setDependenciaUsuarioCreacion(dependencia);
+			}
 		}
 		tramiteMongoRepository.save(tramite);
 		if(tramiteBodyRequest.getOrigenDocumento().equals("EXTERNO")){
@@ -262,8 +274,8 @@ public class TramiteService {
 	public void registrarDerivacion(Tramite tramite) throws Exception {
 		//Obtener 1er Usuario de Seguridad-UsuarioCargo
 		RestTemplate restTemplate = new RestTemplate();
-		//String uri = env.getProperty("app.url.seguridad") + "/usuario-cargo/recepcion_mesa_partes";
-		String uri = env.getProperty("app.url.seguridad") + "/usuario-app-rol/MESA_PARTES";
+		String uri = env.getProperty("app.url.seguridad") + "/usuario-cargo/RECEPCION_MESA_PARTES";
+		//String uri = env.getProperty("app.url.seguridad") + "/usuario-app-rol/MESA_PARTES";
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
 		HttpEntity entity = new HttpEntity<>(null, headers);
@@ -272,7 +284,12 @@ public class TramiteService {
 		TramiteDerivacionBodyRequest tramiteDerivacionBodyRequest = new TramiteDerivacionBodyRequest();
 		tramiteDerivacionBodyRequest.setSecuencia(1);
 		tramiteDerivacionBodyRequest.setUsuarioInicio(tramite.getCreatedByUser());
+		tramiteDerivacionBodyRequest.setDependenciaIdUsuarioInicio(tramite.getDependenciaUsuarioCreacion().getId());
 		tramiteDerivacionBodyRequest.setUsuarioFin(((LinkedHashMap)((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("usuario")).get("id").toString());
+
+		UsuarioCargoResponse usuarioCargoResponse = mapper.map(response.getBody().getData(),UsuarioCargoResponse.class);
+		tramiteDerivacionBodyRequest.setDependenciaIdUsuarioFin(usuarioCargoResponse.getCargo().getDependencia().getId());
+
 		tramiteDerivacionBodyRequest.setEstadoInicio("REGISTRADO");
 		tramiteDerivacionBodyRequest.setFechaInicio(tramite.getCreatedDate());
 		tramiteDerivacionBodyRequest.setTramiteId(tramite.getId());
@@ -883,6 +900,10 @@ public class TramiteService {
 		if(!StringUtils.isBlank(tramiteRequest.getMisTramite())){
 			parameters.remove("misTramite");
 			parameters.put("createdByUser",securityHelper.obtenerUserIdSession());
+			String dependenciaIdUserSession = securityHelper.obtenerDependenciaIdUserSession();
+			if(!StringUtils.isBlank(dependenciaIdUserSession)){
+				parameters.put("dependenciaUsuarioCreacion.id",dependenciaIdUserSession);
+			}
 		}
 		filtroParam.putAll(parameters);
 		//Retiramos las keys de paginacion
@@ -897,6 +918,14 @@ public class TramiteService {
 		long cantidadRegistro = mongoTemplate.count(andQuery, Tramite.class);
 
 		return (int)cantidadRegistro;
+	}
+
+	public void actualizarDependenciaUsuarioCreacionTramite(String tramiteId, String dependenciaCreacionTramiteId){
+		Tramite tramite = tramiteMongoRepository.findById(tramiteId).get();
+		Dependencia dependencia = new Dependencia();
+		dependencia.setId(dependenciaCreacionTramiteId);
+		tramite.setDependenciaUsuarioCreacion(dependencia);
+		tramiteMongoRepository.save(tramite);
 	}
 
 }
