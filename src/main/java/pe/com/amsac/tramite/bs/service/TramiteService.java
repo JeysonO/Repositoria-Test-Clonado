@@ -274,7 +274,7 @@ public class TramiteService {
 	public void registrarDerivacion(Tramite tramite) throws Exception {
 		//Obtener 1er Usuario de Seguridad-UsuarioCargo
 		RestTemplate restTemplate = new RestTemplate();
-		String uri = env.getProperty("app.url.seguridad") + "/usuario-cargo/RECEPCION_MESA_PARTES";
+		String uri = env.getProperty("app.url.seguridad") + "/usuario-cargo/cargo/RECEPCION_MESA_PARTES";
 		//String uri = env.getProperty("app.url.seguridad") + "/usuario-app-rol/MESA_PARTES";
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
