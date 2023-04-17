@@ -68,6 +68,9 @@ public class TramiteResponse {
 
 	private List<TramiteDerivacionReporteResponse> tramiteDerivacion;
 
+	private String dependenciaUsuarioCreacionNombre;
+	private String dependenciaUsuarioCreacionId;
+
 	@Mapping("dependenciaDestino.id")
 	public String getDependenciaDestinoId(){return dependenciaDestinoId;}
 
@@ -121,5 +124,11 @@ public class TramiteResponse {
 
 	@Mapping("tipoDocumento.tipoDocumento")
 	public String getTipoDocumentoNombre(){return tipoDocumentoNombre;}
+
+	@Mapping("dependenciaUsuarioCreacion.id")
+	public String getDependenciaUsuarioCreacionId(){return dependenciaUsuarioCreacionId;}
+
+	@Mapping("dependenciaUsuarioCreacion.nombre")
+	public String getDependenciaUsuarioCreacionNombre(){return dependenciaUsuarioCreacionNombre;}
 
 }

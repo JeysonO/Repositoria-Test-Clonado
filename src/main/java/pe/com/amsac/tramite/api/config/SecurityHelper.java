@@ -32,7 +32,8 @@ public class SecurityHelper {
 
         DatosToken datosToken = (DatosToken)authentication.getPrincipal();
         //UserDetails usuarioPrincipal = (UserDetails)authentication.getPrincipal();
-        return Optional.of(datosToken.getDependenciaId()).get();
+        //return Optional.of(datosToken.getDependenciaId()).get();
+        return datosToken.getDependenciaId();
     }
 
     public String getTokenCurrentSession(){
