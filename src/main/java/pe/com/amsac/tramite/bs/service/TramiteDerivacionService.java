@@ -91,6 +91,10 @@ public class TramiteDerivacionService {
 		ResponseEntity<CommonResponse> response = null;
 		String uriBusqueda;
 		String nombreCompleto;
+		Tramite tramite = null;
+		if(!CollectionUtils.isEmpty(tramitePendienteList)){
+			tramite = tramitePendienteList.get(0).getTramite();
+		}
 		for(TramiteDerivacion tramiteDerivacion : tramitePendienteList){
 			//Se completan datos de usuario inicio
 			uriBusqueda = uri + tramiteDerivacion.getUsuarioInicio().getId();
@@ -100,12 +104,20 @@ public class TramiteDerivacionService {
 			LinkedHashMap<String, String> persona = (LinkedHashMap<String, String>) usuario.get("persona");
 			Persona personaDto = mapper.map(persona,Persona.class);
 
+			if(tramite.getOrigenDocumento().equals("EXTERNO")){
+				tramiteDerivacion.setDependenciaNombreUsuarioInicio(personaDto.getRazonSocialNombre());
+			}else{
+				tramiteDerivacion.setDependenciaNombreUsuarioInicio(tramiteDerivacion.getDependenciaUsuarioInicio().getNombre());
+			}
+
+			/*
 			if(((LinkedHashMap)response.getBody().getData()).get("cargoNombre")!=null)
 				tramiteDerivacion.setCargoNombreUsuarioInicio(((LinkedHashMap)response.getBody().getData()).get("cargoNombre").toString());
 			if(((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre")!=null)
 				tramiteDerivacion.setDependenciaNombreUsuarioInicio(((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre").toString());
 			else
 				tramiteDerivacion.setDependenciaNombreUsuarioInicio(personaDto.getRazonSocialNombre());
+			*/
 
 			nombreCompleto = ((LinkedHashMap)response.getBody().getData()).get("nombre").toString() + " " + ((LinkedHashMap)response.getBody().getData()).get("apePaterno").toString() + ((((LinkedHashMap)response.getBody().getData()).get("apeMaterno")!=null)?" "+((LinkedHashMap)response.getBody().getData()).get("apeMaterno").toString():"");
 			tramiteDerivacion.setUsuarioInicioNombreCompleto(nombreCompleto);
@@ -117,12 +129,20 @@ public class TramiteDerivacionService {
 			persona = (LinkedHashMap<String, String>) usuario.get("persona");
 			personaDto = mapper.map(persona,Persona.class);
 
+			if(tramite.getOrigenDocumento().equals("EXTERNO")){
+				tramiteDerivacion.setDependenciaNombreUsuarioFin(personaDto.getRazonSocialNombre());
+			}else{
+				tramiteDerivacion.setDependenciaNombreUsuarioFin(tramiteDerivacion.getDependenciaUsuarioFin().getNombre());
+			}
+			/*
 			if(((LinkedHashMap)response.getBody().getData()).get("cargoNombre")!=null)
 				tramiteDerivacion.setCargoNombreUsuarioFin(((LinkedHashMap)response.getBody().getData()).get("cargoNombre").toString());
 			if(((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre")!=null)
 				tramiteDerivacion.setDependenciaNombreUsuarioFin(((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre").toString());
 			else
 				tramiteDerivacion.setDependenciaNombreUsuarioFin(personaDto.getRazonSocialNombre());
+			*/
+
 			nombreCompleto = ((LinkedHashMap)response.getBody().getData()).get("nombre").toString() + " " + ((LinkedHashMap)response.getBody().getData()).get("apePaterno").toString() + ((((LinkedHashMap)response.getBody().getData()).get("apeMaterno")!=null)?" "+((LinkedHashMap)response.getBody().getData()).get("apeMaterno").toString():"");
 			tramiteDerivacion.setUsuarioFinNombreCompleto(nombreCompleto);
 
@@ -291,7 +311,7 @@ public class TramiteDerivacionService {
 
 		andQuery.addCriteria(criteriaGlobal);
 
-		List<TramiteDerivacion> tramiteList = mongoTemplate.find(andQuery, TramiteDerivacion.class);
+		List<TramiteDerivacion> tramiteDerivacionList = mongoTemplate.find(andQuery, TramiteDerivacion.class);
 
 		//Por cada usuario origen y fin, obtener la dependencia y cargo
 		RestTemplate restTemplate = new RestTemplate();
@@ -306,23 +326,25 @@ public class TramiteDerivacionService {
 		//Se obtiene datos del tramite
 		String usuarioCreacion = null;
 		String dependenciaEmpresa = null;
-		if(!CollectionUtils.isEmpty(tramiteList)){
-			uriBusqueda = uri + tramiteList.get(0).getTramite().getCreatedByUser();
+		Tramite tramite = null;
+		if(!CollectionUtils.isEmpty(tramiteDerivacionList)){
+			tramite = tramiteDerivacionList.get(0).getTramite();
+			uriBusqueda = uri + tramite.getCreatedByUser();
 			response = restTemplate.exchange(uriBusqueda, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
 			LinkedHashMap<Object, Object> usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
 			usuarioCreacion = ((LinkedHashMap)response.getBody().getData()).get("nombre").toString() + " " + ((LinkedHashMap)response.getBody().getData()).get("apePaterno").toString() + ((((LinkedHashMap)response.getBody().getData()).get("apeMaterno")!=null)?" "+((LinkedHashMap)response.getBody().getData()).get("apeMaterno").toString():"");
 
-			if(tramiteList.get(0).getTramite().getOrigenDocumento().equals("EXTERNO")){
+			if(tramite.getOrigenDocumento().equals("EXTERNO")){
 				LinkedHashMap<String, String> persona = (LinkedHashMap<String, String>) usuario.get("persona");
 				Persona personaDto = mapper.map(persona,Persona.class);
 				dependenciaEmpresa = personaDto.getRazonSocialNombre();
 			}else{
-				dependenciaEmpresa = ((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre").toString();
+				dependenciaEmpresa = tramite.getDependenciaUsuarioCreacion().getNombre();; // ((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre").toString();
 			}
 		}
 
 
-		for(TramiteDerivacion tramiteDerivacion : tramiteList){
+		for(TramiteDerivacion tramiteDerivacion : tramiteDerivacionList){
 			tramiteDerivacion.setUsuarioCreacion(usuarioCreacion);
 			tramiteDerivacion.setDependenciaEmpresa(dependenciaEmpresa);
 
@@ -334,12 +356,19 @@ public class TramiteDerivacionService {
 			LinkedHashMap<String, String> persona = (LinkedHashMap<String, String>) usuario.get("persona");
 			Persona personaDto = mapper.map(persona,Persona.class);
 
+			if(tramite.getOrigenDocumento().equals("EXTERNO")){
+				tramiteDerivacion.setDependenciaNombreUsuarioInicio(personaDto.getRazonSocialNombre());
+			}else{
+				tramiteDerivacion.setDependenciaNombreUsuarioInicio(tramiteDerivacion.getDependenciaUsuarioInicio().getNombre());
+			}
+			/*
 			if(((LinkedHashMap)response.getBody().getData()).get("cargoNombre")!=null)
 				tramiteDerivacion.setCargoNombreUsuarioInicio(((LinkedHashMap)response.getBody().getData()).get("cargoNombre").toString());
 			if(((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre")!=null)
 				tramiteDerivacion.setDependenciaNombreUsuarioInicio(((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre").toString());
 			else
 				tramiteDerivacion.setDependenciaNombreUsuarioInicio(personaDto.getRazonSocialNombre());
+			*/
 
 			nombreCompleto = ((LinkedHashMap)response.getBody().getData()).get("nombre").toString() + " " + ((LinkedHashMap)response.getBody().getData()).get("apePaterno").toString() + ((((LinkedHashMap)response.getBody().getData()).get("apeMaterno")!=null)?" "+((LinkedHashMap)response.getBody().getData()).get("apeMaterno").toString():"");
 			tramiteDerivacion.setUsuarioInicioNombreCompleto(nombreCompleto);
@@ -352,18 +381,25 @@ public class TramiteDerivacionService {
 			persona = (LinkedHashMap<String, String>) usuario.get("persona");
 			personaDto = mapper.map(persona,Persona.class);
 
+			if(tramite.getOrigenDocumento().equals("EXTERNO")){
+				tramiteDerivacion.setDependenciaNombreUsuarioFin(personaDto.getRazonSocialNombre());
+			}else{
+				tramiteDerivacion.setDependenciaNombreUsuarioFin(tramiteDerivacion.getDependenciaUsuarioFin().getNombre());
+			}
+			/*
 			if(((LinkedHashMap)response.getBody().getData()).get("cargoNombre")!=null)
 				tramiteDerivacion.setCargoNombreUsuarioFin(((LinkedHashMap)response.getBody().getData()).get("cargoNombre").toString());
 			if(((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre")!=null)
 				tramiteDerivacion.setDependenciaNombreUsuarioFin(((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre").toString());
 			else
 				tramiteDerivacion.setDependenciaNombreUsuarioFin(personaDto.getRazonSocialNombre());
+			*/
 			nombreCompleto = ((LinkedHashMap)response.getBody().getData()).get("nombre").toString() + " " + ((LinkedHashMap)response.getBody().getData()).get("apePaterno").toString() + ((((LinkedHashMap)response.getBody().getData()).get("apeMaterno")!=null)?" "+((LinkedHashMap)response.getBody().getData()).get("apeMaterno").toString():"");
 			tramiteDerivacion.setUsuarioFinNombreCompleto(nombreCompleto);
 
 		}
 
-		return tramiteList;
+		return tramiteDerivacionList;
 	}
 
 	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
