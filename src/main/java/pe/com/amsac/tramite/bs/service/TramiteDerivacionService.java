@@ -249,11 +249,14 @@ public class TramiteDerivacionService {
 			parameters.remove("usuarioFin");
 		}
 		if(parameters.containsKey("dependenciaIdUsuarioInicio")){
-			listCriteria.add(Criteria.where("dependenciaUsuarioInicio.id").is(parameters.get("dependenciaIdUsuarioInicio")));
+			if(parameters.get("dependenciaIdUsuarioInicio")!=null && !StringUtils.isBlank(parameters.get("dependenciaIdUsuarioInicio").toString()))
+				listCriteria.add(Criteria.where("dependenciaUsuarioInicio.id").is(parameters.get("dependenciaIdUsuarioInicio")));
 			parameters.remove("dependenciaIdUsuarioInicio");
 		}
 		if(parameters.containsKey("dependenciaIdUsuarioFin")){
-			listCriteria.add(Criteria.where("dependenciaUsuarioFin.id").is(parameters.get("dependenciaIdUsuarioFin")));
+			if(parameters.get("dependenciaIdUsuarioFin")!=null && !StringUtils.isBlank(parameters.get("dependenciaIdUsuarioFin").toString()))
+				listCriteria.add(Criteria.where("dependenciaUsuarioFin.id").is(parameters.get("dependenciaIdUsuarioFin")));
+
 			parameters.remove("dependenciaIdUsuarioFin");
 		}
 		if(!listCriteria.isEmpty()) {
@@ -1327,13 +1330,21 @@ public class TramiteDerivacionService {
 			parameters.remove("usuarioFin");
 		}
 		if(parameters.containsKey("dependenciaIdUsuarioInicio")){
-			listCriteria.add(Criteria.where("dependenciaUsuarioInicio.id").is(parameters.get("dependenciaIdUsuarioInicio")));
+			if(parameters.get("dependenciaIdUsuarioInicio")!=null && !StringUtils.isBlank(parameters.get("dependenciaIdUsuarioInicio").toString()))
+				listCriteria.add(Criteria.where("dependenciaUsuarioInicio.id").is(parameters.get("dependenciaIdUsuarioInicio")));
+
 			parameters.remove("dependenciaIdUsuarioInicio");
 		}
 		if(parameters.containsKey("dependenciaIdUsuarioFin")){
-			listCriteria.add(Criteria.where("dependenciaUsuarioFin.id").is(parameters.get("dependenciaIdUsuarioFin")));
+			if(parameters.get("dependenciaIdUsuarioFin")!=null && !StringUtils.isBlank(parameters.get("dependenciaIdUsuarioFin").toString()))
+				listCriteria.add(Criteria.where("dependenciaUsuarioFin.id").is(parameters.get("dependenciaIdUsuarioFin")));
 			parameters.remove("dependenciaIdUsuarioFin");
 		}
+		if(parameters.containsKey("notEstadoFin")){
+			listCriteria.add(Criteria.where("estadoFin").ne(parameters.get("notEstadoFin")));
+			parameters.remove("notEstadoFin");
+		}
+
 		if(!listCriteria.isEmpty()) {
 			andExpression.add(new Criteria().andOperator(listCriteria.toArray(new Criteria[listCriteria.size()])));
 		}

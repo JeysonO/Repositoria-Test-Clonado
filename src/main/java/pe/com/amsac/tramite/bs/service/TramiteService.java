@@ -29,6 +29,7 @@ import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.file.bean.FileStorageService;
 import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
 import pe.com.amsac.tramite.api.request.bean.EventSchedule;
+import pe.com.amsac.tramite.api.request.bean.TramiteDerivacionRequest;
 import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TramiteMigracionBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.*;
@@ -926,6 +927,82 @@ public class TramiteService {
 		dependencia.setId(dependenciaCreacionTramiteId);
 		tramite.setDependenciaUsuarioCreacion(dependencia);
 		tramiteMongoRepository.save(tramite);
+	}
+
+	public Map obtenerIndicadoresDashboardByTokenUsuario(){
+		String usuarioId = securityHelper.obtenerUserIdSession();
+		String dependenciaId = securityHelper.obtenerDependenciaIdUserSession();
+		return obtenerIndicadoresDashboardByUsuarioIdAndDependencia(usuarioId, dependenciaId);
+	}
+
+	public Map obtenerIndicadoresDashboardByUsuarioIdAndDependencia(String usuarioId, String dependenciaId) {
+
+		Map mapaRespuesta = new HashMap();
+		try{
+			//Obtenemos los tramites creados por el usuario
+			int cantidadTramitesGeneradosPorUsuarioYDependencia = cantidadTramitesGeneradosByUsuarioAndDependencia(usuarioId,dependenciaId);
+
+			//Obtener tramites pendientes por usuario y dependencia
+			int cantidadTramitesPendientesPorUsuarioYDependencia = cantidadTramitesPendientesByUsuarioAndDependencia(usuarioId,dependenciaId);
+
+			//Obtener tramites pendientes por usuario y dependencia
+			int cantidadTramitesAtendidosPorUsuarioYDependencia = cantidadTramitesAtendidosByUsuarioAndDependencia(usuarioId,dependenciaId);
+
+			mapaRespuesta.put("cantidadTramitesGeneradosPorUsuarioYDependencia",cantidadTramitesGeneradosPorUsuarioYDependencia);
+			mapaRespuesta.put("cantidadTramitesPendientesPorUsuarioYDependencia",cantidadTramitesPendientesPorUsuarioYDependencia);
+			mapaRespuesta.put("cantidadTramitesAtendidosPorUsuarioYDependencia",cantidadTramitesAtendidosPorUsuarioYDependencia);
+
+		}catch (Exception ex){
+			mapaRespuesta.put("cantidadTramitesGeneradosPorUsuarioYDependencia",0);
+			mapaRespuesta.put("cantidadTramitesPendientesPorUsuarioYDependencia",0);
+			mapaRespuesta.put("cantidadTramitesAtendidosPorUsuarioYDependencia",0);
+			log.error("ERROR",ex);
+		}
+
+		return mapaRespuesta;
+	}
+
+	public int cantidadTramitesGeneradosByUsuarioAndDependencia(String usuarioId, String dependenciaId){
+
+		List<Criteria> andExpression =  new ArrayList<>();
+		Map<String, Object> parameters = new HashMap<>();
+		Query andQuery = new Query();
+		Criteria andCriteria = new Criteria();
+
+		parameters.put("createdByUser",usuarioId);
+		if(!StringUtils.isBlank(dependenciaId)){
+			parameters.put("dependenciaUsuarioCreacion.id",dependenciaId);
+		}
+
+		Criteria expression = new Criteria();
+		parameters.forEach((key, value) -> expression.and(key).is(value));
+		andExpression.add(expression);
+		andQuery.addCriteria(andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()])));
+
+		long cantidadRegistro = mongoTemplate.count(andQuery, Tramite.class);
+
+		return (int)cantidadRegistro;
+	}
+
+	public int cantidadTramitesPendientesByUsuarioAndDependencia(String usuarioId, String dependenciaId) throws Exception {
+
+		TramiteDerivacionRequest tramiteDerivacionRequest = new TramiteDerivacionRequest();
+		tramiteDerivacionRequest.setDependenciaIdUsuarioFin(dependenciaId);
+		tramiteDerivacionRequest.setUsuarioFin(usuarioId);
+		tramiteDerivacionRequest.setEstado("P");
+
+		return tramiteDerivacionService.totalRegistros(tramiteDerivacionRequest);
+	}
+
+	public int cantidadTramitesAtendidosByUsuarioAndDependencia(String usuarioId, String dependenciaId) throws Exception {
+
+		TramiteDerivacionRequest tramiteDerivacionRequest = new TramiteDerivacionRequest();
+		tramiteDerivacionRequest.setDependenciaIdUsuarioFin(dependenciaId);
+		tramiteDerivacionRequest.setUsuarioFin(usuarioId);
+		tramiteDerivacionRequest.setEstado("A");
+		tramiteDerivacionRequest.setNotEstadoFin(EstadoTramiteConstant.RECEPCIONADO);
+
+		return tramiteDerivacionService.totalRegistros(tramiteDerivacionRequest);
 	}
 
 }

@@ -300,5 +300,20 @@ public class TramiteController {
 
 	}
 
+	@GetMapping("/indicadores-dashboard-usuario")
+	public ResponseEntity<CommonResponse> obtenerIndicadoresDashboardByTokenUsuario() throws Exception {
+
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.OK;
+
+		Map<String,Object> mapaDashboardUsuario = tramiteService.obtenerIndicadoresDashboardByTokenUsuario();
+
+		commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(mapaDashboardUsuario).build();
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+
+	}
+
 
 }
