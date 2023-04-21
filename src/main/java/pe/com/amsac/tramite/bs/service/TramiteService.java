@@ -249,6 +249,11 @@ public class TramiteService {
 			//Se setea la forma de recepcion siempre como digital
 			tramite.setFormaRecepcion(formaRecepcionService.findByFormaRecepcion("DIGITAL").get(0));
 		}else{
+			if(tramiteBodyRequest.getOrigen().equals("INTERNO")){
+				tramite.setEntidadExterna(null);
+			}else{
+				tramite.setEntidadInterna(null);
+			}
 			tramite.setDependenciaDestino(null);
 			//Obtenemos el cargo que llega en el header para registrar el tramite
 			String dependenciaIdUserSession = securityHelper.obtenerDependenciaIdUserSession();
