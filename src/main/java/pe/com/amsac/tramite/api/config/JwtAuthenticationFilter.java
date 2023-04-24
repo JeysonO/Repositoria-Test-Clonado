@@ -69,7 +69,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 //Agregamos el cargoId
                 String dependenciaId = request.getHeader("dependenciaId");
+                String cargoId = request.getHeader("cargoId");
                 datosToken.setDependenciaId(dependenciaId);
+                datosToken.setCargoId(cargoId);
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(datosToken, null, null);
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 

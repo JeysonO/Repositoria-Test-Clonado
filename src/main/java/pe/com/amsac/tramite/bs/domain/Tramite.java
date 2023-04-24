@@ -76,6 +76,9 @@ public class Tramite extends BaseAuditableEntity<String> {
 	@DBRef(db = "amsac-seguridad")
 	private Dependencia dependenciaUsuarioCreacion;
 
+	@DBRef(db = "amsac-seguridad")
+	private Cargo cargoUsuarioCreacion;
+
 	@Override
 	public Serializable getEntityId() {
 		return getId();

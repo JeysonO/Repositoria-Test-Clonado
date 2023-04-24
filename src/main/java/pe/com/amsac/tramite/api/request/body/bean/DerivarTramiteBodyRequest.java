@@ -16,6 +16,8 @@ public class DerivarTramiteBodyRequest {
 	private String usuarioFin;
 	@NotNull
 	private String dependenciaIdUsuarioFin;
+	@NotNull
+	private String cargoIdUsuarioFin;
 	private String comentarioFin;
 	private String proveidoAtencion;
 	private String forma; //COPIA, ORIGINAL

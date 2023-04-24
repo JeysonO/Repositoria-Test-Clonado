@@ -29,6 +29,9 @@ public class TramiteDerivacionBodyRequest {
 	private String dependenciaIdUsuarioInicio;
 	private String dependenciaIdUsuarioFin;
 
+	private String cargoIdUsuarioInicio;
+	private String cargoIdUsuarioFin;
+
 	@Mapping("tramite.id")
 	public String getTramiteId(){return tramiteId;}
 
@@ -43,5 +46,11 @@ public class TramiteDerivacionBodyRequest {
 
 	@Mapping("dependenciaUsuarioFin.id")
 	public String getDependenciaIdUsuarioFin(){return dependenciaIdUsuarioFin;}
+
+	@Mapping("cargoUsuarioInicio.id")
+	public String getCargoIdUsuarioInicio(){return cargoIdUsuarioInicio;}
+
+	@Mapping("cargoUsuarioFin.id")
+	public String getCargoIdUsuarioFin(){return cargoIdUsuarioFin;}
 	
 }

@@ -63,6 +63,12 @@ public class TramiteDerivacion extends BaseAuditableEntity<String> {
 	@DBRef
 	private Tramite tramite;
 
+	@DBRef(db = "amsac-seguridad")
+	private Cargo cargoUsuarioInicio;
+
+	@DBRef(db = "amsac-seguridad")
+	private Cargo cargoUsuarioFin;
+
 	@Transient
 	private String dependenciaNombreUsuarioInicio;
 

@@ -246,6 +246,7 @@ public class TramiteService {
 			tramite.setEntidadExterna(null);
 			tramite.setTramitePrioridad(null);
 			tramite.setDependenciaUsuarioCreacion(null);
+			tramite.setCargoUsuarioCreacion(null);
 			//Se setea la forma de recepcion siempre como digital
 			tramite.setFormaRecepcion(formaRecepcionService.findByFormaRecepcion("DIGITAL").get(0));
 		}else{
@@ -255,12 +256,19 @@ public class TramiteService {
 				tramite.setEntidadInterna(null);
 			}
 			tramite.setDependenciaDestino(null);
-			//Obtenemos el cargo que llega en el header para registrar el tramite
+			//Obtenemos la dependencia que llega en el header para registrar el tramite
 			String dependenciaIdUserSession = securityHelper.obtenerDependenciaIdUserSession();
 			if(!StringUtils.isBlank(dependenciaIdUserSession)){
 				Dependencia dependencia = new Dependencia();
 				dependencia.setId(dependenciaIdUserSession);
 				tramite.setDependenciaUsuarioCreacion(dependencia);
+			}
+			//Obtenemos el cargo que llega en el header para registrar el tramite
+			String cargoIdUserSession = securityHelper.obtenerCargoIdUserSession();
+			if(!StringUtils.isBlank(cargoIdUserSession)){
+				Cargo cargo = new Cargo();
+				cargo.setId(cargoIdUserSession);
+				tramite.setCargoUsuarioCreacion(cargo);
 			}
 		}
 		tramiteMongoRepository.save(tramite);
@@ -290,11 +298,16 @@ public class TramiteService {
 		TramiteDerivacionBodyRequest tramiteDerivacionBodyRequest = new TramiteDerivacionBodyRequest();
 		tramiteDerivacionBodyRequest.setSecuencia(1);
 		tramiteDerivacionBodyRequest.setUsuarioInicio(tramite.getCreatedByUser());
-		tramiteDerivacionBodyRequest.setDependenciaIdUsuarioInicio(tramite.getDependenciaUsuarioCreacion().getId());
+		if(tramite.getDependenciaUsuarioCreacion()!=null)
+			tramiteDerivacionBodyRequest.setDependenciaIdUsuarioInicio(tramite.getDependenciaUsuarioCreacion().getId());
+		if(tramite.getCargoUsuarioCreacion()!=null)
+			tramiteDerivacionBodyRequest.setCargoIdUsuarioInicio(tramite.getCargoUsuarioCreacion().getId());
+
 		tramiteDerivacionBodyRequest.setUsuarioFin(((LinkedHashMap)((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("usuario")).get("id").toString());
 
 		UsuarioCargoResponse usuarioCargoResponse = mapper.map(response.getBody().getData(),UsuarioCargoResponse.class);
 		tramiteDerivacionBodyRequest.setDependenciaIdUsuarioFin(usuarioCargoResponse.getCargo().getDependencia().getId());
+		tramiteDerivacionBodyRequest.setCargoIdUsuarioFin(usuarioCargoResponse.getCargo().getId());
 
 		tramiteDerivacionBodyRequest.setEstadoInicio("REGISTRADO");
 		tramiteDerivacionBodyRequest.setFechaInicio(tramite.getCreatedDate());

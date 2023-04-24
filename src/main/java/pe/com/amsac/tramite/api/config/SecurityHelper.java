@@ -36,6 +36,20 @@ public class SecurityHelper {
         return datosToken.getDependenciaId();
     }
 
+    public String obtenerCargoIdUserSession(){
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return null;
+        }
+
+        DatosToken datosToken = (DatosToken)authentication.getPrincipal();
+        //UserDetails usuarioPrincipal = (UserDetails)authentication.getPrincipal();
+        //return Optional.of(datosToken.getDependenciaId()).get();
+        return datosToken.getCargoId();
+    }
+
     public String getTokenCurrentSession(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 

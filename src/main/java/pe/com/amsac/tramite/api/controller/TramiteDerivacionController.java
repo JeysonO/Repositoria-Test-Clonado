@@ -147,6 +147,11 @@ public class TramiteDerivacionController {
 				tramiteDerivacionBodyrequest.setDependenciaIdUsuarioInicio(dependenciaIdUserSession);
 			}
 
+			String cargoIdUserSession = securityHelper.obtenerCargoIdUserSession();
+			if(!StringUtils.isBlank(cargoIdUserSession)){
+				tramiteDerivacionBodyrequest.setCargoIdUsuarioInicio(cargoIdUserSession);
+			}
+
 			TramiteDerivacion tramiteDerivacion = tramiteDerivacionService.registrar(tramiteDerivacionBodyrequest);
 
 			LocalDate localDate = null;

@@ -26,4 +26,6 @@ public class DatosToken {
 
     private String dependenciaId;
 
+    private String cargoId;
+
 }
