@@ -558,7 +558,7 @@ public class TramiteDerivacionService {
 			AtencionTramiteDerivacionBodyRequest atencionTramiteDerivacionBodyRequest = new AtencionTramiteDerivacionBodyRequest();
 			atencionTramiteDerivacionBodyRequest.setId(derivartramiteBodyrequest.getId());
 			atencionTramiteDerivacionBodyRequest.setEstadoFin(EstadoTramiteConstant.ATENDIDO);
-			atencionTramiteDerivacionBodyRequest.setComentarioFin("CONOCIMIENTO ATENDIDO");
+			atencionTramiteDerivacionBodyRequest.setComentarioFin(StringUtils.isBlank(derivartramiteBodyrequest.getComentarioFin())?"CONOCIMIENTO ATENDIDO":derivartramiteBodyrequest.getComentarioFin());
 			derivacionTramiteActual = registrarAtencionTramiteDerivacion(atencionTramiteDerivacionBodyRequest);
 			derivacionTramiteActual.setForma("COPIA");
 			//tramiteService.actualizarEstadoTramite(derivacionTramiteActual.getTramite().getId(),EstadoTramiteConstant.ATENDIDO);
