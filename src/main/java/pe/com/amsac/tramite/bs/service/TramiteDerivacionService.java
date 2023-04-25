@@ -561,19 +561,23 @@ public class TramiteDerivacionService {
 			atencionTramiteDerivacionBodyRequest.setComentarioFin("CONOCIMIENTO ATENDIDO");
 			derivacionTramiteActual = registrarAtencionTramiteDerivacion(atencionTramiteDerivacionBodyRequest);
 			derivacionTramiteActual.setForma("COPIA");
+			//tramiteService.actualizarEstadoTramite(derivacionTramiteActual.getTramite().getId(),EstadoTramiteConstant.ATENDIDO);
 		}else{
 			derivacionTramiteActual = tramiteDerivacionMongoRepository.findById(derivartramiteBodyrequest.getId()).get();
-			ZoneId defaultZoneId = ZoneId.systemDefault();
-			derivacionTramiteActual.setEstadoFin(EstadoTramiteConstant.DERIVADO);
-			derivacionTramiteActual.setFechaFin(new Date());
-			derivacionTramiteActual.setProveidoAtencion(derivartramiteBodyrequest.getProveidoAtencion());
-			derivacionTramiteActual.setComentarioFin(derivartramiteBodyrequest.getComentarioFin());
-			derivacionTramiteActual.setFechaMaximaAtencion(Date.from(derivartramiteBodyrequest.getFechaMaximaAtencion().atStartOfDay(defaultZoneId).toInstant()));
-			derivacionTramiteActual.setEstado("A");
-			tramiteDerivacionMongoRepository.save(derivacionTramiteActual);
+			//Si el estado ACtual ya es atendido, entonces ya no actualizo nada
+			if(derivacionTramiteActual.getEstadoFin() == null || (derivacionTramiteActual.getEstadoFin()!=null && !derivacionTramiteActual.getEstadoFin().equals(EstadoTramiteConstant.ATENDIDO))){
+				ZoneId defaultZoneId = ZoneId.systemDefault();
+				derivacionTramiteActual.setEstadoFin(EstadoTramiteConstant.DERIVADO);
+				derivacionTramiteActual.setFechaFin(new Date());
+				//derivacionTramiteActual.setProveidoAtencion(derivartramiteBodyrequest.getProveidoAtencion());
+				derivacionTramiteActual.setComentarioFin(derivartramiteBodyrequest.getComentarioFin());
+				derivacionTramiteActual.setFechaMaximaAtencion(Date.from(derivartramiteBodyrequest.getFechaMaximaAtencion().atStartOfDay(defaultZoneId).toInstant()));
+				derivacionTramiteActual.setEstado("A");
+				tramiteDerivacionMongoRepository.save(derivacionTramiteActual);
 
-			//Actualizamos el estado a nivel de tramite
-			tramiteService.actualizarEstadoTramite(derivacionTramiteActual.getTramite().getId(),EstadoTramiteConstant.DERIVADO);
+				//Actualizamos el estado a nivel de tramite
+				tramiteService.actualizarEstadoTramite(derivacionTramiteActual.getTramite().getId(),EstadoTramiteConstant.DERIVADO);
+			}
 		}
 
 		//Asignar valores manualmente segun condiciones
@@ -606,6 +610,8 @@ public class TramiteDerivacionService {
 			derivacionTramiteBodyRequest.setFechaMaximaAtencion(fechaMaxima);
 		//TODO: PENDIENTE DATO COMENTARIO INICIO
 		derivacionTramiteBodyRequest.setComentarioInicio(derivacionTramiteActual.getComentarioFin());
+		derivacionTramiteBodyRequest.setProveidoAtencion(derivartramiteBodyrequest.getProveidoAtencion());
+
 		derivacionTramiteBodyRequest.setId(null);
 		derivacionTramiteBodyRequest.setEstadoFin(null);
 		derivacionTramiteBodyRequest.setFechaFin(null);
