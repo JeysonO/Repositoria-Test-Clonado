@@ -630,48 +630,53 @@ public class TramiteDerivacionService {
 		TramiteDerivacion recepcionTramiteActual = tramiteDerivacionMongoRepository.findById(id).get();
 		recepcionTramiteActual.setEstadoFin(EstadoTramiteConstant.RECEPCIONADO);
 		recepcionTramiteActual.setFechaFin(new Date());
-		recepcionTramiteActual.setComentarioFin("Se recepciona tramite para verificacion");
+		recepcionTramiteActual.setComentarioFin("Se recepciona tramite");
 		recepcionTramiteActual.setEstado("A");
 		tramiteDerivacionMongoRepository.save(recepcionTramiteActual);
 
-		int sec = obtenerSecuencia(recepcionTramiteActual.getTramite().getId());
+		TramiteDerivacion nuevoRecepcionTramite = recepcionTramiteActual;
 
-		LocalDate fechaMaxima = null;
-		if(recepcionTramiteActual.getFechaMaximaAtencion()!=null){
-			fechaMaxima = recepcionTramiteActual.getFechaMaximaAtencion().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-			recepcionTramiteActual.setFechaMaximaAtencion(null);
+		//Solo si es original puedo hacer alguna otra accion.
+		if(recepcionTramiteActual.getForma().equals("ORIGINAL")){
+			int sec = obtenerSecuencia(recepcionTramiteActual.getTramite().getId());
+
+			LocalDate fechaMaxima = null;
+			if(recepcionTramiteActual.getFechaMaximaAtencion()!=null){
+				fechaMaxima = recepcionTramiteActual.getFechaMaximaAtencion().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+				recepcionTramiteActual.setFechaMaximaAtencion(null);
+			}
+
+			TramiteDerivacionBodyRequest recepcionTramiteBodyRequest = mapper.map(recepcionTramiteActual, TramiteDerivacionBodyRequest.class);
+			recepcionTramiteBodyRequest.setSecuencia(sec);
+
+			//Usuario Inicio
+			recepcionTramiteBodyRequest.setUsuarioInicio(recepcionTramiteActual.getUsuarioFin().getId());
+			if(recepcionTramiteActual.getDependenciaUsuarioInicio()!=null)
+				recepcionTramiteBodyRequest.setDependenciaIdUsuarioInicio(recepcionTramiteActual.getDependenciaUsuarioInicio().getId());
+			if(recepcionTramiteActual.getCargoUsuarioInicio()!=null)
+				recepcionTramiteBodyRequest.setCargoIdUsuarioInicio(recepcionTramiteActual.getCargoUsuarioInicio().getId());
+
+			//Usuario Fin
+			recepcionTramiteBodyRequest.setUsuarioFin(recepcionTramiteActual.getUsuarioFin().getId());
+			if(recepcionTramiteActual.getDependenciaUsuarioFin()!=null)
+				recepcionTramiteBodyRequest.setDependenciaIdUsuarioFin(recepcionTramiteActual.getDependenciaUsuarioFin().getId());
+			if(recepcionTramiteActual.getCargoUsuarioFin()!=null)
+				recepcionTramiteBodyRequest.setCargoIdUsuarioFin(recepcionTramiteActual.getCargoUsuarioFin().getId());
+
+			recepcionTramiteBodyRequest.setEstadoInicio(recepcionTramiteActual.getEstadoFin());
+			recepcionTramiteBodyRequest.setFechaInicio(new Date());
+			recepcionTramiteBodyRequest.setComentarioInicio(recepcionTramiteActual.getComentarioFin());
+			if(fechaMaxima!=null)
+				recepcionTramiteBodyRequest.setFechaMaximaAtencion(fechaMaxima);
+			recepcionTramiteBodyRequest.setId(null);
+			recepcionTramiteBodyRequest.setEstadoFin(null);
+			recepcionTramiteBodyRequest.setFechaFin(null);
+			recepcionTramiteBodyRequest.setComentarioFin(null);
+
+			nuevoRecepcionTramite = registrarTramiteDerivacion(recepcionTramiteBodyRequest);
+
+			tramiteService.actualizarEstadoTramite(recepcionTramiteActual.getTramite().getId(),recepcionTramiteActual.getEstadoFin());
 		}
-
-		TramiteDerivacionBodyRequest recepcionTramiteBodyRequest = mapper.map(recepcionTramiteActual, TramiteDerivacionBodyRequest.class);
-		recepcionTramiteBodyRequest.setSecuencia(sec);
-
-		//Usuario Inicio
-		recepcionTramiteBodyRequest.setUsuarioInicio(recepcionTramiteActual.getUsuarioFin().getId());
-		if(recepcionTramiteActual.getDependenciaUsuarioInicio()!=null)
-			recepcionTramiteBodyRequest.setDependenciaIdUsuarioInicio(recepcionTramiteActual.getDependenciaUsuarioInicio().getId());
-		if(recepcionTramiteActual.getCargoUsuarioInicio()!=null)
-			recepcionTramiteBodyRequest.setCargoIdUsuarioInicio(recepcionTramiteActual.getCargoUsuarioInicio().getId());
-
-		//Usuario Fin
-		recepcionTramiteBodyRequest.setUsuarioFin(recepcionTramiteActual.getUsuarioFin().getId());
-		if(recepcionTramiteActual.getDependenciaUsuarioFin()!=null)
-			recepcionTramiteBodyRequest.setDependenciaIdUsuarioFin(recepcionTramiteActual.getDependenciaUsuarioFin().getId());
-		if(recepcionTramiteActual.getCargoUsuarioFin()!=null)
-			recepcionTramiteBodyRequest.setCargoIdUsuarioFin(recepcionTramiteActual.getCargoUsuarioFin().getId());
-
-		recepcionTramiteBodyRequest.setEstadoInicio(recepcionTramiteActual.getEstadoFin());
-		recepcionTramiteBodyRequest.setFechaInicio(new Date());
-		recepcionTramiteBodyRequest.setComentarioInicio(recepcionTramiteActual.getComentarioFin());
-		if(fechaMaxima!=null)
-			recepcionTramiteBodyRequest.setFechaMaximaAtencion(fechaMaxima);
-		recepcionTramiteBodyRequest.setId(null);
-		recepcionTramiteBodyRequest.setEstadoFin(null);
-		recepcionTramiteBodyRequest.setFechaFin(null);
-		recepcionTramiteBodyRequest.setComentarioFin(null);
-
-		TramiteDerivacion nuevoRecepcionTramite = registrarTramiteDerivacion(recepcionTramiteBodyRequest);
-
-		tramiteService.actualizarEstadoTramite(recepcionTramiteActual.getTramite().getId(),recepcionTramiteActual.getEstadoFin());
 
 		return nuevoRecepcionTramite;
 	}
