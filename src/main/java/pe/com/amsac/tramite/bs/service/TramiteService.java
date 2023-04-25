@@ -310,7 +310,7 @@ public class TramiteService {
 		//tramiteDerivacionBodyRequest.setDependenciaIdUsuarioFin(usuarioCargoResponse.getCargo().getDependencia().getId());
 		//tramiteDerivacionBodyRequest.setCargoIdUsuarioFin(usuarioCargoResponse.getCargo().getId());
 
-		CargoResponse cargoResponse = mapper.map(((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("cargo"),CargoResponse.class);
+		CargoDTOResponse cargoResponse = mapper.map(((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("cargo"),CargoDTOResponse.class);
 
 		tramiteDerivacionBodyRequest.setDependenciaIdUsuarioFin(cargoResponse.getDependencia().getId());
 		tramiteDerivacionBodyRequest.setCargoIdUsuarioFin(cargoResponse.getId());
