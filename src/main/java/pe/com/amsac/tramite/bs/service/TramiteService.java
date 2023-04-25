@@ -306,10 +306,14 @@ public class TramiteService {
 		tramiteDerivacionBodyRequest.setUsuarioFin(((LinkedHashMap)((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("usuario")).get("id").toString());
 
 		//UsuarioCargoResponse usuarioCargoResponse = mapper.map(response.getBody().getData(),UsuarioCargoResponse.class);
-		UsuarioCargoResponse usuarioCargoResponse = mapper.map(((List)response.getBody().getData()).get(0),UsuarioCargoResponse.class);
-		tramiteDerivacionBodyRequest.setDependenciaIdUsuarioFin(usuarioCargoResponse.getCargo().getDependencia().getId());
-		tramiteDerivacionBodyRequest.setCargoIdUsuarioFin(usuarioCargoResponse.getCargo().getId());
+		//UsuarioCargoResponse usuarioCargoResponse = mapper.map(((List)response.getBody().getData()).get(0),UsuarioCargoResponse.class);
+		//tramiteDerivacionBodyRequest.setDependenciaIdUsuarioFin(usuarioCargoResponse.getCargo().getDependencia().getId());
+		//tramiteDerivacionBodyRequest.setCargoIdUsuarioFin(usuarioCargoResponse.getCargo().getId());
 
+		CargoResponse cargoResponse = mapper.map(((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("cargo"),CargoResponse.class);
+
+		tramiteDerivacionBodyRequest.setDependenciaIdUsuarioFin(cargoResponse.getDependencia().getId());
+		tramiteDerivacionBodyRequest.setCargoIdUsuarioFin(cargoResponse.getId());
 		tramiteDerivacionBodyRequest.setEstadoInicio("REGISTRADO");
 		tramiteDerivacionBodyRequest.setFechaInicio(tramite.getCreatedDate());
 		tramiteDerivacionBodyRequest.setTramiteId(tramite.getId());
