@@ -538,6 +538,7 @@ public class TramiteDerivacionService {
 		subsanarTramiteBodyRequest.setEstadoFin(null);
 		subsanarTramiteBodyRequest.setFechaFin(null);
 		subsanarTramiteBodyRequest.setComentarioFin(null);
+		subsanarTramiteBodyRequest.setTramiteId(subsanarTramiteActual.getTramite().getId());
 
 		TramiteDerivacion nuevoDerivacionTramite = registrarTramiteDerivacion(subsanarTramiteBodyRequest);
 
