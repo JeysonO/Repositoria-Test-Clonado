@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
+import pe.com.amsac.tramite.api.request.bean.UsuarioFirmaRequest;
 import pe.com.amsac.tramite.api.request.body.bean.UsuarioFirmaBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.api.response.bean.Meta;
@@ -19,7 +20,9 @@ import pe.com.amsac.tramite.bs.service.UsuarioFirmaService;
 
 import javax.validation.Valid;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 //import pe.com.amsac.security.api.response.bean.UsuarioCreateResponse;
 
 @Slf4j
@@ -85,7 +88,7 @@ public class UsuarioFirmaController { //extends CustomAPIController<UsuarioRespo
 	}
 
 	@GetMapping
-	public ResponseEntity<CommonResponse> obtenerUsuarioFirmaByEstado() throws Exception {
+	public ResponseEntity<CommonResponse> obtenerUsuarioFirma(@Valid UsuarioFirmaRequest usuarioFirmaRequest ) throws Exception {
 
 		log.info("obtenerUsuarioFirmaByEstado");
 
@@ -94,7 +97,7 @@ public class UsuarioFirmaController { //extends CustomAPIController<UsuarioRespo
 		HttpStatus httpStatus = HttpStatus.OK;
 
 		try{
-			List<UsuarioFirma> usuarioFirmaList = usuarioFirmaService.obtenerUsuarioFirma();
+			List<UsuarioFirma> usuarioFirmaList = usuarioFirmaService.obtenerUsuarioFirma(usuarioFirmaRequest);
 			List<UsuarioFirmaCreateResponse> usuarioFirmaResponseList = new ArrayList<>();
 
 			if(!CollectionUtils.isEmpty(usuarioFirmaList)){
@@ -156,6 +159,32 @@ public class UsuarioFirmaController { //extends CustomAPIController<UsuarioRespo
 		}catch(ServiceException se){
 			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR,se.getMensajes())).build();
 			//httpStatus = HttpStatus.CONFLICT;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse,httpStatus);
+
+	}
+
+	@GetMapping("/record-count")
+	public ResponseEntity<CommonResponse> recordCountObtenerUsuarioFirma(@Valid UsuarioFirmaRequest usuarioFirmaRequest ) throws Exception {
+
+		log.info("recordCountObtenerUsuarioFirma");
+
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.OK;
+
+		try{
+			int cantidadRegistros = usuarioFirmaService.totalRegistros(usuarioFirmaRequest);
+
+			Map<String, Object> param = new HashMap<>();
+			param.put("cantidadRegistros", cantidadRegistros);
+
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(param).build();
+
+		}catch(ServiceException se){
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR,se.getMensajes())).build();
+			httpStatus = HttpStatus.CONFLICT;
 		}
 
 		return new ResponseEntity<CommonResponse>(commonResponse,httpStatus);
