@@ -22,13 +22,13 @@ import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.request.bean.UsuarioFirmaRequest;
 import pe.com.amsac.tramite.api.request.body.bean.UsuarioFirmaBodyRequest;
-import pe.com.amsac.tramite.api.response.bean.CommonResponse;
-import pe.com.amsac.tramite.api.response.bean.Mensaje;
-import pe.com.amsac.tramite.api.response.bean.UsuarioResponse;
+import pe.com.amsac.tramite.api.response.bean.*;
 import pe.com.amsac.tramite.bs.domain.*;
 import pe.com.amsac.tramite.bs.repository.UsuarioFirmaMongoRepository;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 @Service
@@ -83,13 +83,12 @@ public class UsuarioFirmaService {
 	public List<UsuarioFirma> obtenerUsuarioFirma(UsuarioFirmaRequest usuarioFirmaRequest) throws Exception {
 
 		Query andQuery = new Query();
-		List<Criteria> andExpression =  new ArrayList<>();
-		List<Criteria> listOrCriteria =  new ArrayList<>();
 		List<Criteria> orExpression =  new ArrayList<>();
 		Criteria orCriteria = new Criteria();
 		Criteria criteriaOr = null;
 		Criteria criteriaGlobal = new Criteria();
 		Criteria andCriteria = new Criteria();
+		List<UsuarioFirma> usuarioFirmaList = new ArrayList<>();
 
 		Criteria expression = new Criteria();
 		expression.and("estado").is("A");
@@ -102,13 +101,19 @@ public class UsuarioFirmaService {
 					expressionTMP.and("usuario.id").is(usuarioId);
 					orExpression.add(expressionTMP);
 				}
+				criteriaOr = orCriteria.orOperator(orExpression.toArray(new Criteria[orExpression.size()]));
+			}else{
+				return usuarioFirmaList;
 			}
-			criteriaOr = orCriteria.orOperator(orExpression.toArray(new Criteria[orExpression.size()]));
+
 		}
 
 		Criteria criteriaAnd = andCriteria.andOperator(expression);
 
-		criteriaGlobal = criteriaGlobal.andOperator(criteriaAnd,criteriaOr);
+		if(criteriaOr!=null)
+			criteriaGlobal = criteriaGlobal.andOperator(criteriaAnd,criteriaOr);
+		else
+			criteriaGlobal = criteriaGlobal.andOperator(criteriaAnd);
 		andQuery.addCriteria(criteriaGlobal);
 
 		if(usuarioFirmaRequest.getPageNumber()>=0 && usuarioFirmaRequest.getPageSize()>0){
@@ -116,7 +121,7 @@ public class UsuarioFirmaService {
 			andQuery.with(pageable);
 		}
 
-		List<UsuarioFirma> usuarioFirmaList = mongoTemplate.find(andQuery, UsuarioFirma.class);
+		usuarioFirmaList = mongoTemplate.find(andQuery, UsuarioFirma.class);
 
 		return usuarioFirmaList; //usuarioFirmaMongoRepository.findByEstado("A");
 
@@ -172,9 +177,10 @@ public class UsuarioFirmaService {
 		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
 		HttpEntity entity = new HttpEntity<>(null, headers);
 		ResponseEntity<CommonResponse> response = restTemplate.exchange(uri, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
-		List<UsuarioResponse> usuarioResponseList = mapper.map(response.getBody().getData(),List.class);
-		if(!CollectionUtils.isEmpty(usuarioResponseList)){
-			usuarioResponseList.stream().forEach(x -> usuarioIdList.add(x.getId()));
+		//List<UsuarioResponse> usuarioResponseList = new ArrayList<>();//mapper.map((List<HashMap<Object, Object>>)response.getBody().getData(),List.class);
+		List listaObject = (ArrayList)response.getBody().getData();
+		if(!CollectionUtils.isEmpty(listaObject)){
+			listaObject.stream().forEach(x -> usuarioIdList.add(mapper.map((LinkedHashMap)x, UsuarioDTOResponse.class).getId()));
 		}
 
 		return usuarioIdList;
