@@ -104,7 +104,7 @@ public class TramiteDerivacionService {
 			LinkedHashMap<String, String> persona = (LinkedHashMap<String, String>) usuario.get("persona");
 			Persona personaDto = mapper.map(persona,Persona.class);
 
-			if(tramite.getOrigenDocumento().equals("EXTERNO")){
+			if(usuario.get("tipoUsuario").equals("EXTERNO")){//tramite.getOrigenDocumento().equals("EXTERNO")){
 				tramiteDerivacion.setDependenciaNombreUsuarioInicio(personaDto.getRazonSocialNombre());
 			}else{
 				tramiteDerivacion.setDependenciaNombreUsuarioInicio(tramiteDerivacion.getDependenciaUsuarioInicio().getNombre());
@@ -129,7 +129,7 @@ public class TramiteDerivacionService {
 			persona = (LinkedHashMap<String, String>) usuario.get("persona");
 			personaDto = mapper.map(persona,Persona.class);
 
-			if(tramite.getOrigenDocumento().equals("EXTERNO")){
+			if(usuario.get("tipoUsuario").equals("EXTERNO")){//tramite.getOrigenDocumento().equals("EXTERNO")){
 				tramiteDerivacion.setDependenciaNombreUsuarioFin(personaDto.getRazonSocialNombre());
 			}else{
 				tramiteDerivacion.setDependenciaNombreUsuarioFin(tramiteDerivacion.getDependenciaUsuarioFin().getNombre());
@@ -334,7 +334,7 @@ public class TramiteDerivacionService {
 			LinkedHashMap<Object, Object> usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
 			usuarioCreacion = ((LinkedHashMap)response.getBody().getData()).get("nombre").toString() + " " + ((LinkedHashMap)response.getBody().getData()).get("apePaterno").toString() + ((((LinkedHashMap)response.getBody().getData()).get("apeMaterno")!=null)?" "+((LinkedHashMap)response.getBody().getData()).get("apeMaterno").toString():"");
 
-			if(tramite.getOrigenDocumento().equals("EXTERNO")){
+			if(usuario.get("tipoUsuario").equals("EXTERNO")){//tramite.getOrigenDocumento().equals("EXTERNO")){
 				LinkedHashMap<String, String> persona = (LinkedHashMap<String, String>) usuario.get("persona");
 				Persona personaDto = mapper.map(persona,Persona.class);
 				dependenciaEmpresa = personaDto.getRazonSocialNombre();
@@ -356,7 +356,7 @@ public class TramiteDerivacionService {
 			LinkedHashMap<String, String> persona = (LinkedHashMap<String, String>) usuario.get("persona");
 			Persona personaDto = mapper.map(persona,Persona.class);
 
-			if(tramite.getOrigenDocumento().equals("EXTERNO")){
+			if(usuario.get("tipoUsuario").equals("EXTERNO")){//tramite.getOrigenDocumento().equals("EXTERNO")){
 				tramiteDerivacion.setDependenciaNombreUsuarioInicio(personaDto.getRazonSocialNombre());
 			}else{
 				tramiteDerivacion.setDependenciaNombreUsuarioInicio(tramiteDerivacion.getDependenciaUsuarioInicio().getNombre());
@@ -381,7 +381,7 @@ public class TramiteDerivacionService {
 			persona = (LinkedHashMap<String, String>) usuario.get("persona");
 			personaDto = mapper.map(persona,Persona.class);
 
-			if(tramite.getOrigenDocumento().equals("EXTERNO")){
+			if(usuario.get("tipoUsuario").equals("EXTERNO")){// tramite.getOrigenDocumento().equals("EXTERNO")){
 				tramiteDerivacion.setDependenciaNombreUsuarioFin(personaDto.getRazonSocialNombre());
 			}else{
 				tramiteDerivacion.setDependenciaNombreUsuarioFin(tramiteDerivacion.getDependenciaUsuarioFin().getNombre());
