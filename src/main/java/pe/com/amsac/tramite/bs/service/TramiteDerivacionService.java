@@ -650,6 +650,7 @@ public class TramiteDerivacionService {
 			TramiteDerivacionBodyRequest recepcionTramiteBodyRequest = mapper.map(recepcionTramiteActual, TramiteDerivacionBodyRequest.class);
 			recepcionTramiteBodyRequest.setSecuencia(sec);
 
+			/*
 			//Usuario Inicio
 			recepcionTramiteBodyRequest.setUsuarioInicio(recepcionTramiteActual.getUsuarioFin().getId());
 			if(recepcionTramiteActual.getDependenciaUsuarioInicio()!=null)
@@ -663,6 +664,17 @@ public class TramiteDerivacionService {
 				recepcionTramiteBodyRequest.setDependenciaIdUsuarioFin(recepcionTramiteActual.getDependenciaUsuarioFin().getId());
 			if(recepcionTramiteActual.getCargoUsuarioFin()!=null)
 				recepcionTramiteBodyRequest.setCargoIdUsuarioFin(recepcionTramiteActual.getCargoUsuarioFin().getId());
+			*/
+			recepcionTramiteBodyRequest.setUsuarioInicio(recepcionTramiteActual.getUsuarioFin().getId());
+			recepcionTramiteBodyRequest.setUsuarioFin(recepcionTramiteActual.getUsuarioFin().getId());
+			if(recepcionTramiteActual.getDependenciaUsuarioFin()!=null){
+				recepcionTramiteBodyRequest.setDependenciaIdUsuarioInicio(recepcionTramiteActual.getDependenciaUsuarioFin().getId());
+				recepcionTramiteBodyRequest.setDependenciaIdUsuarioFin(recepcionTramiteActual.getDependenciaUsuarioFin().getId());
+			}
+			if(recepcionTramiteActual.getCargoUsuarioFin()!=null){
+				recepcionTramiteBodyRequest.setCargoIdUsuarioInicio(recepcionTramiteActual.getCargoUsuarioFin().getId());
+				recepcionTramiteBodyRequest.setCargoIdUsuarioFin(recepcionTramiteActual.getCargoUsuarioFin().getId());
+			}
 
 			recepcionTramiteBodyRequest.setEstadoInicio(recepcionTramiteActual.getEstadoFin());
 			recepcionTramiteBodyRequest.setFechaInicio(new Date());
