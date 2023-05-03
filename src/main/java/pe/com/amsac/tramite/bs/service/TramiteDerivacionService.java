@@ -37,6 +37,8 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.Collectors;
+
 import static java.time.temporal.ChronoUnit.DAYS;
 
 @Service
@@ -278,6 +280,10 @@ public class TramiteDerivacionService {
 				listCriteria.add(Criteria.where("dependenciaUsuarioFin.id").is(parameters.get("dependenciaIdUsuarioFin")));
 
 			parameters.remove("dependenciaIdUsuarioFin");
+		}
+		if(parameters.containsKey("estadoFin") && parameters.get("estadoFin").toString().equals("PENDIENTE")){
+			listCriteria.add(Criteria.where("estado").is("P"));
+			parameters.remove("estadoFin");
 		}
 		if(!listCriteria.isEmpty()) {
 			andExpression.add(new Criteria().andOperator(listCriteria.toArray(new Criteria[listCriteria.size()])));
@@ -1468,6 +1474,10 @@ public class TramiteDerivacionService {
 			listCriteria.add(Criteria.where("estadoFin").ne(parameters.get("notEstadoFin")));
 			parameters.remove("notEstadoFin");
 		}
+		if(parameters.containsKey("estadoFin") && parameters.get("estadoFin").toString().equals("PENDIENTE")){
+			listCriteria.add(Criteria.where("estado").is("P"));
+			parameters.remove("estadoFin");
+		}
 
 		if(!listCriteria.isEmpty()) {
 			andExpression.add(new Criteria().andOperator(listCriteria.toArray(new Criteria[listCriteria.size()])));
@@ -1529,6 +1539,235 @@ public class TramiteDerivacionService {
 		}
 
 		return idTramites;
+	}
+
+
+	public Map buscarTramiteDerivacionParamsDashboard(TramiteDerivacionRequest tramiteDerivacionRequest) throws Exception {
+		Query andQuery = new Query();
+		Criteria andCriteria = new Criteria();
+		Criteria orCriteria = new Criteria();
+		Criteria criteriaOr = null;
+		Criteria criteriaGlobal = new Criteria();
+		List<Criteria> andExpression =  new ArrayList<>();
+		List<Criteria> orExpression =  new ArrayList<>();
+		Map<String, Object> parameters = mapper.map(tramiteDerivacionRequest,Map.class);
+		parameters.values().removeIf(Objects::isNull);
+		if(parameters.get("numeroTramite").equals(0)){
+			parameters.remove("numeroTramite");
+		}
+		List<Criteria> listCriteria =  new ArrayList<>();
+		List<Criteria> listOrCriteria =  new ArrayList<>();
+
+		List<String> tramiteIds = obtenerTramitesId(tramiteDerivacionRequest);
+		if(!CollectionUtils.isEmpty(tramiteIds)){
+			listOrCriteria.add(Criteria.where("tramite.id").in(tramiteIds.toArray()));
+			parameters.remove("tramiteId");
+			parameters.remove("numeroTramite");
+			parameters.remove("asunto");
+
+			for (String tramiteId : tramiteIds) {
+				Criteria expression = new Criteria();
+				expression.and("tramite.id").is(tramiteId);
+				orExpression.add(expression);
+			}
+			//orQuery.addCriteria(orCriteria.orOperator(orExpression.toArray(new Criteria[orExpression.size()])));
+		}
+
+		if(parameters.containsKey("fechaDerivacionDesde") && parameters.containsKey("fechaDerivacionHasta")){
+			listCriteria.add(Criteria.where("fechaInicio").gte(parameters.get("fechaDerivacionDesde")).lte(parameters.get("fechaDerivacionHasta")));
+			parameters.remove("fechaDerivacionDesde");
+		}
+		if(parameters.containsKey("usuarioInicio")){
+			listCriteria.add(Criteria.where("usuarioInicio.id").is(parameters.get("usuarioInicio")));
+			parameters.remove("fechaDerivacionDesde");
+		}
+		if(parameters.containsKey("usuarioFin")){
+			listCriteria.add(Criteria.where("usuarioFin.id").is(parameters.get("usuarioFin")));
+			parameters.remove("usuarioFin");
+		}
+		if(parameters.containsKey("dependenciaIdUsuarioInicio")){
+			if(parameters.get("dependenciaIdUsuarioInicio")!=null && !StringUtils.isBlank(parameters.get("dependenciaIdUsuarioInicio").toString()))
+				listCriteria.add(Criteria.where("dependenciaUsuarioInicio.id").is(parameters.get("dependenciaIdUsuarioInicio")));
+			parameters.remove("dependenciaIdUsuarioInicio");
+		}
+		if(parameters.containsKey("dependenciaIdUsuarioFin")){
+			if(parameters.get("dependenciaIdUsuarioFin")!=null && !StringUtils.isBlank(parameters.get("dependenciaIdUsuarioFin").toString()))
+				listCriteria.add(Criteria.where("dependenciaUsuarioFin.id").is(parameters.get("dependenciaIdUsuarioFin")));
+
+			parameters.remove("dependenciaIdUsuarioFin");
+		}
+		if(parameters.containsKey("estadoFin") && parameters.get("estadoFin").toString().equals("PENDIENTE")){
+			listCriteria.add(Criteria.where("estado").is("P"));
+			parameters.remove("estadoFin");
+		}
+
+		//listCriteria.add(Criteria.where("estadoFin").ne("RECEPCIONADO"));
+
+		if(!listCriteria.isEmpty()) {
+			andExpression.add(new Criteria().andOperator(listCriteria.toArray(new Criteria[listCriteria.size()])));
+		}
+
+		//Agregamos la paginacion
+		/*
+		if(tramiteDerivacionRequest.getPageNumber()>=0 && tramiteDerivacionRequest.getPageSize()>0){
+			Pageable pageable = PageRequest.of(tramiteDerivacionRequest.getPageNumber(), tramiteDerivacionRequest.getPageSize());
+			andQuery.with(pageable);
+		}
+		*/
+
+		//Retiramos las keys de paginacion
+		parameters.remove("pageNumber");
+		parameters.remove("pageSize");
+
+		Criteria expression = new Criteria();
+		parameters.forEach((key, value) -> expression.and(key).is(value));
+		andExpression.add(expression);
+
+		//andQuery.addCriteria(andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()])));
+
+		if(!CollectionUtils.isEmpty(listOrCriteria))
+			criteriaOr = orCriteria.orOperator(orExpression.toArray(new Criteria[orExpression.size()]));
+
+		Criteria criteriaAnd = andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()]));
+
+		if(criteriaOr!=null)
+			criteriaGlobal = criteriaGlobal.andOperator(criteriaAnd,criteriaOr);
+		else
+			criteriaGlobal = criteriaGlobal.andOperator(criteriaAnd);
+
+		andQuery.addCriteria(criteriaGlobal);
+
+		List<TramiteDerivacion> tramiteDerivacionList = mongoTemplate.find(andQuery, TramiteDerivacion.class);
+
+		//Cargamos la lista de usuario
+		LinkedHashMap<String,Integer> listaUsuarios = new LinkedHashMap();
+		LinkedHashMap<String,Integer> listaDependencias = new LinkedHashMap();
+
+		if(!CollectionUtils.isEmpty(tramiteDerivacionList)){
+			String nombreUsuario = null;
+			String nombreDependencia = null;
+			for(TramiteDerivacion tramiteDerivacion : tramiteDerivacionList){
+				nombreUsuario = tramiteDerivacion.getUsuarioFin().getNombreCompleto();
+				nombreDependencia = tramiteDerivacion.getDependenciaUsuarioFin().getNombre();
+				//Usuarios
+				if(!listaUsuarios.containsKey(nombreUsuario))
+					listaUsuarios.put(nombreUsuario, 1);
+				else
+					listaUsuarios.put(nombreUsuario, listaUsuarios.get(nombreUsuario)+1);
+
+				//Dependencias
+				if(!listaDependencias.containsKey(nombreDependencia))
+					listaDependencias.put(nombreDependencia, 1);
+				else
+					listaDependencias.put(nombreDependencia, listaDependencias.get(nombreDependencia)+1);
+
+				/*
+				//Usuarios
+				if(!listaUsuarios.containsKey(tramiteDerivacion.getUsuarioFin().getId()))
+					listaUsuarios.put(tramiteDerivacion.getUsuarioFin().getId(), 0);
+				else
+					listaUsuarios.put(tramiteDerivacion.getUsuarioFin().getId(), listaUsuarios.get(tramiteDerivacion.getUsuarioFin().getId())+1);
+
+				//Dependencias
+				if(!listaDependencias.containsKey(tramiteDerivacion.getDependenciaUsuarioFin().getId()))
+					listaDependencias.put(tramiteDerivacion.getDependenciaUsuarioFin().getId(), 0);
+				else
+					listaDependencias.put(tramiteDerivacion.getDependenciaUsuarioFin().getId(), listaDependencias.get(tramiteDerivacion.getDependenciaUsuarioFin().getId())+1);
+				*/
+			}
+		}
+
+		List listaUsuarioNombre = new LinkedList();
+		List listaUsuarioCantidad = new LinkedList();
+		List listaDependenciaNombre = new LinkedList();
+		List listaDependenciaCantidad = new LinkedList();
+
+		listaUsuarioNombre = listaUsuarios.keySet().stream().collect(Collectors.toList());
+		listaUsuarioCantidad = Arrays.asList(listaUsuarios.values().toArray());
+		listaDependenciaNombre = listaDependencias.keySet().stream().collect(Collectors.toList());
+		listaDependenciaCantidad = Arrays.asList(listaDependencias.values().toArray());
+
+		Map<String, Object> mapaResult = new HashMap<>();
+		mapaResult.put("listaUsuarioNombre", listaUsuarioNombre);
+		mapaResult.put("listaUsuarioCantidad", listaUsuarioCantidad);
+		mapaResult.put("listaDependenciaNombre", listaDependenciaNombre);
+		mapaResult.put("listaDependenciaCantidad", listaDependenciaCantidad);
+		/*
+		//Por cada usuario origen y fin, obtener la dependencia y cargo
+		RestTemplate restTemplate = new RestTemplate();
+		String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/";
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
+		HttpEntity entity = new HttpEntity<>(null, headers);
+		ResponseEntity<CommonResponse> response = null;
+		String uriBusqueda;
+		String nombreCompleto;
+
+		//Se obtiene datos del tramite
+		String usuarioCreacion = null;
+		String dependenciaEmpresa = null;
+		Tramite tramite = null;
+		if(!CollectionUtils.isEmpty(tramiteDerivacionList)){
+			tramite = tramiteDerivacionList.get(0).getTramite();
+			uriBusqueda = uri + tramite.getCreatedByUser();
+			response = restTemplate.exchange(uriBusqueda, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+			LinkedHashMap<Object, Object> usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
+			usuarioCreacion = ((LinkedHashMap)response.getBody().getData()).get("nombre").toString() + " " + ((LinkedHashMap)response.getBody().getData()).get("apePaterno").toString() + ((((LinkedHashMap)response.getBody().getData()).get("apeMaterno")!=null)?" "+((LinkedHashMap)response.getBody().getData()).get("apeMaterno").toString():"");
+
+			if(usuario.get("tipoUsuario").equals("EXTERNO")){//tramite.getOrigenDocumento().equals("EXTERNO")){
+				LinkedHashMap<String, String> persona = (LinkedHashMap<String, String>) usuario.get("persona");
+				Persona personaDto = mapper.map(persona,Persona.class);
+				dependenciaEmpresa = personaDto.getRazonSocialNombre();
+			}else{
+				dependenciaEmpresa = tramite.getDependenciaUsuarioCreacion().getNombre();; // ((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre").toString();
+			}
+		}
+
+		for(TramiteDerivacion tramiteDerivacion : tramiteDerivacionList){
+			tramiteDerivacion.setUsuarioCreacion(usuarioCreacion);
+			tramiteDerivacion.setDependenciaEmpresa(dependenciaEmpresa);
+
+			//Se completan datos de usuario inicio
+			uriBusqueda = uri + tramiteDerivacion.getUsuarioInicio().getId();
+			response = restTemplate.exchange(uriBusqueda, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+
+			LinkedHashMap<Object, Object> usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
+			LinkedHashMap<String, String> persona = (LinkedHashMap<String, String>) usuario.get("persona");
+			Persona personaDto = mapper.map(persona,Persona.class);
+
+			if(usuario.get("tipoUsuario").equals("EXTERNO")){//tramite.getOrigenDocumento().equals("EXTERNO")){
+				tramiteDerivacion.setDependenciaNombreUsuarioInicio(personaDto.getRazonSocialNombre());
+			}else{
+				tramiteDerivacion.setDependenciaNombreUsuarioInicio(tramiteDerivacion.getDependenciaUsuarioInicio().getNombre());
+			}
+
+
+			nombreCompleto = ((LinkedHashMap)response.getBody().getData()).get("nombre").toString() + " " + ((LinkedHashMap)response.getBody().getData()).get("apePaterno").toString() + ((((LinkedHashMap)response.getBody().getData()).get("apeMaterno")!=null)?" "+((LinkedHashMap)response.getBody().getData()).get("apeMaterno").toString():"");
+			tramiteDerivacion.setUsuarioInicioNombreCompleto(nombreCompleto);
+
+			//Se completan datos de usuario Fin
+			uriBusqueda = uri + tramiteDerivacion.getUsuarioFin().getId();
+			response = restTemplate.exchange(uriBusqueda, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+
+			usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
+			persona = (LinkedHashMap<String, String>) usuario.get("persona");
+			personaDto = mapper.map(persona,Persona.class);
+
+			if(usuario.get("tipoUsuario").equals("EXTERNO")){// tramite.getOrigenDocumento().equals("EXTERNO")){
+				tramiteDerivacion.setDependenciaNombreUsuarioFin(personaDto.getRazonSocialNombre());
+			}else{
+				tramiteDerivacion.setDependenciaNombreUsuarioFin(tramiteDerivacion.getDependenciaUsuarioFin().getNombre());
+			}
+
+			nombreCompleto = ((LinkedHashMap)response.getBody().getData()).get("nombre").toString() + " " + ((LinkedHashMap)response.getBody().getData()).get("apePaterno").toString() + ((((LinkedHashMap)response.getBody().getData()).get("apeMaterno")!=null)?" "+((LinkedHashMap)response.getBody().getData()).get("apeMaterno").toString():"");
+			tramiteDerivacion.setUsuarioFinNombreCompleto(nombreCompleto);
+
+		}
+		*/
+
+
+
+		return mapaResult;
 	}
 
 

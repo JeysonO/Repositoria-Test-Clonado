@@ -471,4 +471,17 @@ public class TramiteDerivacionController {
 
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 	}
+
+
+	@GetMapping("/buscar-By-Params-dashboard")
+	public ResponseEntity<CommonResponse> buscarTramiteDerivacionParamsDashboard(@Valid TramiteDerivacionRequest tramiteDerivacionRequest) throws Exception {
+
+		HttpStatus httpStatus = HttpStatus.OK;
+
+		Map mapaResult = tramiteDerivacionService.buscarTramiteDerivacionParamsDashboard(tramiteDerivacionRequest);
+
+		CommonResponse commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(mapaResult).build();
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+	}
 }
