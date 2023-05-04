@@ -288,6 +288,10 @@ public class TramiteDerivacionService {
 			listCriteria.add(Criteria.where("estado").is("P"));
 			parameters.remove("estadoFin");
 		}
+		if(parameters.containsKey("notEstadoFin")){
+			listCriteria.add(Criteria.where("estadoFin").ne(parameters.get("notEstadoFin")));
+			parameters.remove("notEstadoFin");
+		}
 		if(!listCriteria.isEmpty()) {
 			andExpression.add(new Criteria().andOperator(listCriteria.toArray(new Criteria[listCriteria.size()])));
 		}
