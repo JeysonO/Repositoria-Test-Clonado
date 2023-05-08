@@ -7,6 +7,8 @@ import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -17,21 +19,31 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
+import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
+import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
 import pe.com.amsac.tramite.api.request.body.bean.*;
 import pe.com.amsac.tramite.api.request.bean.TramiteDerivacionRequest;
 import pe.com.amsac.tramite.api.response.bean.*;
+import pe.com.amsac.tramite.api.util.CustomMultipartFile;
 import pe.com.amsac.tramite.bs.domain.*;
 import pe.com.amsac.tramite.bs.repository.TramiteDerivacionMongoRepository;
 import pe.com.amsac.tramite.bs.repository.TramiteMongoRepository;
 import pe.com.amsac.tramite.bs.util.EstadoTramiteConstant;
+import pe.com.amsac.tramite.bs.util.EstadoTramiteDerivacionConstant;
+import pe.com.amsac.tramite.bs.util.TipoAdjuntoConstant;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -62,6 +74,9 @@ public class TramiteDerivacionService {
 
 	@Autowired
 	private TramiteService tramiteService;
+
+	@Autowired
+	private DocumentoAdjuntoService documentoAdjuntoService;
 
 	@Autowired
 	private Environment env;
@@ -339,6 +354,7 @@ public class TramiteDerivacionService {
 		//Se obtiene datos del tramite
 		String usuarioCreacion = null;
 		String dependenciaEmpresa = null;
+		String emailUsuarioCreacion = null;
 		Tramite tramite = null;
 		if(!CollectionUtils.isEmpty(tramiteDerivacionList)){
 			tramite = tramiteDerivacionList.get(0).getTramite();
@@ -346,7 +362,7 @@ public class TramiteDerivacionService {
 			response = restTemplate.exchange(uriBusqueda, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
 			LinkedHashMap<Object, Object> usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
 			usuarioCreacion = ((LinkedHashMap)response.getBody().getData()).get("nombre").toString() + " " + ((LinkedHashMap)response.getBody().getData()).get("apePaterno").toString() + ((((LinkedHashMap)response.getBody().getData()).get("apeMaterno")!=null)?" "+((LinkedHashMap)response.getBody().getData()).get("apeMaterno").toString():"");
-
+			emailUsuarioCreacion = usuario.get("email").toString();
 			if(usuario.get("tipoUsuario").equals("EXTERNO")){//tramite.getOrigenDocumento().equals("EXTERNO")){
 				LinkedHashMap<String, String> persona = (LinkedHashMap<String, String>) usuario.get("persona");
 				Persona personaDto = mapper.map(persona,Persona.class);
@@ -360,6 +376,7 @@ public class TramiteDerivacionService {
 		for(TramiteDerivacion tramiteDerivacion : tramiteDerivacionList){
 			tramiteDerivacion.setUsuarioCreacion(usuarioCreacion);
 			tramiteDerivacion.setDependenciaEmpresa(dependenciaEmpresa);
+			tramiteDerivacion.setEmailUsuarioCreacion(emailUsuarioCreacion);
 
 			//Se completan datos de usuario inicio
 			uriBusqueda = uri + tramiteDerivacion.getUsuarioInicio().getId();
@@ -1777,5 +1794,78 @@ public class TramiteDerivacionService {
 		return mapaResult;
 	}
 
+	public void notificar(TramiteDerivacionNotificacionBodyRequest tramiteDerivacionNotificacionBodyRequest) throws Exception {
+		//Obtenemos el trmaite derivacion que vamos a notificar
+		TramiteDerivacion tramiteDerivacion = tramiteDerivacionMongoRepository.findById(tramiteDerivacionNotificacionBodyRequest.getTramiteDerivacionId()).get();
+
+		String tramiteId = tramiteDerivacion.getTramite().getId();
+
+		//Marcamos con estado fin notificado
+		tramiteDerivacion.setEstadoFin(EstadoTramiteConstant.NOTIFICADO);
+		tramiteDerivacion.setFechaFin(new Date());
+		tramiteDerivacion.setEstado(EstadoTramiteDerivacionConstant.ATENDIDO);
+		tramiteDerivacion.setComentarioFin(tramiteDerivacionNotificacionBodyRequest.getMensaje());
+
+		//Colocamos el adjunto como un nuevo adjunto al tramite
+		DocumentoAdjuntoBodyRequest documentoAdjuntoBodyRequest = new DocumentoAdjuntoBodyRequest();
+		documentoAdjuntoBodyRequest.setTramiteId(tramiteId);
+		documentoAdjuntoBodyRequest.setDescripcion("NOTIFICACION");
+		documentoAdjuntoBodyRequest.setFile(tramiteDerivacionNotificacionBodyRequest.getFile());
+		documentoAdjuntoBodyRequest.setTipoAdjunto(TipoAdjuntoConstant.NOTIFICACION_AMSAC);
+		DocumentoAdjuntoResponse documentoAdjuntoResponse = documentoAdjuntoService.registrarDocumentoAdjunto(documentoAdjuntoBodyRequest);
+
+		//Preparamos el body para el envio de corro de la notificacion
+		DocumentoAdjuntoRequest documentoAdjuntoRequest = new DocumentoAdjuntoRequest();
+		documentoAdjuntoRequest.setId(documentoAdjuntoResponse.getId());
+		Resource documentoAdjuntoNotificacionResource = documentoAdjuntoService.obtenerDocumentoAdjunto(documentoAdjuntoRequest);
+
+		StringBuffer cuerpo = obtenerPlantillaHtml("plantillaNotificacion.html");
+		Map<String, Object> param = new HashMap<>();
+		param.put("correo", tramiteDerivacionNotificacionBodyRequest.getEmail());
+		param.put("asunto", "NOTIFICACION TRAMITE DOCUMENTARIO AMSAC - Nro. Tramite: "+tramiteDerivacion.getTramite().getNumeroTramite());
+		param.put("cuerpo",  String.format(cuerpo.toString(),tramiteDerivacionNotificacionBodyRequest.getMensaje()));
+		param.put("file", documentoAdjuntoNotificacionResource);
+
+		//Enviamos el correo
+		enviarCorreo(param);
+
+		//Actualizamos estado del tramite
+		tramiteService.actualizarEstadoTramite(tramiteId,EstadoTramiteConstant.NOTIFICADO);
+
+	}
+
+	private void enviarCorreo(Map<String,Object> param){
+		RestTemplate restTemplate = new RestTemplate();
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+		MultiValueMap<String, Object> bodyMap = new LinkedMultiValueMap<>();
+		bodyMap.add("to",param.get("correo").toString());
+		//bodyMap.add("to","evelyn.flores@bitall.com.pe");
+		bodyMap.add("asunto",param.get("asunto").toString());
+		bodyMap.add("cuerpo",param.get("cuerpo").toString());
+		bodyMap.add("files", param.get("file"));
+
+		HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(bodyMap, headers);
+
+		String uri = env.getProperty("app.url.mail") + "/api/mail/sendMailAttach";
+
+		restTemplate.postForEntity( uri, requestEntity, null);
+
+	}
+
+	private StringBuffer obtenerPlantillaHtml(String nombrePlantilla) throws IOException {
+		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+		InputStream is = classloader.getResourceAsStream(nombrePlantilla);
+		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
+		String strLine;
+		StringBuffer msjHTML = new StringBuffer();
+		while ((strLine = bufferedReader.readLine()) != null) {
+			msjHTML.append(strLine);
+		}
+		return msjHTML;
+
+	}
 
 }

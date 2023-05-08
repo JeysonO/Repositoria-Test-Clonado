@@ -93,6 +93,9 @@ public class TramiteDerivacion extends BaseAuditableEntity<String> {
 	@Transient
 	private String dependenciaEmpresa;
 
+	@Transient
+	private String emailUsuarioCreacion;
+
 	@Override
 	public Serializable getEntityId() {
 		return getId();
