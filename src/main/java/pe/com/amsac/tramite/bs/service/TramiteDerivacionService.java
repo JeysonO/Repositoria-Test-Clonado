@@ -348,7 +348,7 @@ public class TramiteDerivacionService {
 
 
 		for(TramiteDerivacion tramiteDerivacion : tramiteDerivacionList){
-			tramite = tramiteDerivacionList.get(0).getTramite();
+			tramite = tramiteDerivacion.getTramite();
 			if(!usuarioCreacionMap.containsKey(tramite.getCreatedByUser())){
 				//tramite = tramiteDerivacionList.get(0).getTramite();
 				uriBusqueda = uri + tramite.getCreatedByUser();
