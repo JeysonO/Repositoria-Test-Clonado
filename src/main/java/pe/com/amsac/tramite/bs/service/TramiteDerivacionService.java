@@ -1,5 +1,7 @@
 package pe.com.amsac.tramite.bs.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -37,6 +39,7 @@ import pe.com.amsac.tramite.bs.util.EstadoTramiteConstant;
 import pe.com.amsac.tramite.bs.util.EstadoTramiteDerivacionConstant;
 import pe.com.amsac.tramite.bs.util.TipoAdjuntoConstant;
 
+import java.awt.print.Book;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -203,40 +206,6 @@ public class TramiteDerivacionService {
 			}
 		});
 
-		/*
-		//Por cada usuario origen y fin, obtener la dependencia y cargo
-		RestTemplate restTemplate = new RestTemplate();
-		String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/";
-		HttpHeaders headers = new HttpHeaders();
-		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
-		HttpEntity entity = new HttpEntity<>(null, headers);
-		ResponseEntity<CommonResponse> response = null;
-		String uriBusqueda;
-		String nombreCompleto;
-		for(TramiteDerivacion tramiteDerivacion : tramitePendienteList){
-			//Se completan datos de usuario inicio
-			uriBusqueda = uri + tramiteDerivacion.getUsuarioInicio().getId();
-			response = restTemplate.exchange(uriBusqueda, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
-			if(((LinkedHashMap)response.getBody().getData()).get("cargoNombre")!=null)
-				tramiteDerivacion.setCargoNombreUsuarioInicio(((LinkedHashMap)response.getBody().getData()).get("cargoNombre").toString());
-			if(((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre")!=null)
-				tramiteDerivacion.setDependenciaNombreUsuarioInicio(((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre").toString());
-			nombreCompleto = ((LinkedHashMap)response.getBody().getData()).get("nombre").toString() + " " + ((LinkedHashMap)response.getBody().getData()).get("apePaterno").toString() + ((((LinkedHashMap)response.getBody().getData()).get("apeMaterno")!=null)?" "+((LinkedHashMap)response.getBody().getData()).get("apeMaterno").toString():"");
-			tramiteDerivacion.setUsuarioInicioNombreCompleto(nombreCompleto);
-
-			//Se completan datos de usuario Fin
-			uriBusqueda = uri + tramiteDerivacion.getUsuarioFin().getId();
-			response = restTemplate.exchange(uriBusqueda, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
-			if(((LinkedHashMap)response.getBody().getData()).get("cargoNombre")!=null)
-				tramiteDerivacion.setCargoNombreUsuarioFin(((LinkedHashMap)response.getBody().getData()).get("cargoNombre").toString());
-			if(((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre")!=null)
-				tramiteDerivacion.setDependenciaNombreUsuarioFin(((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre").toString());
-			nombreCompleto = ((LinkedHashMap)response.getBody().getData()).get("nombre").toString() + " " + ((LinkedHashMap)response.getBody().getData()).get("apePaterno").toString() + ((((LinkedHashMap)response.getBody().getData()).get("apeMaterno")!=null)?" "+((LinkedHashMap)response.getBody().getData()).get("apeMaterno").toString():"");
-			tramiteDerivacion.setUsuarioFinNombreCompleto(nombreCompleto);
-
-		}
-		*/
-
 		return tramitePendienteList;
 	}
 
@@ -267,6 +236,7 @@ public class TramiteDerivacionService {
 			parameters.remove("tramiteId");
 			parameters.remove("numeroTramite");
 			parameters.remove("asunto");
+			parameters.remove("razonSocial");
 
 			for (String tramiteId : tramiteIds) {
 				Criteria expression = new Criteria();
@@ -1347,48 +1317,6 @@ public class TramiteDerivacionService {
 	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
 	public TramiteDerivacion registrarTramiteDerivacionMigracion(TramiteDerivacionMigracionBodyRequest tramiteDerivacionBodyRequest) throws Exception {
 
-		/*
-		//Obtener Usuario Inicio
-		RestTemplate restTemplate = new RestTemplate();
-		String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/"+tramiteDerivacionBodyRequest.getUsuarioInicio();
-		HttpHeaders headers = new HttpHeaders();
-		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
-		HttpEntity entity = new HttpEntity<>(null, headers);
-		ResponseEntity<CommonResponse> response = restTemplate.exchange(uri,HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
-
-		//Mapear Persona de Usuario Inicio
-		LinkedHashMap<Object, Object> usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
-		LinkedHashMap<String, String> personaL = (LinkedHashMap<String, String>) usuario.get("persona");
-		personaL.remove("createdDate");
-		personaL.remove("lastModifiedDate");
-		personaL.remove("tipoDocumento");
-		personaL.remove("entityId");
-		Persona persona = mapper.map(personaL,Persona.class);
-		usuario.replace("persona",persona);
-		Usuario userInicio = mapper.map(usuario,Usuario.class);
-
-		//Mapear Usuario Fin
-		uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/"+tramiteDerivacionBodyRequest.getUsuarioFin();
-		response = restTemplate.exchange(uri,HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
-		usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
-		personaL = (LinkedHashMap<String, String>) usuario.get("persona");
-		personaL.remove("createdDate");
-		personaL.remove("lastModifiedDate");
-		personaL.remove("tipoDocumento");
-		personaL.remove("entityId");
-		persona = mapper.map(personaL,Persona.class);
-		usuario.replace("persona",persona);
-		Usuario userFin = mapper.map(usuario,Usuario.class);
-
-		Date fechaMaxima = null;
-		if(tramiteDerivacionBodyRequest.getFechaMaximaAtencion()!=null){
-			ZoneId defaultZoneId = ZoneId.systemDefault();
-			LocalDate localDate = tramiteDerivacionBodyRequest.getFechaMaximaAtencion();
-			tramiteDerivacionBodyRequest.setFechaMaximaAtencion(null);
-			fechaMaxima =Date.from(localDate.atStartOfDay(defaultZoneId).toInstant());
-		}
-		*/
-
 		TramiteDerivacion registroTramiteDerivacion = mapper.map(tramiteDerivacionBodyRequest,TramiteDerivacion.class);
 		/*
 		if(fechaMaxima!=null)
@@ -1539,6 +1467,7 @@ public class TramiteDerivacionService {
 		List<String> idTramites = new ArrayList<>();
 		List<Criteria> listCriteria =  new ArrayList<>();
 		List<Criteria> andExpression =  new ArrayList<>();
+		List<Criteria> orExpression =  new ArrayList<>();
 		Criteria andCriteria = new Criteria();
 		Query andQuery = new Query();
 
@@ -1551,7 +1480,50 @@ public class TramiteDerivacionService {
 		if(!StringUtils.isBlank(tramiteDerivacionRequest.getAsunto())){
 			listCriteria.add(Criteria.where("asunto").regex(".*"+tramiteDerivacionRequest.getAsunto()+".*","i"));
 		}
-		if(!listCriteria.isEmpty()) {
+		if(!StringUtils.isBlank(tramiteDerivacionRequest.getRazonSocial())){
+			List<String> usuariosIds = obtenerUsuariosCreacionId(tramiteDerivacionRequest);
+			if(!CollectionUtils.isEmpty(usuariosIds)){
+
+				for (String usuarioCreacionId : usuariosIds) {
+					Criteria expression = new Criteria();
+					expression.and("createdByUser").is(usuarioCreacionId);
+					orExpression.add(expression);
+				}
+
+			}
+
+		}
+		if(!listCriteria.isEmpty() || !CollectionUtils.isEmpty(orExpression)) {
+			Criteria orCriteria = new Criteria();
+			Criteria criteriaOr = null;
+			Criteria criteriaGlobal = new Criteria();
+			Criteria criteriaAnd = null;
+
+			if(!CollectionUtils.isEmpty(orExpression))
+				criteriaOr = orCriteria.orOperator(orExpression.toArray(new Criteria[orExpression.size()]));
+
+			if(!CollectionUtils.isEmpty(listCriteria)){
+				andExpression.add(new Criteria().andOperator(listCriteria.toArray(new Criteria[listCriteria.size()])));
+				criteriaAnd = andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()]));
+			}
+
+			if(criteriaOr!=null && criteriaAnd==null)
+				criteriaGlobal = criteriaGlobal.andOperator(criteriaOr);
+
+			if(criteriaOr==null && criteriaAnd!=null)
+				criteriaGlobal = criteriaGlobal.andOperator(criteriaAnd);
+
+			if(criteriaOr!=null && criteriaAnd!=null)
+				criteriaGlobal = criteriaGlobal.andOperator(criteriaAnd,criteriaOr);
+
+			andQuery.addCriteria(criteriaGlobal);
+
+			List<Tramite> tramiteList = mongoTemplate.find(andQuery, Tramite.class);
+			if(!CollectionUtils.isEmpty(tramiteList)){
+				tramiteList.stream().forEach(x -> idTramites.add(x.getId()));
+			}
+
+			/*
 			andExpression.add(new Criteria().andOperator(listCriteria.toArray(new Criteria[listCriteria.size()])));
 
 			andQuery.addCriteria(andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()])));
@@ -1560,6 +1532,7 @@ public class TramiteDerivacionService {
 			if(!CollectionUtils.isEmpty(tramiteList)){
 				tramiteList.stream().forEach(x -> idTramites.add(x.getId()));
 			}
+			*/
 		}
 
 		return idTramites;
@@ -1716,80 +1689,6 @@ public class TramiteDerivacionService {
 		mapaResult.put("listaUsuarioCantidad", listaUsuarioCantidad);
 		mapaResult.put("listaDependenciaNombre", listaDependenciaNombre);
 		mapaResult.put("listaDependenciaCantidad", listaDependenciaCantidad);
-		/*
-		//Por cada usuario origen y fin, obtener la dependencia y cargo
-		RestTemplate restTemplate = new RestTemplate();
-		String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/";
-		HttpHeaders headers = new HttpHeaders();
-		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
-		HttpEntity entity = new HttpEntity<>(null, headers);
-		ResponseEntity<CommonResponse> response = null;
-		String uriBusqueda;
-		String nombreCompleto;
-
-		//Se obtiene datos del tramite
-		String usuarioCreacion = null;
-		String dependenciaEmpresa = null;
-		Tramite tramite = null;
-		if(!CollectionUtils.isEmpty(tramiteDerivacionList)){
-			tramite = tramiteDerivacionList.get(0).getTramite();
-			uriBusqueda = uri + tramite.getCreatedByUser();
-			response = restTemplate.exchange(uriBusqueda, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
-			LinkedHashMap<Object, Object> usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
-			usuarioCreacion = ((LinkedHashMap)response.getBody().getData()).get("nombre").toString() + " " + ((LinkedHashMap)response.getBody().getData()).get("apePaterno").toString() + ((((LinkedHashMap)response.getBody().getData()).get("apeMaterno")!=null)?" "+((LinkedHashMap)response.getBody().getData()).get("apeMaterno").toString():"");
-
-			if(usuario.get("tipoUsuario").equals("EXTERNO")){//tramite.getOrigenDocumento().equals("EXTERNO")){
-				LinkedHashMap<String, String> persona = (LinkedHashMap<String, String>) usuario.get("persona");
-				Persona personaDto = mapper.map(persona,Persona.class);
-				dependenciaEmpresa = personaDto.getRazonSocialNombre();
-			}else{
-				dependenciaEmpresa = tramite.getDependenciaUsuarioCreacion().getNombre();; // ((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre").toString();
-			}
-		}
-
-		for(TramiteDerivacion tramiteDerivacion : tramiteDerivacionList){
-			tramiteDerivacion.setUsuarioCreacion(usuarioCreacion);
-			tramiteDerivacion.setDependenciaEmpresa(dependenciaEmpresa);
-
-			//Se completan datos de usuario inicio
-			uriBusqueda = uri + tramiteDerivacion.getUsuarioInicio().getId();
-			response = restTemplate.exchange(uriBusqueda, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
-
-			LinkedHashMap<Object, Object> usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
-			LinkedHashMap<String, String> persona = (LinkedHashMap<String, String>) usuario.get("persona");
-			Persona personaDto = mapper.map(persona,Persona.class);
-
-			if(usuario.get("tipoUsuario").equals("EXTERNO")){//tramite.getOrigenDocumento().equals("EXTERNO")){
-				tramiteDerivacion.setDependenciaNombreUsuarioInicio(personaDto.getRazonSocialNombre());
-			}else{
-				tramiteDerivacion.setDependenciaNombreUsuarioInicio(tramiteDerivacion.getDependenciaUsuarioInicio().getNombre());
-			}
-
-
-			nombreCompleto = ((LinkedHashMap)response.getBody().getData()).get("nombre").toString() + " " + ((LinkedHashMap)response.getBody().getData()).get("apePaterno").toString() + ((((LinkedHashMap)response.getBody().getData()).get("apeMaterno")!=null)?" "+((LinkedHashMap)response.getBody().getData()).get("apeMaterno").toString():"");
-			tramiteDerivacion.setUsuarioInicioNombreCompleto(nombreCompleto);
-
-			//Se completan datos de usuario Fin
-			uriBusqueda = uri + tramiteDerivacion.getUsuarioFin().getId();
-			response = restTemplate.exchange(uriBusqueda, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
-
-			usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
-			persona = (LinkedHashMap<String, String>) usuario.get("persona");
-			personaDto = mapper.map(persona,Persona.class);
-
-			if(usuario.get("tipoUsuario").equals("EXTERNO")){// tramite.getOrigenDocumento().equals("EXTERNO")){
-				tramiteDerivacion.setDependenciaNombreUsuarioFin(personaDto.getRazonSocialNombre());
-			}else{
-				tramiteDerivacion.setDependenciaNombreUsuarioFin(tramiteDerivacion.getDependenciaUsuarioFin().getNombre());
-			}
-
-			nombreCompleto = ((LinkedHashMap)response.getBody().getData()).get("nombre").toString() + " " + ((LinkedHashMap)response.getBody().getData()).get("apePaterno").toString() + ((((LinkedHashMap)response.getBody().getData()).get("apeMaterno")!=null)?" "+((LinkedHashMap)response.getBody().getData()).get("apeMaterno").toString():"");
-			tramiteDerivacion.setUsuarioFinNombreCompleto(nombreCompleto);
-
-		}
-		*/
-
-
 
 		return mapaResult;
 	}
@@ -1866,6 +1765,24 @@ public class TramiteDerivacionService {
 			msjHTML.append(strLine);
 		}
 		return msjHTML;
+
+	}
+
+	private List<String> obtenerUsuariosCreacionId(TramiteDerivacionRequest tramiteDerivacionRequest){
+		String uri = env.getProperty("app.url.seguridad") + "/usuarios?razonSocial="+tramiteDerivacionRequest.getRazonSocial();
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
+		HttpEntity entity = new HttpEntity<>(null, headers);
+		RestTemplate restTemplate = new RestTemplate();
+		List<String> usuariosIdList = new ArrayList<>();
+		ResponseEntity<CommonResponse> response = restTemplate.exchange(uri, HttpMethod.GET,entity, CommonResponse.class);
+		ObjectMapper objectMapper = new ObjectMapper();
+		List<UsuarioResponse> usuarioResponseList = objectMapper.convertValue(response.getBody().getData(),new TypeReference<List<UsuarioResponse>>() {});
+
+		if(!CollectionUtils.isEmpty(usuarioResponseList))
+			usuarioResponseList.stream().forEach(x -> usuariosIdList.add(x.getId()));
+
+		return usuariosIdList;
 
 	}
 

@@ -30,6 +30,7 @@ public class TramiteDerivacionRequest extends BaseRequest {
 	private String notEstadoFin;
 
 	private String estadoFin;
+	private String razonSocial;
 
 
 }
