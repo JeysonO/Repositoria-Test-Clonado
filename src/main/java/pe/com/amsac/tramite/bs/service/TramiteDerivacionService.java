@@ -326,6 +326,9 @@ public class TramiteDerivacionService {
 		String dependenciaEmpresa = null;
 		String emailUsuarioCreacion = null;
 		Tramite tramite = null;
+		Map<String, Map> usuarioCreacionMap = new HashMap<>();
+		Map<String, Object> paramTmp = new HashMap<>();
+		/*
 		if(!CollectionUtils.isEmpty(tramiteDerivacionList)){
 			tramite = tramiteDerivacionList.get(0).getTramite();
 			uriBusqueda = uri + tramite.getCreatedByUser();
@@ -341,12 +344,35 @@ public class TramiteDerivacionService {
 				dependenciaEmpresa = tramite.getDependenciaUsuarioCreacion().getNombre();; // ((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre").toString();
 			}
 		}
+		*/
 
 
 		for(TramiteDerivacion tramiteDerivacion : tramiteDerivacionList){
-			tramiteDerivacion.setUsuarioCreacion(usuarioCreacion);
-			tramiteDerivacion.setDependenciaEmpresa(dependenciaEmpresa);
-			tramiteDerivacion.setEmailUsuarioCreacion(emailUsuarioCreacion);
+			tramite = tramiteDerivacionList.get(0).getTramite();
+			if(!usuarioCreacionMap.containsKey(tramite.getCreatedByUser())){
+				//tramite = tramiteDerivacionList.get(0).getTramite();
+				uriBusqueda = uri + tramite.getCreatedByUser();
+				response = restTemplate.exchange(uriBusqueda, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+				LinkedHashMap<Object, Object> usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
+				usuarioCreacion = ((LinkedHashMap)response.getBody().getData()).get("nombre").toString() + " " + ((LinkedHashMap)response.getBody().getData()).get("apePaterno").toString() + ((((LinkedHashMap)response.getBody().getData()).get("apeMaterno")!=null)?" "+((LinkedHashMap)response.getBody().getData()).get("apeMaterno").toString():"");
+				emailUsuarioCreacion = usuario.get("email").toString();
+				if(usuario.get("tipoUsuario").equals("EXTERNO")){//tramite.getOrigenDocumento().equals("EXTERNO")){
+					LinkedHashMap<String, String> persona = (LinkedHashMap<String, String>) usuario.get("persona");
+					Persona personaDto = mapper.map(persona,Persona.class);
+					dependenciaEmpresa = personaDto.getRazonSocialNombre();
+				}else{
+					dependenciaEmpresa = tramite.getDependenciaUsuarioCreacion().getNombre();; // ((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre").toString();
+				}
+				paramTmp = new HashMap<>();
+				paramTmp.put("usuarioCreacion",usuarioCreacion);
+				paramTmp.put("dependenciaEmpresa",dependenciaEmpresa);
+				paramTmp.put("emailUsuarioCreacion",emailUsuarioCreacion);
+				usuarioCreacionMap.put(tramite.getCreatedByUser(),paramTmp);
+			}
+
+			tramiteDerivacion.setUsuarioCreacion(usuarioCreacionMap.get(tramite.getCreatedByUser()).get("usuarioCreacion").toString());
+			tramiteDerivacion.setDependenciaEmpresa(usuarioCreacionMap.get(tramite.getCreatedByUser()).get("dependenciaEmpresa").toString());
+			tramiteDerivacion.setEmailUsuarioCreacion(usuarioCreacionMap.get(tramite.getCreatedByUser()).get("emailUsuarioCreacion").toString());
 
 			//Se completan datos de usuario inicio
 			uriBusqueda = uri + tramiteDerivacion.getUsuarioInicio().getId();
