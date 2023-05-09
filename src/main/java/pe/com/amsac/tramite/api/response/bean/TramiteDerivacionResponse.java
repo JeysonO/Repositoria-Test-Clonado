@@ -60,6 +60,8 @@ public class TramiteDerivacionResponse {
 
 	private String dependenciaDestinoNombre;
 
+	private String emailUsuarioCreacion;
+
 	@Mapping("tramite.id")
 	public String getTramiteId(){return tramiteId;}
 
