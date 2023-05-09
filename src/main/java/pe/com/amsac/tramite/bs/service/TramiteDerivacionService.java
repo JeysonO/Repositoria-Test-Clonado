@@ -1390,6 +1390,7 @@ public class TramiteDerivacionService {
 			parameters.remove("tramiteId");
 			parameters.remove("numeroTramite");
 			parameters.remove("asunto");
+			parameters.remove("razonSocial");
 
 			for (String tramiteId : tramiteIds) {
 				Criteria expression = new Criteria();
