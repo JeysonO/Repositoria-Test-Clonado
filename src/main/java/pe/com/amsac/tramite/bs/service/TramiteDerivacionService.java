@@ -1805,6 +1805,7 @@ public class TramiteDerivacionService {
 		tramiteDerivacion.setFechaFin(new Date());
 		tramiteDerivacion.setEstado(EstadoTramiteDerivacionConstant.ATENDIDO);
 		tramiteDerivacion.setComentarioFin(tramiteDerivacionNotificacionBodyRequest.getMensaje());
+		tramiteDerivacionMongoRepository.save(tramiteDerivacion);
 
 		//Colocamos el adjunto como un nuevo adjunto al tramite
 		DocumentoAdjuntoBodyRequest documentoAdjuntoBodyRequest = new DocumentoAdjuntoBodyRequest();
