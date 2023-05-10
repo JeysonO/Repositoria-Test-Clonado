@@ -245,11 +245,23 @@ public class TramiteDerivacionService {
 			}
 			//orQuery.addCriteria(orCriteria.orOperator(orExpression.toArray(new Criteria[orExpression.size()])));
 		}
-
+		/*
 		if(parameters.containsKey("fechaDerivacionDesde") && parameters.containsKey("fechaDerivacionHasta")){
 			listCriteria.add(Criteria.where("fechaInicio").gte(((Date)parameters.get("fechaDerivacionDesde"))).lte(((Date)parameters.get("fechaDerivacionHasta"))));
 			parameters.remove("fechaDerivacionDesde");
 			parameters.remove("fechaDerivacionHasta");
+		}
+		*/
+		if(parameters.containsKey("fechaDerivacionDesde"))
+			listCriteria.add(Criteria.where("fechaInicio").gte((Date)parameters.get("fechaDerivacionDesde")));
+
+		if(parameters.containsKey("fechaDerivacionHasta")){
+			Date fechaHasta = (Date)parameters.get("fechaDerivacionHasta");
+			String fechaHastaCadena = new SimpleDateFormat("dd/MM/yyyy").format(fechaHasta);
+			fechaHastaCadena = fechaHastaCadena + " " + "23:59:59";
+			fechaHasta = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").parse(fechaHastaCadena);
+			//listCriteria.add(Criteria.where("fechaInicio").lte((Date)parameters.get("fechaDerivacionHasta")));
+			listCriteria.add(Criteria.where("fechaInicio").lte(fechaHasta));
 		}
 		if(parameters.containsKey("usuarioInicio")){
 			listCriteria.add(Criteria.where("usuarioInicio.id").is(parameters.get("usuarioInicio")));
@@ -291,6 +303,8 @@ public class TramiteDerivacionService {
 		//Retiramos las keys de paginacion
 		parameters.remove("pageNumber");
 		parameters.remove("pageSize");
+		parameters.remove("fechaDerivacionDesde");
+		parameters.remove("fechaDerivacionHasta");
 
 		Criteria expression = new Criteria();
 		parameters.forEach((key, value) -> expression.and(key).is(value));
@@ -1426,11 +1440,25 @@ public class TramiteDerivacionService {
 			}
 			//orQuery.addCriteria(orCriteria.orOperator(orExpression.toArray(new Criteria[orExpression.size()])));
 		}
-
+		/*
 		if(parameters.containsKey("fechaDerivacionDesde") && parameters.containsKey("fechaDerivacionHasta")){
-			listCriteria.add(Criteria.where("fechaInicio").gte(parameters.get("fechaDerivacionDesde")).lte(parameters.get("fechaDerivacionHasta")));
+			listCriteria.add(Criteria.where("fechaInicio").gte((Date)parameters.get("fechaDerivacionDesde")).lte((Date)parameters.get("fechaDerivacionHasta")));
 			parameters.remove("fechaDerivacionDesde");
+			parameters.remove("fechaDerivacionHasta");
 		}
+		*/
+		if(parameters.containsKey("fechaDerivacionDesde"))
+			listCriteria.add(Criteria.where("fechaInicio").gte((Date)parameters.get("fechaDerivacionDesde")));
+
+		if(parameters.containsKey("fechaDerivacionHasta")){
+			Date fechaHasta = (Date)parameters.get("fechaDerivacionHasta");
+			String fechaHastaCadena = new SimpleDateFormat("dd/MM/yyyy").format(fechaHasta);
+			fechaHastaCadena = fechaHastaCadena + " " + "23:59:59";
+			fechaHasta = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").parse(fechaHastaCadena);
+			//listCriteria.add(Criteria.where("fechaInicio").lte((Date)parameters.get("fechaDerivacionHasta")));
+			listCriteria.add(Criteria.where("fechaInicio").lte(fechaHasta));
+		}
+
 		if(parameters.containsKey("usuarioInicio")){
 			listCriteria.add(Criteria.where("usuarioInicio.id").is(parameters.get("usuarioInicio")));
 			parameters.remove("usuarioInicio");
@@ -1466,6 +1494,8 @@ public class TramiteDerivacionService {
 		//Retiramos las keys de paginacion
 		parameters.remove("pageNumber");
 		parameters.remove("pageSize");
+		parameters.remove("fechaDerivacionDesde");
+		parameters.remove("fechaDerivacionHasta");
 
 		Criteria expression = new Criteria();
 		parameters.forEach((key, value) -> expression.and(key).is(value));
@@ -1597,14 +1627,28 @@ public class TramiteDerivacionService {
 			}
 			//orQuery.addCriteria(orCriteria.orOperator(orExpression.toArray(new Criteria[orExpression.size()])));
 		}
-
+		/*
 		if(parameters.containsKey("fechaDerivacionDesde") && parameters.containsKey("fechaDerivacionHasta")){
-			listCriteria.add(Criteria.where("fechaInicio").gte(parameters.get("fechaDerivacionDesde")).lte(parameters.get("fechaDerivacionHasta")));
+			listCriteria.add(Criteria.where("fechaInicio").gte((Date)parameters.get("fechaDerivacionDesde")).lte((Date)parameters.get("fechaDerivacionHasta")));
 			parameters.remove("fechaDerivacionDesde");
+			parameters.remove("fechaDerivacionHasta");
 		}
+		*/
+		if(parameters.containsKey("fechaDerivacionDesde"))
+			listCriteria.add(Criteria.where("fechaInicio").gte((Date)parameters.get("fechaDerivacionDesde")));
+
+		if(parameters.containsKey("fechaDerivacionHasta")){
+			Date fechaHasta = (Date)parameters.get("fechaDerivacionHasta");
+			String fechaHastaCadena = new SimpleDateFormat("dd/MM/yyyy").format(fechaHasta);
+			fechaHastaCadena = fechaHastaCadena + " " + "23:59:59";
+			fechaHasta = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").parse(fechaHastaCadena);
+			//listCriteria.add(Criteria.where("fechaInicio").lte((Date)parameters.get("fechaDerivacionHasta")));
+			listCriteria.add(Criteria.where("fechaInicio").lte(fechaHasta));
+		}
+
 		if(parameters.containsKey("usuarioInicio")){
 			listCriteria.add(Criteria.where("usuarioInicio.id").is(parameters.get("usuarioInicio")));
-			parameters.remove("fechaDerivacionDesde");
+			parameters.remove("usuarioInicio");
 		}
 		if(parameters.containsKey("usuarioFin")){
 			listCriteria.add(Criteria.where("usuarioFin.id").is(parameters.get("usuarioFin")));
@@ -1643,6 +1687,8 @@ public class TramiteDerivacionService {
 		//Retiramos las keys de paginacion
 		parameters.remove("pageNumber");
 		parameters.remove("pageSize");
+		parameters.remove("fechaDerivacionDesde");
+		parameters.remove("fechaDerivacionHasta");
 
 		Criteria expression = new Criteria();
 		parameters.forEach((key, value) -> expression.and(key).is(value));
