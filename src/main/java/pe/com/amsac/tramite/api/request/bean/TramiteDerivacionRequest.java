@@ -1,6 +1,7 @@
 package pe.com.amsac.tramite.api.request.bean;
 
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 import pe.com.amsac.tramite.api.request.BaseRequest;
 
 import java.util.Date;
@@ -13,7 +14,9 @@ public class TramiteDerivacionRequest extends BaseRequest {
 	private String estado;
 
 	private int numeroTramite;
+	@DateTimeFormat(pattern = "dd/MM/yyyy")
 	private Date fechaDerivacionDesde;
+	@DateTimeFormat(pattern = "dd/MM/yyyy")
 	private Date fechaDerivacionHasta;
 
 	private String forma;

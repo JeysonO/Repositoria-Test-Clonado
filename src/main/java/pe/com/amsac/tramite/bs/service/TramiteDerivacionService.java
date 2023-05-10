@@ -247,12 +247,13 @@ public class TramiteDerivacionService {
 		}
 
 		if(parameters.containsKey("fechaDerivacionDesde") && parameters.containsKey("fechaDerivacionHasta")){
-			listCriteria.add(Criteria.where("fechaInicio").gte(parameters.get("fechaDerivacionDesde")).lte(parameters.get("fechaDerivacionHasta")));
+			listCriteria.add(Criteria.where("fechaInicio").gte(((Date)parameters.get("fechaDerivacionDesde"))).lte(((Date)parameters.get("fechaDerivacionHasta"))));
 			parameters.remove("fechaDerivacionDesde");
+			parameters.remove("fechaDerivacionHasta");
 		}
 		if(parameters.containsKey("usuarioInicio")){
 			listCriteria.add(Criteria.where("usuarioInicio.id").is(parameters.get("usuarioInicio")));
-			parameters.remove("fechaDerivacionDesde");
+			parameters.remove("usuarioInicio");
 		}
 		if(parameters.containsKey("usuarioFin")){
 			listCriteria.add(Criteria.where("usuarioFin.id").is(parameters.get("usuarioFin")));
