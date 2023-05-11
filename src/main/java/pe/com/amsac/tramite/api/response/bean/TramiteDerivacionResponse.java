@@ -62,6 +62,8 @@ public class TramiteDerivacionResponse {
 
 	private String emailUsuarioCreacion;
 
+	private Date tramiteCreatedDate;
+
 	@Mapping("tramite.id")
 	public String getTramiteId(){return tramiteId;}
 
@@ -95,6 +97,7 @@ public class TramiteDerivacionResponse {
 	@Mapping("tramite.dependenciaDestino.nombre")
 	public String getDependenciaDestinoNombre(){return dependenciaDestinoNombre;}
 
-
+	@Mapping("tramite.createdDate")
+	public Date getTramiteCreatedDate(){return tramiteCreatedDate;}
 
 }

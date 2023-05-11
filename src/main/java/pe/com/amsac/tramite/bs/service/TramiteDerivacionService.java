@@ -48,6 +48,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -252,6 +253,7 @@ public class TramiteDerivacionService {
 			parameters.remove("fechaDerivacionHasta");
 		}
 		*/
+		/*
 		if(parameters.containsKey("fechaDerivacionDesde"))
 			listCriteria.add(Criteria.where("fechaInicio").gte((Date)parameters.get("fechaDerivacionDesde")));
 
@@ -263,6 +265,7 @@ public class TramiteDerivacionService {
 			//listCriteria.add(Criteria.where("fechaInicio").lte((Date)parameters.get("fechaDerivacionHasta")));
 			listCriteria.add(Criteria.where("fechaInicio").lte(fechaHasta));
 		}
+		*/
 		if(parameters.containsKey("usuarioInicio")){
 			listCriteria.add(Criteria.where("usuarioInicio.id").is(parameters.get("usuarioInicio")));
 			parameters.remove("usuarioInicio");
@@ -1447,6 +1450,7 @@ public class TramiteDerivacionService {
 			parameters.remove("fechaDerivacionHasta");
 		}
 		*/
+		/*
 		if(parameters.containsKey("fechaDerivacionDesde"))
 			listCriteria.add(Criteria.where("fechaInicio").gte((Date)parameters.get("fechaDerivacionDesde")));
 
@@ -1458,6 +1462,7 @@ public class TramiteDerivacionService {
 			//listCriteria.add(Criteria.where("fechaInicio").lte((Date)parameters.get("fechaDerivacionHasta")));
 			listCriteria.add(Criteria.where("fechaInicio").lte(fechaHasta));
 		}
+		*/
 
 		if(parameters.containsKey("usuarioInicio")){
 			listCriteria.add(Criteria.where("usuarioInicio.id").is(parameters.get("usuarioInicio")));
@@ -1520,7 +1525,7 @@ public class TramiteDerivacionService {
 		return (int)cantidadRegistro;
 	}
 
-	private List<String> obtenerTramitesId(TramiteDerivacionRequest tramiteDerivacionRequest){
+	private List<String> obtenerTramitesId(TramiteDerivacionRequest tramiteDerivacionRequest) throws ParseException {
 
 		List<String> idTramites = new ArrayList<>();
 		List<Criteria> listCriteria =  new ArrayList<>();
@@ -1537,6 +1542,17 @@ public class TramiteDerivacionService {
 		}
 		if(!StringUtils.isBlank(tramiteDerivacionRequest.getAsunto())){
 			listCriteria.add(Criteria.where("asunto").regex(".*"+tramiteDerivacionRequest.getAsunto()+".*","i"));
+		}
+		if(tramiteDerivacionRequest.getFechaDerivacionDesde()!=null)
+			listCriteria.add(Criteria.where("createdDate").gte(tramiteDerivacionRequest.getFechaDerivacionDesde()));
+
+		if(tramiteDerivacionRequest.getFechaDerivacionHasta()!=null){
+			Date fechaHasta = tramiteDerivacionRequest.getFechaDerivacionHasta();
+			String fechaHastaCadena = new SimpleDateFormat("dd/MM/yyyy").format(fechaHasta);
+			fechaHastaCadena = fechaHastaCadena + " " + "23:59:59";
+			fechaHasta = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").parse(fechaHastaCadena);
+			//listCriteria.add(Criteria.where("fechaInicio").lte((Date)parameters.get("fechaDerivacionHasta")));
+			listCriteria.add(Criteria.where("createdDate").lte(fechaHasta));
 		}
 		if(!StringUtils.isBlank(tramiteDerivacionRequest.getRazonSocial())){
 			List<String> usuariosIds = obtenerUsuariosCreacionId(tramiteDerivacionRequest);
@@ -1634,6 +1650,7 @@ public class TramiteDerivacionService {
 			parameters.remove("fechaDerivacionHasta");
 		}
 		*/
+		/*
 		if(parameters.containsKey("fechaDerivacionDesde"))
 			listCriteria.add(Criteria.where("fechaInicio").gte((Date)parameters.get("fechaDerivacionDesde")));
 
@@ -1645,6 +1662,7 @@ public class TramiteDerivacionService {
 			//listCriteria.add(Criteria.where("fechaInicio").lte((Date)parameters.get("fechaDerivacionHasta")));
 			listCriteria.add(Criteria.where("fechaInicio").lte(fechaHasta));
 		}
+		*/
 
 		if(parameters.containsKey("usuarioInicio")){
 			listCriteria.add(Criteria.where("usuarioInicio.id").is(parameters.get("usuarioInicio")));
