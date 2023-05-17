@@ -67,7 +67,8 @@ app:
     password: "%40ms%40c2022"
     host: mongoservice
     #host: 190.119.248.141
-    port: 57017
+    #port: 57017
+    port: 55881
     
   ruta:
     adjuntos: tramite
@@ -78,7 +79,8 @@ app:
     #seguridad: http://amsac-security-api:8100/amsac-seguridad
     seguridad: https://gatewayapp.amsac.pe/amsac-seguridad
     #mail: http://localhost:8200
-    mail: http://amsac-mail-api:8100
+    #mail: http://amsac-mail-api:8100
+    mail: https://gatewayapp.amsac.pe/amsac-mail
     #mail: http://190.119.248.132:8180/amsac-mail
     linkTramite: http://std1.amsac.pe/admin/login
     scheduler: http://std1.amsac.pe/admin/login

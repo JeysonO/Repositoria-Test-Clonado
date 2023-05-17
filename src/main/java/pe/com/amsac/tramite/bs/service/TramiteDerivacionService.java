@@ -345,6 +345,8 @@ public class TramiteDerivacionService {
 		String emailUsuarioCreacion = null;
 		Tramite tramite = null;
 		Map<String, Map> usuarioCreacionMap = new HashMap<>();
+		Map<String, Map> usuarioInicioMap = new HashMap<>();
+		Map<String, Map> usuarioFinMap = new HashMap<>();
 		Map<String, Object> paramTmp = new HashMap<>();
 		/*
 		if(!CollectionUtils.isEmpty(tramiteDerivacionList)){
@@ -1591,6 +1593,7 @@ public class TramiteDerivacionService {
 				criteriaGlobal = criteriaGlobal.andOperator(criteriaAnd,criteriaOr);
 
 			andQuery.addCriteria(criteriaGlobal);
+			andQuery.fields().include("id");
 
 			List<Tramite> tramiteList = mongoTemplate.find(andQuery, Tramite.class);
 			if(!CollectionUtils.isEmpty(tramiteList)){
