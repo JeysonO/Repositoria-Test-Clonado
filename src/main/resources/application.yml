@@ -67,8 +67,8 @@ app:
     password: "%40ms%40c2022"
     host: mongoservice
     #host: 190.119.248.141
-    #port: 57017
-    port: 55881
+    port: 57017
+    #port: 55881
     
   ruta:
     adjuntos: tramite
