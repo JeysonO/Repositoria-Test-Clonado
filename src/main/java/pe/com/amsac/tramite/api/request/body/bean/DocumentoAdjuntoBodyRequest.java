@@ -14,6 +14,7 @@ public class DocumentoAdjuntoBodyRequest {
 	private String tipoAdjunto;
 	private MultipartFile file;
 	private String tramiteId;
+	private String tramiteDerivacionId;
 
 	@Mapping("tramite.id")
 	public String getTramiteId(){return tramiteId;}

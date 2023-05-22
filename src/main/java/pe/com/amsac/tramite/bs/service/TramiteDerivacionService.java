@@ -1882,4 +1882,45 @@ public class TramiteDerivacionService {
 
 	}
 
+	public void cancelar(TramiteDerivacionNotificacionBodyRequest tramiteDerivacionNotificacionBodyRequest) throws Exception {
+		//Obtenemos el trmaite derivacion que vamos a notificar
+		TramiteDerivacion tramiteDerivacion = tramiteDerivacionMongoRepository.findById(tramiteDerivacionNotificacionBodyRequest.getTramiteDerivacionId()).get();
+
+		String tramiteId = tramiteDerivacion.getTramite().getId();
+
+		//Marcamos con estado fin notificado
+		tramiteDerivacion.setEstadoFin(EstadoTramiteConstant.CANCELADO);
+		tramiteDerivacion.setFechaFin(new Date());
+		tramiteDerivacion.setEstado(EstadoTramiteDerivacionConstant.ATENDIDO);
+		tramiteDerivacion.setComentarioFin(tramiteDerivacionNotificacionBodyRequest.getMensaje());
+		tramiteDerivacionMongoRepository.save(tramiteDerivacion);
+
+		//Colocamos el adjunto como un nuevo adjunto al tramite
+		DocumentoAdjuntoBodyRequest documentoAdjuntoBodyRequest = new DocumentoAdjuntoBodyRequest();
+		documentoAdjuntoBodyRequest.setTramiteId(tramiteId);
+		documentoAdjuntoBodyRequest.setDescripcion("CANCELADO");
+		documentoAdjuntoBodyRequest.setFile(tramiteDerivacionNotificacionBodyRequest.getFile());
+		documentoAdjuntoBodyRequest.setTipoAdjunto(TipoAdjuntoConstant.CANCELACION_AMSAC);
+		DocumentoAdjuntoResponse documentoAdjuntoResponse = documentoAdjuntoService.registrarDocumentoAdjunto(documentoAdjuntoBodyRequest);
+
+		//Preparamos el body para el envio de corro de la notificacion
+		DocumentoAdjuntoRequest documentoAdjuntoRequest = new DocumentoAdjuntoRequest();
+		documentoAdjuntoRequest.setId(documentoAdjuntoResponse.getId());
+		Resource documentoAdjuntoNotificacionResource = documentoAdjuntoService.obtenerDocumentoAdjunto(documentoAdjuntoRequest);
+
+		StringBuffer cuerpo = obtenerPlantillaHtml("plantillaCancelacion.html");
+		Map<String, Object> param = new HashMap<>();
+		param.put("correo", tramiteDerivacionNotificacionBodyRequest.getEmail());
+		param.put("asunto", "CANCELACION TRAMITE DOCUMENTARIO AMSAC - Nro. Tramite: "+tramiteDerivacion.getTramite().getNumeroTramite());
+		param.put("cuerpo",  String.format(cuerpo.toString(),tramiteDerivacionNotificacionBodyRequest.getMensaje()));
+		param.put("file", documentoAdjuntoNotificacionResource);
+
+		//Enviamos el correo
+		enviarCorreo(param);
+
+		//Actualizamos estado del tramite
+		tramiteService.actualizarEstadoTramite(tramiteId,EstadoTramiteConstant.NOTIFICADO);
+
+	}
+
 }

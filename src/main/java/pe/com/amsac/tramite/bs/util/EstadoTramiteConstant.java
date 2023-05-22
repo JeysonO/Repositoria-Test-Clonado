@@ -9,4 +9,5 @@ public class EstadoTramiteConstant {
     public final static String RECEPCIONADO = "RECEPCIONADO";
     public final static String REGISTRADO   = "REGISTRADO";
     public final static String NOTIFICADO   = "NOTIFICADO";
+    public final static String CANCELADO    = "CANCELADO";
 }

@@ -1,16 +1,24 @@
 package pe.com.amsac.tramite.bs.service;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
+import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.file.bean.FileTxProperties;
 import pe.com.amsac.tramite.api.file.bean.TramitePathFileStorage;
@@ -18,12 +26,14 @@ import pe.com.amsac.tramite.api.file.bean.UploadFileResponse;
 import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
 import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoMigracionBodyRequest;
+import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.api.response.bean.DocumentoAdjuntoResponse;
 import pe.com.amsac.tramite.api.file.bean.FileStorageService;
 import pe.com.amsac.tramite.api.response.bean.Mensaje;
 import pe.com.amsac.tramite.api.util.FileUtils;
 import pe.com.amsac.tramite.bs.domain.DocumentoAdjunto;
 import pe.com.amsac.tramite.bs.domain.Tramite;
+import pe.com.amsac.tramite.bs.domain.Usuario;
 import pe.com.amsac.tramite.bs.repository.DocumentoAdjuntoMongoRepository;
 import pe.com.amsac.tramite.bs.repository.TramiteMongoRepository;
 
@@ -66,6 +76,9 @@ public class DocumentoAdjuntoService {
 	@Autowired
 	private FileTxProperties fileTxProperties;
 
+	@Autowired
+	private SecurityHelper securityHelper;
+
 	public List<DocumentoAdjuntoResponse> obtenerDocumentoAdjuntoList(DocumentoAdjuntoRequest documentoAdjuntoRequest) throws Exception {
 
 		List<DocumentoAdjunto> listaDocumentoEscala = obtenerDocumentoAdjuntoParams(documentoAdjuntoRequest);
@@ -79,6 +92,7 @@ public class DocumentoAdjuntoService {
 			DocumentoAdjunto documentoAdjunto = obtenerDocumentoAdjunto(documentoAdjuntoTMP.getId());
 			Resource file = obtenerArchivo(documentoAdjunto);
 			documentoAdjuntoTMP.setUploadFileResponse(createUploadFileResponse(file, documentoAdjunto));
+			//documentoAdjuntoTMP.setUsuarioCreacionAdjuntoNombre(crearUsuarioCreacionNombre(documentoAdjuntoTMP));
 		}
 		return documentoAdjuntoResponse;
 	}
@@ -107,12 +121,17 @@ public class DocumentoAdjuntoService {
 
 		String fileName = fileStorageService.getFileName(documentoAdjuntoRequest.getFile().getOriginalFilename());
 		String fileNameInServer = UUID.randomUUID().toString() + "." + obtenerExtensionArchivo(fileName);
+		Usuario usuario = new Usuario();
+		usuario.setId(securityHelper.obtenerUserIdSession());
 
 		DocumentoAdjunto documentoAdjunto = mapper.map(documentoAdjuntoRequest, DocumentoAdjunto.class);
 		documentoAdjunto.setEstado("A");
 		documentoAdjunto.setNombreArchivo(fileName);
+		documentoAdjunto.setNombreArchivoDescarga(fileName);
 		documentoAdjunto.setNombreArchivoServer(fileNameInServer);
 		documentoAdjunto.setExtension(documentoAdjuntoRequest.getFile().getContentType());
+		documentoAdjunto.setUsuarioCreacionAdjunto(usuario);
+		documentoAdjunto.setTramiteDerivacionId(documentoAdjuntoRequest.getTramiteDerivacionId());
 
 		//Primero registramos el archivo en disco
 
@@ -124,6 +143,9 @@ public class DocumentoAdjuntoService {
 				&& documentoAdjunto.getTramite().getId()!=null) {
 			// Se crea el archivo para guardarlo
 			tramiteTmp = tramiteMongoRepository.findById(documentoAdjunto.getTramite().getId()).get();
+			String nombreArchivoDescarga = crearNombreDescarga(tramiteTmp,fileName);
+			//String nombreArchivoDescarga = "CUT_"+tramiteTmp.getNumeroTramite()+"_"+tramiteTmp.getNumeroDocumento()+"_"+documentoAdjuntoRequest.getFile().getOriginalFilename();
+			documentoAdjunto.setNombreArchivoDescarga(nombreArchivoDescarga);
 
 			// Seteamos la ruta
 			//fileStorageService.setFileStorageLocation(construirRutaArchivo(tramiteTmp, documentoAdjunto.getTipoAdjunto()));
@@ -255,6 +277,10 @@ public class DocumentoAdjuntoService {
 		String fileName = documentoAdjuntoMigracionBodyRequest.getNombreOriginalArchivo();//fileStorageService.getFileName(documentoAdjuntoMigracionBodyRequest.getFile().getOriginalFilename());
 		Tramite tramite = tramiteService.findById(documentoAdjuntoMigracionBodyRequest.getTramiteId());
 		String fileNameInServer = UUID.randomUUID().toString() + "." + obtenerExtensionArchivo(fileName);
+		/*
+		Usuario usuario = new Usuario();
+		usuario.setId(documentoAdjuntoMigracionBodyRequest.get);
+		*/
 
 		DocumentoAdjunto documentoAdjunto = new DocumentoAdjunto();
 		documentoAdjunto.setNombreArchivo(fileName);
@@ -319,5 +345,48 @@ public class DocumentoAdjuntoService {
 		String rutaArchivo = crearRutaDocumentoAdjunto(documentoAdjunto);
 		//Obtenemos el archivo
 		return fileStorageService.loadFileAsResourceBlob(rutaArchivo, documentoAdjunto.getNombreArchivoServer());
+	}
+
+	public String crearNombreDescarga(Tramite tramite, String nombreArchivo){
+		String numeroDocumento = tramite.getNumeroDocumento()==null?"NO-NUM-DOC":tramite.getNumeroDocumento();
+		return "CUT_"+tramite.getNumeroTramite()+"_"+numeroDocumento+"_"+nombreArchivo;
+	}
+
+	public Map obtenerDocumentoAdjuntoDescarga(DocumentoAdjuntoRequest documentoAdjuntoRequest) throws Exception {
+		DocumentoAdjunto documentoAdjunto = obtenerDocumentoAdjunto(documentoAdjuntoRequest.getId());
+		Resource fileResource = obtenerArchivo(documentoAdjunto);
+		Map<String, Object> param = new HashMap<>();
+		param.put("file", fileResource);
+		param.put("nombre", documentoAdjunto.getNombreArchivoDescarga());
+		Tramite tramite = documentoAdjunto.getTramite();
+		if(StringUtils.isBlank(documentoAdjunto.getNombreArchivoDescarga()) && tramite!=null){
+			String nombreDescarga = crearNombreDescarga(tramite,fileResource.getFilename());
+			param.put("nombre", nombreDescarga);
+		}
+		return param;
+	}
+
+	private String crearUsuarioCreacionNombre(DocumentoAdjuntoResponse documentoAdjuntoResponse){
+		String usuarioCreacionNombre = documentoAdjuntoResponse.getUsuarioCreacionAdjuntoNombre();
+		if(StringUtils.isBlank(usuarioCreacionNombre)){
+			RestTemplate restTemplate = new RestTemplate();
+			String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/"+documentoAdjuntoResponse.getCreatedByUser();
+			HttpHeaders headers = new HttpHeaders();
+			headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
+			HttpEntity entity = new HttpEntity<>(null, headers);
+			ResponseEntity<CommonResponse> response = null;
+			response = restTemplate.exchange(uri, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+			LinkedHashMap<Object, Object> usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
+			usuarioCreacionNombre = usuario.get("nombreCompleto").toString();
+
+			//Actualizamos el dato en la entidad DocumentoAdjunto
+			DocumentoAdjunto documentoAdjunto = documentoAdjuntoMongoRepository.findById(documentoAdjuntoResponse.getId()).get();
+			Usuario usuarioTmp = new Usuario();
+			usuarioTmp.setId(documentoAdjuntoResponse.getCreatedByUser());
+			documentoAdjunto.setUsuarioCreacionAdjunto(usuarioTmp);
+			documentoAdjuntoMongoRepository.save(documentoAdjunto);
+
+		}
+		return usuarioCreacionNombre;
 	}
 }

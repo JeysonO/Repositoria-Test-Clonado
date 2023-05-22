@@ -13,6 +13,7 @@ import pe.com.amsac.tramite.api.config.exceptions.ResourceNotFoundException;
 import pe.com.amsac.tramite.api.file.bean.FileStorageException;
 import pe.com.amsac.tramite.api.file.bean.FileStorageService;
 import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
+import pe.com.amsac.tramite.api.request.body.bean.UsuarioFirmaLogoBodyRequest;
 import pe.com.amsac.tramite.bs.domain.DocumentoAdjunto;
 import pe.com.amsac.tramite.bs.domain.UsuarioFirma;
 import pe.com.amsac.tramite.bs.domain.UsuarioFirmaLogo;
@@ -58,7 +59,7 @@ public class UsuarioFirmaLogoService {
 
 	}
 
-	public UsuarioFirmaLogo registrarUsuarioFirmaLogo(String usuarioFirmaId, String descripcion, MultipartFile file) throws Exception {
+	public UsuarioFirmaLogo registrarUsuarioFirmaLogo(String usuarioFirmaId, String descripcion, MultipartFile file, boolean esFavorito) throws Exception {
 
 		UsuarioFirma usuarioFirma = new UsuarioFirma();
 		usuarioFirma.setId(usuarioFirmaId);
@@ -68,6 +69,7 @@ public class UsuarioFirmaLogoService {
 		usuarioFirmaLogo.setEstado("A");
 		usuarioFirmaLogo.setUsuarioFirma(usuarioFirma);
 		usuarioFirmaLogo.setDescripcion(descripcion);
+		usuarioFirmaLogo.setEsFavorito(esFavorito);
 
 		//Registramos el archivo en disco
 		String fileName = file.getOriginalFilename();
@@ -199,6 +201,16 @@ public class UsuarioFirmaLogoService {
 
 		//Obtenemos el archivo
 		return fileStorageService.loadFileAsResourceBlob(rutaArchivo, usuarioFirmaLogo.getNombreArchivo());
+	}
+
+	public UsuarioFirmaLogo actualizarUsuarioFirmaLogo(UsuarioFirmaLogoBodyRequest usuarioFirmaLogoBodyRequest) throws Exception {
+
+		UsuarioFirmaLogo usuarioFirmaLogo = usuarioFirmaLogoMongoRepository.findById(usuarioFirmaLogoBodyRequest.getId()).get();
+		usuarioFirmaLogo.setEsFavorito(usuarioFirmaLogoBodyRequest.isEsFavorito());
+
+		usuarioFirmaLogoMongoRepository.save(usuarioFirmaLogo);
+
+		return usuarioFirmaLogo;
 	}
 
 }

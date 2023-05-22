@@ -32,6 +32,7 @@ public class UsuarioFirmaLogo extends BaseAuditableEntity<String> {
     private String size;
     private String estado;
     private String descripcion;
+    private boolean esFavorito;
 
     @Override
     public Serializable getEntityId() {

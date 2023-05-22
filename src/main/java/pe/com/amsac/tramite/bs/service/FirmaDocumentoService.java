@@ -450,10 +450,13 @@ public class FirmaDocumentoService {
 
 		CustomMultipartFile file = new CustomMultipartFile(archivoFirmado,firmaDocumento.getNombreOriginalDocumento(),firmaDocumento.getContentType());
 
+		DocumentoAdjunto documentoAdjuntoOriginal = documentoAdjuntoService.obtenerDocumentoAdjunto(firmaDocumento.getIdDocumentoAdjuntoOrigen());
+
 		DocumentoAdjuntoBodyRequest documentoAdjuntoRequest = new DocumentoAdjuntoBodyRequest();
 		documentoAdjuntoRequest.setTramiteId(firmaDocumento.getIdTramite());
 		documentoAdjuntoRequest.setDescripcion("ARCHIVO CON FIRMA DIGITAL");
 		documentoAdjuntoRequest.setFile(file);
+		documentoAdjuntoRequest.setTramiteDerivacionId(documentoAdjuntoOriginal.getTramiteDerivacionId());
 		//documentoAdjuntoRequest.setTipoAdjunto(TipoAdjuntoConstant.);
 		documentoAdjuntoService.registrarDocumentoAdjunto(documentoAdjuntoRequest);
 

@@ -518,4 +518,36 @@ public class TramiteDerivacionController {
 		return new ResponseEntity<CommonResponse>(commonResponse,httpStatus);
 
 	}
+
+	@PostMapping("/cancelar-tramite")
+	public ResponseEntity<CommonResponse> cancelarTramite(
+			@RequestParam(value = "tramiteDerivacionId", required = true) String tramiteDerivacionId,
+			@RequestParam(value = "email", required = false) String email,
+			@RequestParam(value = "mensaje", required = false) String mensaje,
+			@RequestParam(value = "file", required = true) MultipartFile file) throws Exception {
+
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.OK;
+
+		try{
+
+			TramiteDerivacionNotificacionBodyRequest tramiteDerivacionNotificacionBodyRequest = TramiteDerivacionNotificacionBodyRequest.builder()
+					.tramiteDerivacionId(tramiteDerivacionId)
+					.email(email)
+					.mensaje(mensaje)
+					.file(file).build();
+
+			tramiteDerivacionService.cancelar(tramiteDerivacionNotificacionBodyRequest);
+
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK,null)).build();
+
+		}catch(ServiceException se){
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR,se.getMensajes())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse,httpStatus);
+
+	}
 }

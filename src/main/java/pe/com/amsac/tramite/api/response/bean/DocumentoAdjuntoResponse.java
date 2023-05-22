@@ -14,6 +14,8 @@ public class DocumentoAdjuntoResponse {
 	private String tipoAdjunto;
 	private String tramiteId;
 	private String estado;
+	private String usuarioCreacionAdjuntoNombre;
+	private String createdByUser;
 
 	private UploadFileResponse uploadFileResponse;
 
@@ -27,4 +29,7 @@ public class DocumentoAdjuntoResponse {
 	public void setUploadFileResponse(UploadFileResponse uploadFileResponse) {
 		this.uploadFileResponse = uploadFileResponse;
 	}
+
+	@Mapping("usuarioCreacionAdjunto.nombreCompleto")
+	public String getUsuarioCreacionAdjuntoNombre(){return usuarioCreacionAdjuntoNombre;}
 }

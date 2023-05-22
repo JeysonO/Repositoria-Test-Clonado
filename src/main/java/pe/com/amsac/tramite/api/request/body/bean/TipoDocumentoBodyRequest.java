@@ -8,5 +8,6 @@ public class TipoDocumentoBodyRequest {
 	private String id;
 	private String tipoDocumento;
 	private String descripcion;
+	private String tipoAmbito;
 	
 }

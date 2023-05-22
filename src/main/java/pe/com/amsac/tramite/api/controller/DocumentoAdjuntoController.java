@@ -63,6 +63,7 @@ public class DocumentoAdjuntoController {
 			@RequestParam(value = "tramiteId", required = true) String tramiteId,
 			@RequestParam(value = "descripcion", required = false) String descripcion,
 			@RequestParam(value = "tipoAdjunto", required = false) String tipoAdjunto,
+			@RequestParam(value = "tramiteDerivacionId", required = false) String tramiteDerivacionId,
 			@RequestParam(value = "file", required = true) MultipartFile file) throws Exception {
 
 		CommonResponse commonResponse = null;
@@ -75,6 +76,7 @@ public class DocumentoAdjuntoController {
 			documentoAdjuntoRequest.setDescripcion(descripcion);
 			documentoAdjuntoRequest.setFile(file);
 			documentoAdjuntoRequest.setTipoAdjunto(tipoAdjunto);
+			documentoAdjuntoRequest.setTramiteDerivacionId(tramiteDerivacionId);
 
 			DocumentoAdjuntoResponse documentoAdjuntoResponse = documentoAdjuntoService.registrarDocumentoAdjunto(documentoAdjuntoRequest);
 
@@ -97,7 +99,10 @@ public class DocumentoAdjuntoController {
 			DocumentoAdjuntoRequest documentoAdjuntoRequest = new DocumentoAdjuntoRequest();
 			documentoAdjuntoRequest.setId(documentoAdjuntoId);
 
-			Resource resource = documentoAdjuntoService.obtenerDocumentoAdjunto(documentoAdjuntoRequest);
+			//Resource resource = documentoAdjuntoService.obtenerDocumentoAdjunto(documentoAdjuntoRequest);
+			Map<String, Object> param =  documentoAdjuntoService.obtenerDocumentoAdjuntoDescarga(documentoAdjuntoRequest);
+			Resource resource = (Resource)param.get("file");
+			String nombreArchivo = param.get("nombre").toString();
 
 			String contentType = null;
 			try {
@@ -111,8 +116,14 @@ public class DocumentoAdjuntoController {
 			}
 
 			return ResponseEntity.ok().contentType(MediaType.parseMediaType(contentType))
+					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nombreArchivo + "\"")
+					.body(resource);
+
+			/*
+			return ResponseEntity.ok().contentType(MediaType.parseMediaType(contentType))
 					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
 					.body(resource);
+			*/
 
 		} catch (Exception e) {
 			throw e;

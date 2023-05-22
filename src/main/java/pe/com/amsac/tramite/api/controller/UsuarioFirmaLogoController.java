@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
+import pe.com.amsac.tramite.api.request.body.bean.UsuarioFirmaLogoBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.api.response.bean.Meta;
 import pe.com.amsac.tramite.api.response.bean.UsuarioFirmaLogoCreateResponse;
@@ -21,6 +22,7 @@ import pe.com.amsac.tramite.api.util.EstadoRespuestaConstant;
 import pe.com.amsac.tramite.bs.domain.UsuarioFirmaLogo;
 import pe.com.amsac.tramite.bs.service.UsuarioFirmaLogoService;
 
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 //import pe.com.amsac.security.api.response.bean.UsuarioCreateResponse;
@@ -41,6 +43,7 @@ public class UsuarioFirmaLogoController { //extends CustomAPIController<UsuarioR
     public ResponseEntity<CommonResponse> registrarUsuarioFirmaLogo(
 			@RequestParam(value = "usuarioFirmaId", required = true) String usuarioFirmaId,
 			@RequestParam(value = "descripcion", required = false) String descripcion,
+			@RequestParam(value = "esFavorito", required = false) boolean esFavorito,
 			@RequestParam(value = "file", required = true) MultipartFile file) throws Exception {
 
 		CommonResponse commonResponse = null;
@@ -48,7 +51,7 @@ public class UsuarioFirmaLogoController { //extends CustomAPIController<UsuarioR
 		HttpStatus httpStatus = HttpStatus.CREATED;
 
 		try{
-			UsuarioFirmaLogo usuarioFirmaLogo = usuarioFirmaLogoService.registrarUsuarioFirmaLogo(usuarioFirmaId, descripcion, file);
+			UsuarioFirmaLogo usuarioFirmaLogo = usuarioFirmaLogoService.registrarUsuarioFirmaLogo(usuarioFirmaId, descripcion, file, esFavorito);
 
 			UsuarioFirmaLogoCreateResponse usuarioFirmaLogoResponse = mapper.map(usuarioFirmaLogo, UsuarioFirmaLogoCreateResponse.class);
 
@@ -170,6 +173,29 @@ public class UsuarioFirmaLogoController { //extends CustomAPIController<UsuarioR
 		}catch(Exception e){
 			throw e;
 		}
+
+	}
+
+	@PutMapping
+	public ResponseEntity<CommonResponse> actualizarUsuarioFirmaLogo(@Valid @RequestBody UsuarioFirmaLogoBodyRequest usuarioFirmaLogoBodyRequest) throws Exception {
+
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.CREATED;
+
+		try{
+			UsuarioFirmaLogo usuarioFirmaLogo = usuarioFirmaLogoService.actualizarUsuarioFirmaLogo(usuarioFirmaLogoBodyRequest);
+
+			UsuarioFirmaLogoCreateResponse usuarioFirmaLogoResponse = mapper.map(usuarioFirmaLogo, UsuarioFirmaLogoCreateResponse.class);
+
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK,null)).data(usuarioFirmaLogoResponse).build();
+
+		}catch(ServiceException se){
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR,se.getMensajes())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse,httpStatus);
 
 	}
 

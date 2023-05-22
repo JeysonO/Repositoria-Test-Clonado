@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
+import pe.com.amsac.tramite.api.request.bean.TipoDocumentoRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TipoDocumentoBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.api.response.bean.TipoDocumentoResponse;
@@ -56,14 +57,14 @@ public class TipoDocumentoController {
 	}
 
 	@GetMapping
-	public ResponseEntity<CommonResponse> obtenerTipoDocumento() throws Exception {
+	public ResponseEntity<CommonResponse> obtenerTipoDocumento(@Valid TipoDocumentoRequest tipoDocumentoRequest) throws Exception {
 
 		CommonResponse commonResponse = null;
 
 		HttpStatus httpStatus = HttpStatus.OK;
 
 		try {
-			List<TipoDocumento> listaTipoDocumento = tipoDocumentoService.findByAllTipoDocumento();
+			List<TipoDocumento> listaTipoDocumento = tipoDocumentoService.obtenerTipoDocumento(tipoDocumentoRequest);//tipoDocumentoService.findByAllTipoDocumento();
 			List<TipoDocumentoResponse> obtenerTipoDocumentoList =  new ArrayList<>();
 			TipoDocumentoResponse tipoDocumentoResponse = null;
 			for (TipoDocumento temp : listaTipoDocumento) {

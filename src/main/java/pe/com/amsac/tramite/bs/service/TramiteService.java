@@ -54,6 +54,7 @@ import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Service
@@ -880,10 +881,19 @@ public class TramiteService {
 
 	}
 
-	public void actualizarEstadoTramite(String tramiteId, String estadoTramite){
-		Tramite tramite = tramiteMongoRepository.findById(tramiteId).get();
-		tramite.setEstado(estadoTramite);
-		tramiteMongoRepository.save(tramite);
+	public void actualizarEstadoTramite(String tramiteId, String estadoTramite) throws Exception {
+		boolean actualizoEstado = true;
+		if(estadoTramite.equals(EstadoTramiteConstant.ATENDIDO)){
+			//Si voy a colocar el tramite como atendido verifico que no haya ningun ORIGNAL pendiente de atención.
+			Predicate<TramiteDerivacion> predicate = x -> x.getForma().equals("ORIGINAL") && x.getEstado().equals("P");
+			List<TramiteDerivacion> tramiteDerivacionList = tramiteDerivacionService.obtenerTramiteDerivacionByTramiteId(tramiteId);
+			actualizoEstado = tramiteDerivacionList.stream().filter(predicate).collect(Collectors.toList()).size()>0?false:true;
+		}
+		if(actualizoEstado){
+			Tramite tramite = tramiteMongoRepository.findById(tramiteId).get();
+			tramite.setEstado(estadoTramite);
+			tramiteMongoRepository.save(tramite);
+		}
 	}
 
 	public int totalRegistros(TramiteRequest tramiteRequest) throws Exception {

@@ -31,6 +31,8 @@ public class DocumentoAdjunto extends BaseAuditableEntity<String> {
 
 	private String nombreArchivo;
 
+	private String nombreArchivoDescarga;
+
 	private String nombreArchivoServer;
 
 	private String descripcion;
@@ -43,8 +45,13 @@ public class DocumentoAdjunto extends BaseAuditableEntity<String> {
 
 	private Long size;
 
+	private String tramiteDerivacionId;
+
 	@DBRef
 	private Tramite tramite;
+
+	@DBRef(db = "amsac-seguridad")
+	private Usuario usuarioCreacionAdjunto;
 
 	@Override
 	public Serializable getEntityId() {

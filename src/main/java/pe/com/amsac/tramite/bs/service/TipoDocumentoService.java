@@ -2,11 +2,17 @@ package pe.com.amsac.tramite.bs.service;
 
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
+import pe.com.amsac.tramite.api.request.bean.TipoDocumentoRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TipoDocumentoBodyRequest;
 import pe.com.amsac.tramite.bs.domain.TipoDocumento;
 import pe.com.amsac.tramite.bs.repository.TipoDocumentoMongoRepository;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -17,6 +23,9 @@ public class TipoDocumentoService {
 
 	@Autowired
 	private Mapper mapper;
+
+	@Autowired
+	private MongoTemplate mongoTemplate;
 
 	public TipoDocumento registrarTipoDocumento(TipoDocumentoBodyRequest tipoDocumentoBodyRequest) throws Exception {
 
@@ -29,6 +38,18 @@ public class TipoDocumentoService {
 
 	public List<TipoDocumento> findByAllTipoDocumento() throws Exception{
 		return tipoDocumentoMongoRepository.findByEstado("A");
+	}
+
+	public List<TipoDocumento> obtenerTipoDocumento(TipoDocumentoRequest tipoDocumentoRequest) throws Exception{
+
+		List<String> ambitos = Arrays.asList("A",tipoDocumentoRequest.getTipoAmbito());
+		Query query = new Query();
+		query.addCriteria(Criteria.where("estado").is("A"));
+		query.addCriteria(Criteria.where("tipoAmbito").in(ambitos.toArray()));
+
+		//List<TipoDocumento> users = mongoTemplate.find(query, TipoDocumento.class);
+		//return tipoDocumentoMongoRepository.findByEstado("A");
+		return mongoTemplate.find(query, TipoDocumento.class);
 	}
 		
 	
