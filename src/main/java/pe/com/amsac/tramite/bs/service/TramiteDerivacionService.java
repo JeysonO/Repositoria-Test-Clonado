@@ -1919,7 +1919,7 @@ public class TramiteDerivacionService {
 		enviarCorreo(param);
 
 		//Actualizamos estado del tramite
-		tramiteService.actualizarEstadoTramite(tramiteId,EstadoTramiteConstant.NOTIFICADO);
+		tramiteService.actualizarEstadoTramite(tramiteId,EstadoTramiteConstant.CANCELADO);
 
 	}
 
