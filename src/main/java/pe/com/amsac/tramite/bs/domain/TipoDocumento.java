@@ -31,6 +31,8 @@ public class TipoDocumento extends BaseAuditableEntity<String> {
 
 	private String estado;
 
+	private String tipoAmbito;
+
 	@Override
 	public Serializable getEntityId() {
 		return getId();

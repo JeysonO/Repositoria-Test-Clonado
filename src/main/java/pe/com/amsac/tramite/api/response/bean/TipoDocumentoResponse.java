@@ -9,5 +9,6 @@ public class TipoDocumentoResponse {
 	private String tipoDocumento;
 	private String descripcion;
 	private String estado;
+	private String tipoAmbito;
 
 }

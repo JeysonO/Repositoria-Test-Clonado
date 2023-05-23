@@ -1,5 +1,6 @@
 package pe.com.amsac.tramite.bs.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -16,6 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Service
+@Slf4j
 public class TipoDocumentoService {
 
 	@Autowired
@@ -44,9 +46,28 @@ public class TipoDocumentoService {
 
 		List<String> ambitos = Arrays.asList("A",tipoDocumentoRequest.getTipoAmbito());
 		Query query = new Query();
-		query.addCriteria(Criteria.where("estado").is("A"));
-		query.addCriteria(Criteria.where("tipoAmbito").in(ambitos.toArray()));
+		//query.addCriteria(Criteria.where("estado").is("A"));
+		//query.addCriteria(Criteria.where("tipoAmbito").in(ambitos.toArray()));
+		Criteria andCriteria = new Criteria();
+		Criteria orCriteria = new Criteria();
+		List<Criteria> orExpression = new ArrayList<>();
+		Criteria expression = new Criteria();
+		expression.and("tipoAmbito").is("A");
+		orExpression.add(expression);
+		expression = new Criteria();
+		expression.and("tipoAmbito").is(tipoDocumentoRequest.getTipoAmbito());
+		orExpression.add(expression);
 
+		Criteria criteriaAnd = andCriteria.andOperator(Criteria.where("estado").is("A"));
+		Criteria criteriaOr = new Criteria();
+		criteriaOr = orCriteria.orOperator(orExpression.toArray(new Criteria[orExpression.size()]));
+
+		//andCriteria.andOperator(Criteria.where("estado").is("A"), orCriteria.orOperator(orExpression.toArray(new Criteria[orExpression.size()])));
+		//andCriteria.andOperator(criteriaAnd, orCriteria.orOperator(orExpression.toArray(new Criteria[orExpression.size()])));
+		Criteria criteriaGlobal = new Criteria();
+		criteriaGlobal.andOperator(criteriaAnd,criteriaOr);
+		query.addCriteria(criteriaGlobal);
+		//log.info(query.toString());
 		//List<TipoDocumento> users = mongoTemplate.find(query, TipoDocumento.class);
 		//return tipoDocumentoMongoRepository.findByEstado("A");
 		return mongoTemplate.find(query, TipoDocumento.class);
