@@ -69,32 +69,35 @@ public class TramiteDerivacion extends BaseAuditableEntity<String> {
 	@DBRef(db = "amsac-seguridad")
 	private Cargo cargoUsuarioFin;
 
-	@Transient
+	//@Transient
 	private String dependenciaNombreUsuarioInicio;
 
 	@Transient
 	private String cargoNombreUsuarioInicio;
 
-	@Transient
+	//@Transient
 	private String dependenciaNombreUsuarioFin;
 
 	@Transient
 	private String cargoNombreUsuarioFin;
 
-	@Transient
+	//@Transient
 	private String usuarioInicioNombreCompleto;
 
-	@Transient
+	//@Transient
 	private String usuarioFinNombreCompleto;
 
-	@Transient
+	//@Transient
 	private String usuarioCreacion;
 
-	@Transient
+	//@Transient
 	private String dependenciaEmpresa;
 
-	@Transient
+	//@Transient
 	private String emailUsuarioCreacion;
+
+	@Transient
+	private int diasFueraPlazo;
 
 	@Override
 	public Serializable getEntityId() {

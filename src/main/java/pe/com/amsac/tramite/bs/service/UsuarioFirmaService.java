@@ -229,5 +229,15 @@ public class UsuarioFirmaService {
 
 	}
 
+	public UsuarioFirma actualizarUsuarioFirma(UsuarioFirmaBodyRequest usuarioFirmaBodyrequest) throws Exception {
+
+		UsuarioFirma usuarioFirma = usuarioFirmaMongoRepository.findById(usuarioFirmaBodyrequest.getId()).get();
+		usuarioFirma.setPasswordServicioFirma(usuarioFirmaBodyrequest.getPasswordServicioFirma());
+		usuarioFirma.setUsernameServicioFirma(usuarioFirmaBodyrequest.getUsernameServicioFirma());
+		usuarioFirma.setSiglaFirma(usuarioFirmaBodyrequest.getSiglaFirma());
+		usuarioFirmaMongoRepository.save(usuarioFirma);
+		return usuarioFirma;
+
+	}
 
 }

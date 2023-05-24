@@ -191,4 +191,29 @@ public class UsuarioFirmaController { //extends CustomAPIController<UsuarioRespo
 
 	}
 
+	@PutMapping
+	public ResponseEntity<CommonResponse> actualizarUsuarioFirma(@Valid @RequestBody UsuarioFirmaBodyRequest usuarioFirmaBodyrequest) throws Exception {
+
+		log.info("registrarUsuarioFirma: "+new ObjectMapper().writeValueAsString(usuarioFirmaBodyrequest));
+
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.CREATED;
+
+		try{
+			UsuarioFirma usuarioFirma = usuarioFirmaService.actualizarUsuarioFirma(usuarioFirmaBodyrequest);
+
+			UsuarioFirmaCreateResponse usuarioFirmaResponse = mapper.map(usuarioFirma, UsuarioFirmaCreateResponse.class);
+
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK,null)).data(usuarioFirmaResponse).build();
+
+		}catch(ServiceException se){
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR,se.getMensajes())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse,httpStatus);
+
+	}
+
 }
