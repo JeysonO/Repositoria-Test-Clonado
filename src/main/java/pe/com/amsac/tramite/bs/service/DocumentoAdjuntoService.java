@@ -365,7 +365,7 @@ public class DocumentoAdjuntoService {
 		}
 		return param;
 	}
-
+	/*
 	private String crearUsuarioCreacionNombre(DocumentoAdjuntoResponse documentoAdjuntoResponse){
 		String usuarioCreacionNombre = documentoAdjuntoResponse.getUsuarioCreacionAdjuntoNombre();
 		if(StringUtils.isBlank(usuarioCreacionNombre)){
@@ -389,4 +389,5 @@ public class DocumentoAdjuntoService {
 		}
 		return usuarioCreacionNombre;
 	}
+	*/
 }
