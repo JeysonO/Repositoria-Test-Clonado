@@ -117,7 +117,28 @@ public class TramiteDerivacionService {
 		if(!CollectionUtils.isEmpty(tramitePendienteList)){
 			tramite = tramitePendienteList.get(0).getTramite();
 		}
+		boolean actualizarTramiteDerivacion = false;
 		for(TramiteDerivacion tramiteDerivacion : tramitePendienteList){
+			actualizarTramiteDerivacion = false;
+			if(StringUtils.isBlank(tramiteDerivacion.getDependenciaNombreUsuarioInicio())){
+				uriBusqueda = uri + tramiteDerivacion.getUsuarioInicio().getId();
+				response = restTemplate.exchange(uriBusqueda, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+
+				LinkedHashMap<Object, Object> usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
+				LinkedHashMap<String, String> persona = (LinkedHashMap<String, String>) usuario.get("persona");
+				Persona personaDto = mapper.map(persona,Persona.class);
+
+				if(usuario.get("tipoUsuario").equals("EXTERNO")){//tramite.getOrigenDocumento().equals("EXTERNO")){
+					tramiteDerivacion.setDependenciaNombreUsuarioInicio(personaDto.getRazonSocialNombre());
+				}else{
+					tramiteDerivacion.setDependenciaNombreUsuarioInicio(tramiteDerivacion.getDependenciaUsuarioInicio().getNombre());
+				}
+				nombreCompleto = ((LinkedHashMap)response.getBody().getData()).get("nombre").toString() + " " + ((LinkedHashMap)response.getBody().getData()).get("apePaterno").toString() + ((((LinkedHashMap)response.getBody().getData()).get("apeMaterno")!=null)?" "+((LinkedHashMap)response.getBody().getData()).get("apeMaterno").toString():"");
+				tramiteDerivacion.setUsuarioInicioNombreCompleto(nombreCompleto);
+				actualizarTramiteDerivacion = true;
+			}
+
+			/*
 			//Se completan datos de usuario inicio
 			uriBusqueda = uri + tramiteDerivacion.getUsuarioInicio().getId();
 			response = restTemplate.exchange(uriBusqueda, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
@@ -131,6 +152,7 @@ public class TramiteDerivacionService {
 			}else{
 				tramiteDerivacion.setDependenciaNombreUsuarioInicio(tramiteDerivacion.getDependenciaUsuarioInicio().getNombre());
 			}
+			*/
 
 			/*
 			if(((LinkedHashMap)response.getBody().getData()).get("cargoNombre")!=null)
@@ -141,9 +163,31 @@ public class TramiteDerivacionService {
 				tramiteDerivacion.setDependenciaNombreUsuarioInicio(personaDto.getRazonSocialNombre());
 			*/
 
+			/*
 			nombreCompleto = ((LinkedHashMap)response.getBody().getData()).get("nombre").toString() + " " + ((LinkedHashMap)response.getBody().getData()).get("apePaterno").toString() + ((((LinkedHashMap)response.getBody().getData()).get("apeMaterno")!=null)?" "+((LinkedHashMap)response.getBody().getData()).get("apeMaterno").toString():"");
 			tramiteDerivacion.setUsuarioInicioNombreCompleto(nombreCompleto);
+			*/
 
+			if(StringUtils.isBlank(tramiteDerivacion.getDependenciaNombreUsuarioFin())){
+				uriBusqueda = uri + tramiteDerivacion.getUsuarioFin().getId();
+				response = restTemplate.exchange(uriBusqueda, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+				LinkedHashMap<Object, Object> usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
+				LinkedHashMap<String, String> persona = (LinkedHashMap<String, String>) usuario.get("persona");
+				Persona personaDto = mapper.map(persona,Persona.class);
+
+				if(usuario.get("tipoUsuario").equals("EXTERNO")){//tramite.getOrigenDocumento().equals("EXTERNO")){
+					tramiteDerivacion.setDependenciaNombreUsuarioFin(personaDto.getRazonSocialNombre());
+				}else{
+					tramiteDerivacion.setDependenciaNombreUsuarioFin(tramiteDerivacion.getDependenciaUsuarioFin().getNombre());
+				}
+
+				nombreCompleto = ((LinkedHashMap)response.getBody().getData()).get("nombre").toString() + " " + ((LinkedHashMap)response.getBody().getData()).get("apePaterno").toString() + ((((LinkedHashMap)response.getBody().getData()).get("apeMaterno")!=null)?" "+((LinkedHashMap)response.getBody().getData()).get("apeMaterno").toString():"");
+				tramiteDerivacion.setUsuarioFinNombreCompleto(nombreCompleto);
+
+				actualizarTramiteDerivacion = true;
+			}
+
+			/*
 			//Se completan datos de usuario Fin
 			uriBusqueda = uri + tramiteDerivacion.getUsuarioFin().getId();
 			response = restTemplate.exchange(uriBusqueda, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
@@ -156,6 +200,8 @@ public class TramiteDerivacionService {
 			}else{
 				tramiteDerivacion.setDependenciaNombreUsuarioFin(tramiteDerivacion.getDependenciaUsuarioFin().getNombre());
 			}
+			*/
+
 			/*
 			if(((LinkedHashMap)response.getBody().getData()).get("cargoNombre")!=null)
 				tramiteDerivacion.setCargoNombreUsuarioFin(((LinkedHashMap)response.getBody().getData()).get("cargoNombre").toString());
@@ -164,9 +210,14 @@ public class TramiteDerivacionService {
 			else
 				tramiteDerivacion.setDependenciaNombreUsuarioFin(personaDto.getRazonSocialNombre());
 			*/
-
+			/*
 			nombreCompleto = ((LinkedHashMap)response.getBody().getData()).get("nombre").toString() + " " + ((LinkedHashMap)response.getBody().getData()).get("apePaterno").toString() + ((((LinkedHashMap)response.getBody().getData()).get("apeMaterno")!=null)?" "+((LinkedHashMap)response.getBody().getData()).get("apeMaterno").toString():"");
 			tramiteDerivacion.setUsuarioFinNombreCompleto(nombreCompleto);
+			*/
+
+			if(actualizarTramiteDerivacion){
+				tramiteDerivacionMongoRepository.save(tramiteDerivacion);
+			}
 
 		}
 
@@ -1545,6 +1596,7 @@ public class TramiteDerivacionService {
 			parameters.remove("numeroTramite");
 			parameters.remove("asunto");
 			parameters.remove("razonSocial");
+			parameters.remove("origenDocumento");
 
 			for (String tramiteId : tramiteIds) {
 				Criteria expression = new Criteria();
@@ -1759,6 +1811,7 @@ public class TramiteDerivacionService {
 			parameters.remove("numeroTramite");
 			parameters.remove("asunto");
 			parameters.remove("razonSocial");
+			parameters.remove("origenDocumento");
 
 			for (String tramiteId : tramiteIds) {
 				Criteria expression = new Criteria();
