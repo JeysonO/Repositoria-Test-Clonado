@@ -239,6 +239,13 @@ public class TramiteService {
 			numeroTramite = obtenerNumeroTramite().get(0).getNumeroTramite()+1;
 		tramite.setNumeroTramite(numeroTramite);
 		*/
+		tramite.setTramiteRelacionado(null);
+		if(!StringUtils.isBlank(tramiteBodyRequest.getIdTramiteRelacionado())){
+			Tramite tramiteRelacionado = new Tramite();
+			tramiteRelacionado.setId(tramiteBodyRequest.getIdTramiteRelacionado());
+			tramite.setTramiteRelacionado(tramiteRelacionado);
+		}
+
 		tramite.setNumeroTramite(obtenerNumeroTramite());
 		//tramite.setEstado("A");
 		tramite.setEstado(EstadoTramiteConstant.REGISTRADO);
@@ -253,6 +260,7 @@ public class TramiteService {
 		}else{
 			if(tramiteBodyRequest.getOrigen().equals("INTERNO")){
 				tramite.setEntidadExterna(null);
+				tramite.setFormaRecepcion(null);
 			}else{
 				tramite.setEntidadInterna(null);
 			}
@@ -375,7 +383,7 @@ public class TramiteService {
 		return tramiteMongoRepository.save(tramite);
 	}
 
-	public Map numeroDocumentoRepetido(TramiteBodyRequest tramiteBodyRequest) throws Exception {
+	public Map numeroDocumentoRepetidoAnterior(TramiteBodyRequest tramiteBodyRequest) throws Exception {
 		//Obtener persona del Usuario creador de Tramite
 		//String usuarioId = securityHelper.obtenerUserIdSession();
 		RestTemplate restTemplate = new RestTemplate();
@@ -1036,6 +1044,45 @@ public class TramiteService {
 		tramiteDerivacionRequest.setNotEstadoFin(EstadoTramiteConstant.RECEPCIONADO);
 
 		return tramiteDerivacionService.totalRegistros(tramiteDerivacionRequest);
+	}
+
+	public Map numeroDocumentoRepetido(TramiteBodyRequest tramiteBodyRequest) throws Exception {
+
+		//Buscamos un tramite con el mismo numero de documento
+		Map<String, Object> param = new HashMap<>();
+		param.put("numeroDocumento",tramiteBodyRequest.getNumeroDocumento());
+
+		List<Tramite> tramiteList = buscarHistorialTramite(param);
+
+		Collections.sort(tramiteList, new Comparator<Tramite>(){
+			@Override
+			public int compare(Tramite o1, Tramite o2) {
+				return o1.getCreatedDate().compareTo(o2.getCreatedDate());
+			}
+		});
+
+		Map<String, Object> mapRetorno = null;
+
+		if(!CollectionUtils.isEmpty(tramiteList)){
+			Tramite tramiteRelacionado = tramiteList.get(0);
+
+			DateFormat Formato = new SimpleDateFormat("dd/MM/yyyy");
+			String fechaRegistro = Formato.format(tramiteRelacionado.getCreatedDate());
+
+			List<Mensaje> mensajes = new ArrayList<>();
+
+			if(tramiteRelacionado!=null ){
+				mensajes.add(new Mensaje("E001","ERROR","Ya existe un tramite con el mismo número con fecha de registro "+fechaRegistro+", desea relacionar los 2 tramites?"));
+				Map<String, Object> atributoMap = new HashMap<>();
+				atributoMap.put("idTramiteRelacionado",tramiteRelacionado.getId());
+				mapRetorno = new HashMap<>();
+				mapRetorno.put("errores",mensajes);
+				mapRetorno.put("atributos",atributoMap);
+			}
+		}
+
+		return mapRetorno;
+
 	}
 
 }

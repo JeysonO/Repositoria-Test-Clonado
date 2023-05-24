@@ -70,6 +70,7 @@ public class TramiteResponse {
 
 	private String dependenciaUsuarioCreacionNombre;
 	private String dependenciaUsuarioCreacionId;
+	private TramiteResponse tramiteRelacionado;
 
 	@Mapping("dependenciaDestino.id")
 	public String getDependenciaDestinoId(){return dependenciaDestinoId;}
