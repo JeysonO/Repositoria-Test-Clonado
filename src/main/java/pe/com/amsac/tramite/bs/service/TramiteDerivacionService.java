@@ -2,6 +2,7 @@ package pe.com.amsac.tramite.bs.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -238,6 +239,7 @@ public class TramiteDerivacionService {
 			parameters.remove("numeroTramite");
 			parameters.remove("asunto");
 			parameters.remove("razonSocial");
+			parameters.remove("origenDocumento");
 
 			for (String tramiteId : tramiteIds) {
 				Criteria expression = new Criteria();
@@ -370,6 +372,10 @@ public class TramiteDerivacionService {
 		for(TramiteDerivacion tramiteDerivacion : tramiteDerivacionList){
 			tramite = tramiteDerivacion.getTramite();
 			actualizarTramiteDerivacion = false;
+			if(tramiteDerivacion.getNumeroTramiteRelacionado()==0 && tramite.getTramiteRelacionado()!=null){
+				tramiteDerivacion.setNumeroTramiteRelacionado(tramite.getTramiteRelacionado().getNumeroTramite());
+				actualizarTramiteDerivacion = true;
+			}
 			if(StringUtils.isBlank(tramiteDerivacion.getUsuarioCreacion())){
 				if(!usuarioCreacionMap.containsKey(tramite.getCreatedByUser())){
 					//tramite = tramiteDerivacionList.get(0).getTramite();
@@ -527,6 +533,15 @@ public class TramiteDerivacionService {
 
 			if(actualizarTramiteDerivacion){
 				tramiteDerivacionMongoRepository.save(tramiteDerivacion);
+			}
+
+			//Se calcula los dias qeu no ha sido atendido el tramite
+			if(tramiteDerivacion.getFechaMaximaAtencion()!=null){
+				//Fecha fin de atencion
+				Date fechaDeAtencion = tramiteDerivacion.getFechaFin()!=null?tramiteDerivacion.getFechaFin():new Date();
+				Date fechaMaximaDeAtencion = tramiteDerivacion.getFechaMaximaAtencion();
+				int dias = (int) ((fechaDeAtencion.getTime() - fechaMaximaDeAtencion.getTime()) / 86400000);
+				tramiteDerivacion.setDiasFueraPlazo(dias);
 			}
 
 		}
@@ -1638,6 +1653,16 @@ public class TramiteDerivacionService {
 		if(!StringUtils.isBlank(tramiteDerivacionRequest.getAsunto())){
 			listCriteria.add(Criteria.where("asunto").regex(".*"+tramiteDerivacionRequest.getAsunto()+".*","i"));
 		}
+		if(!StringUtils.isBlank(tramiteDerivacionRequest.getOrigenDocumento())){
+			listCriteria.add(Criteria.where("origenDocumento").is(tramiteDerivacionRequest.getOrigenDocumento()));
+		}
+		//Si esta marcado origenDocumento INTERNO
+		if(!StringUtils.isBlank(tramiteDerivacionRequest.getOrigenDocumento())
+				&& tramiteDerivacionRequest.getOrigenDocumento().equals("INTERNO")
+				&& !StringUtils.isBlank(tramiteDerivacionRequest.getRazonSocial())){
+			listCriteria.add(Criteria.where("entidadExterna.razonSocial").is(tramiteDerivacionRequest.getRazonSocial()));
+		}
+
 		if(tramiteDerivacionRequest.getFechaDerivacionDesde()!=null)
 			listCriteria.add(Criteria.where("createdDate").gte(tramiteDerivacionRequest.getFechaDerivacionDesde()));
 
@@ -1649,7 +1674,9 @@ public class TramiteDerivacionService {
 			//listCriteria.add(Criteria.where("fechaInicio").lte((Date)parameters.get("fechaDerivacionHasta")));
 			listCriteria.add(Criteria.where("createdDate").lte(fechaHasta));
 		}
-		if(!StringUtils.isBlank(tramiteDerivacionRequest.getRazonSocial())){
+		if(!StringUtils.isBlank(tramiteDerivacionRequest.getRazonSocial())
+				&& !StringUtils.isBlank(tramiteDerivacionRequest.getOrigenDocumento())
+				&& tramiteDerivacionRequest.getOrigenDocumento().equals("EXTERNO")){
 			List<String> usuariosIds = obtenerUsuariosCreacionId(tramiteDerivacionRequest);
 			if(!CollectionUtils.isEmpty(usuariosIds)){
 

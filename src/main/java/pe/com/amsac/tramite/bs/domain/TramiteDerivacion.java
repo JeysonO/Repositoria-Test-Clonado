@@ -96,6 +96,8 @@ public class TramiteDerivacion extends BaseAuditableEntity<String> {
 	//@Transient
 	private String emailUsuarioCreacion;
 
+	private int numeroTramiteRelacionado;
+
 	@Transient
 	private int diasFueraPlazo;
 

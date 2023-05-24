@@ -55,6 +55,8 @@ public class TramiteBodyRequest {
 	//Id tramite referencia
 	private String idTramiteRelacionado;
 
+	private boolean validarTramiteRelacionado;
+
 	@Mapping("dependenciaDestino.id")
 	public String getDependenciaDestinoId(){return dependenciaDestinoId;}
 
