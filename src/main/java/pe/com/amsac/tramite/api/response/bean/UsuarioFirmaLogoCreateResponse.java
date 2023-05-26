@@ -11,6 +11,7 @@ public class UsuarioFirmaLogoCreateResponse {
     private String size;
     private String estado;
     private String descripcion;
+    private boolean esFavorito;
 
 
 }
