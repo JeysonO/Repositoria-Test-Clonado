@@ -1,5 +1,6 @@
 package pe.com.amsac.tramite.api.controller;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dozer.Mapper;
@@ -16,10 +17,12 @@ import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
 import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoMigracionBodyRequest;
+import pe.com.amsac.tramite.api.request.body.bean.FirmaDocumentoTramiteHibridoBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.WrapperDocumentoAdjuntoMigracionBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.*;
 import pe.com.amsac.tramite.api.util.EstadoRespuestaConstant;
 import pe.com.amsac.tramite.bs.service.DocumentoAdjuntoService;
+import pe.com.amsac.tramite.bs.service.FirmaDocumentoService;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -36,6 +39,9 @@ public class DocumentoAdjuntoController {
 
 	@Autowired
 	private DocumentoAdjuntoService documentoAdjuntoService;
+
+	@Autowired
+	private FirmaDocumentoService firmaDocumentoService;
 
 	@Autowired
 	private Mapper mapper;
@@ -71,8 +77,7 @@ public class DocumentoAdjuntoController {
 			@RequestParam(value = "orientacion", required = false) String orientacion,
 			@RequestParam(value = "positionCustom", required = false) String positionCustom,
 			@RequestParam(value = "pin", required = false) String pin,
-			@RequestParam(value = "usuarioFirmaLogoId", required = false) String usuarioFirmaLogoId,
-			@RequestParam(value = "email", required = false) String email) throws Exception {
+			@RequestParam(value = "usuarioFirmaLogoId", required = false) String usuarioFirmaLogoId) throws Exception {
 
 		CommonResponse commonResponse = null;
 
@@ -85,10 +90,22 @@ public class DocumentoAdjuntoController {
 			documentoAdjuntoRequest.setFile(file);
 			documentoAdjuntoRequest.setTipoAdjunto(tipoAdjunto);
 			documentoAdjuntoRequest.setTramiteDerivacionId(tramiteDerivacionId);
-
-			DocumentoAdjuntoResponse documentoAdjuntoResponse = documentoAdjuntoService.registrarDocumentoAdjunto(documentoAdjuntoRequest);
-
-			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(documentoAdjuntoResponse).build();
+			if(StringUtils.isBlank(textoFirma)){
+				DocumentoAdjuntoResponse documentoAdjuntoResponse = documentoAdjuntoService.registrarDocumentoAdjunto(documentoAdjuntoRequest);
+				commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(documentoAdjuntoResponse).build();
+			}else{
+				FirmaDocumentoTramiteHibridoBodyRequest firmaDocumentoTramiteHibridoBodyRequest = new FirmaDocumentoTramiteHibridoBodyRequest();
+				firmaDocumentoTramiteHibridoBodyRequest.setTextoFirma(textoFirma);
+				firmaDocumentoTramiteHibridoBodyRequest.setPosition(position);
+				firmaDocumentoTramiteHibridoBodyRequest.setOrientacion(orientacion);
+				firmaDocumentoTramiteHibridoBodyRequest.setPositionCustom(positionCustom);
+				firmaDocumentoTramiteHibridoBodyRequest.setPin(pin);
+				firmaDocumentoTramiteHibridoBodyRequest.setUsuarioFirmaLogoId(usuarioFirmaLogoId);
+				firmaDocumentoTramiteHibridoBodyRequest.setFile(file);
+				firmaDocumentoTramiteHibridoBodyRequest.setTramiteId(tramiteId);
+				firmaDocumentoService.firmarDocumentoHibrido(firmaDocumentoTramiteHibridoBodyRequest);
+				commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).build();
+			}
 
 
 		} catch (ServiceException se) {

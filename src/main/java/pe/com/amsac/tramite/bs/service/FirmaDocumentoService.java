@@ -607,7 +607,7 @@ public class FirmaDocumentoService {
 		}
 
 		FirmaDocumento firmaDocumento = FirmaDocumento.builder()
-				.tipoDocumento(TipoDocumentoFirmaConstant.DOCUMENTO_EXTERNO)
+				.tipoDocumento(TipoDocumentoFirmaConstant.DOCUMENTO_TRAMITE)
 				.nombreOriginalDocumento(nombreArchivoFirmado)
 				.nombreTemporalDocumento(uuidParaArchivoFirmado)
 				.idTramite(firmaDocumentoTramiteHibridoBodyRequest.getTramiteId())
