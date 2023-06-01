@@ -64,7 +64,15 @@ public class DocumentoAdjuntoController {
 			@RequestParam(value = "descripcion", required = false) String descripcion,
 			@RequestParam(value = "tipoAdjunto", required = false) String tipoAdjunto,
 			@RequestParam(value = "tramiteDerivacionId", required = false) String tramiteDerivacionId,
-			@RequestParam(value = "file", required = true) MultipartFile file) throws Exception {
+			@RequestParam(value = "file", required = true) MultipartFile file,
+			//Se agregan los parametros para firmar
+			@RequestParam(value = "textoFirma", required = false) String textoFirma,
+			@RequestParam(value = "position", required = false) String position,
+			@RequestParam(value = "orientacion", required = false) String orientacion,
+			@RequestParam(value = "positionCustom", required = false) String positionCustom,
+			@RequestParam(value = "pin", required = false) String pin,
+			@RequestParam(value = "usuarioFirmaLogoId", required = false) String usuarioFirmaLogoId,
+			@RequestParam(value = "email", required = false) String email) throws Exception {
 
 		CommonResponse commonResponse = null;
 
@@ -196,5 +204,25 @@ public class DocumentoAdjuntoController {
 		} catch (Exception e) {
 			throw e;
 		}
+	}
+
+	@DeleteMapping("/{documentoAdjuntoId}")
+	public ResponseEntity<CommonResponse> eliminarDocumentoAdjunto(@PathVariable String documentoAdjuntoId)
+			throws Exception {
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.OK;
+
+		try {
+
+			documentoAdjuntoService.eliminarDocumentoAdjunto(documentoAdjuntoId);
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).build();
+
+		} catch (ServiceException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 	}
 }

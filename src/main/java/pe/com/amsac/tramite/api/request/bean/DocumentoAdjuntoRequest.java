@@ -9,5 +9,7 @@ public class DocumentoAdjuntoRequest {
 	private String tramiteId;
 	private String nombreArchivo;
 	private String tipoAdjunto;
+	private String tramiteDerivacionId;
+	private String estado;
 
 }

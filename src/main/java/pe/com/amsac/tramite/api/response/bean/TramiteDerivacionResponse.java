@@ -68,6 +68,8 @@ public class TramiteDerivacionResponse {
 
 	private int diasFueraPlazo;
 
+	private boolean conAdjunto;
+
 	@Mapping("tramite.id")
 	public String getTramiteId(){return tramiteId;}
 

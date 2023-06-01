@@ -1,19 +1,15 @@
 package pe.com.amsac.tramite.api.request.body.bean;
 
 import lombok.Data;
-import org.dozer.Mapping;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.NotBlank;
-import java.util.Date;
 
 @Data
-public class FirmaDocumentoTramiteBodyRequest {
+public class FirmaDocumentoTramiteHibridoBodyRequest {
 
-	@NotBlank
-	private String documentoAdjuntoId;
-	@NotBlank
+	private String tramiteId;
 	private String textoFirma;
-	@NotBlank
 	private String pin;
 	//private String imagenFirmaDigitalId;
 	//private String positionId;
@@ -21,6 +17,6 @@ public class FirmaDocumentoTramiteBodyRequest {
 	private String orientacion;
 	private String positionCustom;
 	private String tramiteDerivacionId;
-	@NotBlank
+	private MultipartFile file;
 	private String usuarioFirmaLogoId;
 }

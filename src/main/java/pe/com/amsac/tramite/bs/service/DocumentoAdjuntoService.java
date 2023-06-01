@@ -33,6 +33,7 @@ import pe.com.amsac.tramite.api.response.bean.Mensaje;
 import pe.com.amsac.tramite.api.util.FileUtils;
 import pe.com.amsac.tramite.bs.domain.DocumentoAdjunto;
 import pe.com.amsac.tramite.bs.domain.Tramite;
+import pe.com.amsac.tramite.bs.domain.TramiteDerivacion;
 import pe.com.amsac.tramite.bs.domain.Usuario;
 import pe.com.amsac.tramite.bs.repository.DocumentoAdjuntoMongoRepository;
 import pe.com.amsac.tramite.bs.repository.TramiteMongoRepository;
@@ -72,6 +73,9 @@ public class DocumentoAdjuntoService {
 
 	@Autowired
 	private TramiteService tramiteService;
+
+	@Autowired
+	private TramiteDerivacionService tramiteDerivacionService;
 
 	@Autowired
 	private FileTxProperties fileTxProperties;
@@ -171,6 +175,9 @@ public class DocumentoAdjuntoService {
 
 		DocumentoAdjuntoResponse response = mapper.map(documentoAdjunto, DocumentoAdjuntoResponse.class);
 		response.setUploadFileResponse(createUploadFileResponse(documentoAdjuntoRequest.getFile(), documentoAdjunto));
+
+		//Marcar el tramite derivacion adjunto como que tiene adjunto
+		actualizarAdjuntosPorTramiteDerivacion(documentoAdjunto.getTramiteDerivacionId());
 
 		return response;
 	}
@@ -317,6 +324,9 @@ public class DocumentoAdjuntoService {
 		//Guardamos en BD
 		documentoAdjuntoMongoRepository.save(documentoAdjunto);
 
+		//Marcar el tramite derivacion adjunto como que tiene adjunto
+		actualizarAdjuntosPorTramiteDerivacion(documentoAdjunto.getTramiteDerivacionId());
+
 	}
 
 	private String obtenerExtensionArchivo(String fileName){
@@ -390,4 +400,35 @@ public class DocumentoAdjuntoService {
 		return usuarioCreacionNombre;
 	}
 	*/
+
+	public void eliminarDocumentoAdjunto(String documentoAdjuntoId) throws Exception {
+
+		String usuarioId = securityHelper.obtenerUserIdSession();
+		DocumentoAdjunto documentoAdjunto = documentoAdjuntoMongoRepository.findById(documentoAdjuntoId).get();
+		String tramiteDerivacionId = documentoAdjunto.getTramiteDerivacionId();
+		if(!documentoAdjunto.getCreatedByUser().equals(usuarioId)){
+			List<Mensaje> mensajeList = new ArrayList<>();
+			mensajeList.add(new Mensaje("E001","ERROR","El usuario que desa eliminar el archivo NO es el mismo que adjunto el archivo, verifique"));
+			throw new ServiceException(mensajeList);
+		}
+
+		documentoAdjuntoMongoRepository.deleteById(documentoAdjuntoId);
+
+		actualizarAdjuntosPorTramiteDerivacion(tramiteDerivacionId);
+	}
+
+	public void actualizarAdjuntosPorTramiteDerivacion(String tramiteDerivacionId) throws Exception {
+		if(!StringUtils.isBlank(tramiteDerivacionId)){
+			TramiteDerivacion tramiteDerivacion = tramiteDerivacionService.obtenerTramiteDerivacionById(tramiteDerivacionId);
+			DocumentoAdjuntoRequest documentoAdjuntoRequest = new DocumentoAdjuntoRequest();
+			documentoAdjuntoRequest.setTramiteDerivacionId(tramiteDerivacionId);
+			List<DocumentoAdjunto> listaDocumentoEscala = obtenerDocumentoAdjuntoParams(documentoAdjuntoRequest);
+			tramiteDerivacion.setConAdjunto(true);
+			if(CollectionUtils.isEmpty(listaDocumentoEscala)){
+				tramiteDerivacion.setConAdjunto(false);
+			}
+			tramiteDerivacionService.save(tramiteDerivacion);
+		}
+
+	}
 }

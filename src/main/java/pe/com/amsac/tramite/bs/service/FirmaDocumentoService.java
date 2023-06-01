@@ -25,6 +25,7 @@ import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.FirmaDocumentoTramiteBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.FirmaDocumentoTramiteExternoBodyRequest;
+import pe.com.amsac.tramite.api.request.body.bean.FirmaDocumentoTramiteHibridoBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.*;
 import pe.com.amsac.tramite.api.util.CustomMultipartFile;
 import pe.com.amsac.tramite.bs.domain.*;
@@ -143,6 +144,7 @@ public class FirmaDocumentoService {
 				.estado(EstadoFirmaDocumentoConstant.PENDIENTE_FIRMA)
 				.fechaRegistro(new Date())
 				.idDocumentoAdjuntoOrigen(firmaDocumentoTramiteBodyRequest.getDocumentoAdjuntoId())
+				.tramiteDerivacionId(firmaDocumentoTramiteBodyRequest.getTramiteDerivacionId())
 				.build();
 		firmaDocumentoRepository.save(firmaDocumento);
 
@@ -450,13 +452,14 @@ public class FirmaDocumentoService {
 
 		CustomMultipartFile file = new CustomMultipartFile(archivoFirmado,firmaDocumento.getNombreOriginalDocumento(),firmaDocumento.getContentType());
 
-		DocumentoAdjunto documentoAdjuntoOriginal = documentoAdjuntoService.obtenerDocumentoAdjunto(firmaDocumento.getIdDocumentoAdjuntoOrigen());
+		//DocumentoAdjunto documentoAdjuntoOriginal = documentoAdjuntoService.obtenerDocumentoAdjunto(firmaDocumento.getIdDocumentoAdjuntoOrigen());
 
 		DocumentoAdjuntoBodyRequest documentoAdjuntoRequest = new DocumentoAdjuntoBodyRequest();
 		documentoAdjuntoRequest.setTramiteId(firmaDocumento.getIdTramite());
 		documentoAdjuntoRequest.setDescripcion("ARCHIVO CON FIRMA DIGITAL");
 		documentoAdjuntoRequest.setFile(file);
-		documentoAdjuntoRequest.setTramiteDerivacionId(documentoAdjuntoOriginal.getTramiteDerivacionId());
+		documentoAdjuntoRequest.setTramiteDerivacionId(firmaDocumento.getTramiteDerivacionId());
+		//documentoAdjuntoRequest.setTramiteDerivacionId(documentoAdjuntoOriginal.getTramiteDerivacionId());
 		//documentoAdjuntoRequest.setTipoAdjunto(TipoAdjuntoConstant.);
 		documentoAdjuntoService.registrarDocumentoAdjunto(documentoAdjuntoRequest);
 
@@ -567,6 +570,124 @@ public class FirmaDocumentoService {
 		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(datosToken, null, null);
 
 		SecurityContextHolder.getContext().setAuthentication(authentication);
+	}
+
+
+	public void firmarDocumentoHibrido(FirmaDocumentoTramiteHibridoBodyRequest firmaDocumentoTramiteHibridoBodyRequest) throws Exception {
+
+		//Obtenemos el id del usuario que desea firmar
+		String usuarioId = securityHelper.obtenerUserIdSession();
+
+		UsuarioFirma usuarioFirma = usuarioFirmaService.obtenerUsuarioFirmaByUsuarioId(usuarioId);
+		if(!"A".equals(usuarioFirma.getEstado())){
+			List<Mensaje> mensajes = new ArrayList<>();
+			mensajes.add(new Mensaje("E001","ERROR","No tiene permisos para firmar o no tiene configurado sus credenciales en el sistema, contactar con el administrador"));
+			throw new ServiceException(mensajes);
+		}
+
+		//Crear indicador UUID para le archivo
+		String uuidParaArchivoFirmado = UUID.randomUUID().toString();
+
+		//Obtenemos configuracion del servicio
+		Configuracion configuracion = configuracionService.obtenerConfiguracion();
+		String usernameComponenteFirma = usuarioFirma.getUsernameServicioFirma(); //usuarioFirmaLista.get(0).getUsernameServicioFirma();
+		String passwordComponenteFirma = usuarioFirma.getPasswordServicioFirma(); //usuarioFirmaLista.get(0).getPasswordServicioFirma();
+
+		String nombreArchivoFirmado = firmaDocumentoTramiteHibridoBodyRequest.getFile().getOriginalFilename();
+		String[] arregloCadena = nombreArchivoFirmado.split("\\.");
+		String extension = arregloCadena[arregloCadena.length - 1];
+		nombreArchivoFirmado = this.obtenerNombreArchivo(arregloCadena);
+		//nombreArchivoFirmado = nombreArchivoFirmado + "-" + usuarioBuscarResponse.getApePaterno().substring(0,1).toUpperCase() + "." + extension;
+		nombreArchivoFirmado = nombreArchivoFirmado + "-" + usuarioFirma.getSiglaFirma() + "." + extension;
+
+		if(!extension.toUpperCase().equals("PDF")){
+			List<Mensaje> mensajes = new ArrayList<>();
+			mensajes.add(new Mensaje("E002","ERROR","El archivo no tiene extensión PDF"));
+			throw new ServiceException(mensajes);
+		}
+
+		FirmaDocumento firmaDocumento = FirmaDocumento.builder()
+				.tipoDocumento(TipoDocumentoFirmaConstant.DOCUMENTO_EXTERNO)
+				.nombreOriginalDocumento(nombreArchivoFirmado)
+				.nombreTemporalDocumento(uuidParaArchivoFirmado)
+				.idTramite(firmaDocumentoTramiteHibridoBodyRequest.getTramiteId())
+				.contentType(firmaDocumentoTramiteHibridoBodyRequest.getFile().getContentType())
+				.estado(EstadoFirmaDocumentoConstant.PENDIENTE_FIRMA)
+				.fechaRegistro(new Date())
+				.tramiteDerivacionId(firmaDocumentoTramiteHibridoBodyRequest.getTramiteDerivacionId())
+				.build();
+		firmaDocumentoRepository.save(firmaDocumento);
+
+		String idTransaccionFirma = firmaDocumento.getId();
+
+		//Imagen para la firma
+		//ImagenFirmaDigital imagenFirmaDigital = obtenerImagenDeFirma(firmaDocumentoTramiteBodyRequest.getImagenFirmaDigitalId(), usuarioFirma);
+		UsuarioFirmaLogo usuarioFirmaLogo = obtenerImagenDeFirma(firmaDocumentoTramiteHibridoBodyRequest.getUsuarioFirmaLogoId());
+		//byte[] fileContent = obtenerImagenDeFirma(firmaDocumentoTramiteBodyRequest.getImagenFirmaDigitalId(), usuarioFirmaLista.get(0).getRutaImagenFirma());
+		//ImagenFirmaDigital imagenFirmaDigital = imagenFirmaDigitalService.obtenerImagenFirmaDigitalById(firmaDocumentoTramiteBodyRequest.getImagenFirmaDigitalId());
+		//byte[] fileContent = FileUtils.readFileToByteArray(new File(usuarioFirmaLogo.getRutaImagenFirma()));
+		byte[] fileContent = FileUtils.readFileToByteArray(usuarioFirmaLogoService.loadFileAsResource(usuarioFirmaLogo).getFile());
+		//byte[] fileContent = FileUtils.readFileToByteArray(new File("/Users/ealvino/ealvino/Tools/share_folder/firma amsac/logo-amsac.png"));
+		String encodedImagenString = Base64.getEncoder().encodeToString(fileContent);
+
+		//Posicion de la firma
+		//ImagenFirmaPosition imagenFirmaPosition = generarPosition(firmaDocumentoTramiteBodyRequest.getPositionId(), firmaDocumentoTramiteBodyRequest.getPositionCustom());//imagenFirmaPositionService.obtenerImagenFirmaPositionById(firmaDocumentoTramiteBodyRequest.getPositionId());
+		FirmaDocumentoTramiteBodyRequest firmaDocumentoTramiteBodyRequest = mapper.map(firmaDocumentoTramiteHibridoBodyRequest, FirmaDocumentoTramiteBodyRequest.class);
+		ImagenFirmaPosition imagenFirmaPosition = generarPosition(firmaDocumentoTramiteBodyRequest);//imagenFirmaPositionService.obtenerImagenFirmaPositionById(firmaDocumentoTramiteBodyRequest.getPositionId());
+
+		//Colocamos el mensaje en el paragraph format
+		String textoFirma = StringUtils.isBlank(firmaDocumentoTramiteHibridoBodyRequest.getTextoFirma())?"":firmaDocumentoTramiteHibridoBodyRequest.getTextoFirma();
+		String paragraphFormat = configuracion.getFirmaParagraphFormat().replace("[MENSAJE]",textoFirma);
+
+		//Armamos la invocacion para la firma
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+		MultipartBodyBuilder multipartBodyBuilder = new MultipartBodyBuilder();
+
+		multipartBodyBuilder.part("file_in", firmaDocumentoTramiteHibridoBodyRequest.getFile().getResource(), MediaType.APPLICATION_PDF);
+		multipartBodyBuilder.part("url_out", configuracion.getUrlFirmaBack()+idTransaccionFirma);
+		multipartBodyBuilder.part("urlback", configuracion.getUrlLogBack()+idTransaccionFirma);
+		multipartBodyBuilder.part("env", configuracion.getFirmaEnv());
+		multipartBodyBuilder.part("format", configuracion.getFormatoFirma());
+		multipartBodyBuilder.part("username", usernameComponenteFirma);
+		multipartBodyBuilder.part("password", passwordComponenteFirma);
+		multipartBodyBuilder.part("pin", firmaDocumentoTramiteHibridoBodyRequest.getPin());
+		multipartBodyBuilder.part("billing_username", configuracion.getBillingUsername());
+		multipartBodyBuilder.part("billing_password", configuracion.getBillingPassword());
+		multipartBodyBuilder.part("img", encodedImagenString);
+		multipartBodyBuilder.part("img_size", usuarioFirmaLogo.getSize());
+		multipartBodyBuilder.part("position", imagenFirmaPosition.getPositionpxl());
+		multipartBodyBuilder.part("paragraph_format", paragraphFormat);
+
+		//[{ "font" : ["Universal-Bold",15],"align":"right","data_format" : { "timezone":"America/Lima", "strtime":"%d/%m/%Y %H:%M:%S%z"},"format": ["Firmado por:","$(CN)s","$(serialNumber)s","Fecha: $(date)s","[MENSAJE]"]}]
+
+/*
+		// Load a file from disk.
+		Resource file1 = new FileSystemResource("C:\\logo.png");
+		multipartBodyBuilder.part("avatar", file1, MediaType.IMAGE_JPEG);
+
+		// Load the file from the classpath and add some extra request headers.
+		Resource file2 = new ClassPathResource("logo.png");
+		multipartBodyBuilder.part("avatar", file2, MediaType.TEXT_PLAIN)
+				.header("X-Size", "400")
+				.header("X-width", "400");
+
+ */
+
+		// multipart/form-data request body
+		MultiValueMap<String, HttpEntity<?>> multipartBody = multipartBodyBuilder.build();
+
+		// The complete http request body.
+		HttpEntity<MultiValueMap<String, HttpEntity<?>>> httpEntity = new HttpEntity<>(multipartBody, headers);
+
+		ResponseEntity<String> responseEntity = restTemplate.postForEntity(configuracion.getUrlFirmador(), httpEntity,
+				String.class);
+
+		//Actulizamos con el id que retorna el firmador
+		firmaDocumento.setIdTransaccionFirma(responseEntity.getBody());
+		firmaDocumentoRepository.save(firmaDocumento);
+
+
 	}
 
 }

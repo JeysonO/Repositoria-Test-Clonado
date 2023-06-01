@@ -2096,4 +2096,8 @@ public class TramiteDerivacionService {
 
 	}
 
+	public void save(TramiteDerivacion tramiteDerivacion){
+		tramiteDerivacionMongoRepository.save(tramiteDerivacion);
+	}
+
 }

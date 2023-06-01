@@ -52,6 +52,8 @@ public class FirmaDocumento extends BaseAuditableEntity<String> {
 
 	private String idDocumentoAdjuntoOrigen;
 
+	private String tramiteDerivacionId;
+
 	@Override
 	public Serializable getEntityId() {
 		return getId();

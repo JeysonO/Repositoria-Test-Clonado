@@ -119,6 +119,7 @@ public class TramiteDerivacionController {
 				tramiteDerivacionResponse = mapper.map(temp, TramiteDerivacionResponse.class);
 				if(fechaMaxima!=null)
 					tramiteDerivacionResponse.setFechaMaximaAtencion(fechaMaxima);
+
 				obtenerTramiteDerivacionList.add(tramiteDerivacionResponse);
 			}
 			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(obtenerTramiteDerivacionList).build();
