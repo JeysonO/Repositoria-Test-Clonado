@@ -11,7 +11,7 @@ public class ConfiguracionUsuarioBodyRequest {
 	private String id;
 	@NotBlank
 	private String usuarioId;
-	@NotBlank
+
 	private boolean enviarAlertaTramitePendiente;
 
 	private String estado;
