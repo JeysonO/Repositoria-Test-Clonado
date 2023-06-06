@@ -230,7 +230,18 @@ public class TramiteService {
 			}
 		}
 
+		Date fechaDocumento = null;
+		if(tramiteBodyRequest.getFechaDocumento()!=null){
+			ZoneId defaultZoneId = ZoneId.systemDefault();
+			LocalDate localDate = tramiteBodyRequest.getFechaDocumento();
+			tramiteBodyRequest.setFechaDocumento(null);
+			fechaDocumento =Date.from(localDate.atStartOfDay(defaultZoneId).toInstant());
+		}
+
 		Tramite tramite = mapper.map(tramiteBodyRequest,Tramite.class);
+
+		if(fechaDocumento!=null)
+			tramite.setFechaDocumento(fechaDocumento);
 
 		//List<Tramite> tramiteList = obtenerNumeroTramite();
 		/*
@@ -283,25 +294,6 @@ public class TramiteService {
 				tramite.setCargoUsuarioCreacion(cargo);
 			}
 		}
-
-		if(tramite.getFechaDocumento()!=null){
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-			sdf.setTimeZone(TimeZone.getTimeZone("GMT-5:00"));
-			tramite.setFechaDocumento(sdf.parse(sdf.format(tramite.getFechaDocumento())));
-		}
-
-		Date fechaDocumento = null;
-		if(tramiteBodyRequest.getFechaDocumento()!=null){
-			ZoneId defaultZoneId = ZoneId.systemDefault();
-			LocalDate localDate = tramiteBodyRequest.getFechaDocumento();
-			tramiteBodyRequest.setFechaDocumento(null);
-			fechaDocumento =Date.from(localDate.atStartOfDay(defaultZoneId).toInstant());
-			tramite.setFechaDocumento(fechaDocumento);
-		}
-
-		//ObjectMapper objectMapper = new ObjectMapper();
-		//log.info("Antes de registrar body tramite:"+objectMapper.writeValueAsString(tramite));
-
 
 		tramiteMongoRepository.save(tramite);
 		if(tramiteBodyRequest.getOrigenDocumento().equals("EXTERNO")){
