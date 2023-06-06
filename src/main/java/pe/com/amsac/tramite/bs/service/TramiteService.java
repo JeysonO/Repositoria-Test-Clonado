@@ -1,5 +1,6 @@
 package pe.com.amsac.tramite.bs.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
@@ -282,10 +283,13 @@ public class TramiteService {
 		}
 
 		if(tramite.getFechaDocumento()!=null){
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 			sdf.setTimeZone(TimeZone.getTimeZone("America/Lima"));
 			tramite.setFechaDocumento(sdf.parse(sdf.format(tramite.getFechaDocumento())));
 		}
+
+		ObjectMapper objectMapper = new ObjectMapper();
+		log.info("Antes de registrar body tramite:"+objectMapper.writeValueAsString(tramite));
 
 
 		tramiteMongoRepository.save(tramite);

@@ -1,5 +1,6 @@
 package pe.com.amsac.tramite.api.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -171,6 +172,10 @@ public class TramiteController {
 		HttpStatus httpStatus = HttpStatus.CREATED;
 
 		try {
+
+			ObjectMapper objectMapper = new ObjectMapper();
+			log.info("Body para registrar tramite:"+objectMapper.writeValueAsString(tramiteBodyrequest));
+
 			Tramite tramite = tramiteService.registrarTramite(tramiteBodyrequest);
 
 			TramiteResponse tramiteResponse = mapper.map(tramite, TramiteResponse.class);
