@@ -284,12 +284,12 @@ public class TramiteService {
 
 		if(tramite.getFechaDocumento()!=null){
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-			sdf.setTimeZone(TimeZone.getTimeZone("America/Lima"));
+			sdf.setTimeZone(TimeZone.getTimeZone("GMT-5:00"));
 			tramite.setFechaDocumento(sdf.parse(sdf.format(tramite.getFechaDocumento())));
 		}
 
-		ObjectMapper objectMapper = new ObjectMapper();
-		log.info("Antes de registrar body tramite:"+objectMapper.writeValueAsString(tramite));
+		//ObjectMapper objectMapper = new ObjectMapper();
+		//log.info("Antes de registrar body tramite:"+objectMapper.writeValueAsString(tramite));
 
 
 		tramiteMongoRepository.save(tramite);

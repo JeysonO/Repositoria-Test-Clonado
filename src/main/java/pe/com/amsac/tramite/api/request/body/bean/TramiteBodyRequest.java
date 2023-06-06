@@ -2,6 +2,7 @@ package pe.com.amsac.tramite.api.request.body.bean;
 
 import lombok.Data;
 import org.dozer.Mapping;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.Date;
 
