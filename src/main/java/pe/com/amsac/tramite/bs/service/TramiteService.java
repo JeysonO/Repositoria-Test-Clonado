@@ -280,6 +280,14 @@ public class TramiteService {
 				tramite.setCargoUsuarioCreacion(cargo);
 			}
 		}
+
+		if(tramite.getFechaDocumento()!=null){
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+			sdf.setTimeZone(TimeZone.getTimeZone("America/Lima"));
+			tramite.setFechaDocumento(sdf.parse(sdf.format(tramite.getFechaDocumento())));
+		}
+
+
 		tramiteMongoRepository.save(tramite);
 		if(tramiteBodyRequest.getOrigenDocumento().equals("EXTERNO")){
 			registrarDerivacion(tramite);
