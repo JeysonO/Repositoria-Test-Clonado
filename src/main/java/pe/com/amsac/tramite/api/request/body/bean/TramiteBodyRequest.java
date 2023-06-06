@@ -4,6 +4,7 @@ import lombok.Data;
 import org.dozer.Mapping;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Data
@@ -21,7 +22,7 @@ public class TramiteBodyRequest {
 	private String dependenciaDestinoId;
 
 	//Datos del documento
-	private Date fechaDocumento;
+	private LocalDate fechaDocumento;
 	private String tipoDocumentoId;
 	private String origenDocumento; //INTERNO, EXTERNO
 	private String numeroDocumento;

@@ -54,6 +54,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -286,6 +288,15 @@ public class TramiteService {
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 			sdf.setTimeZone(TimeZone.getTimeZone("GMT-5:00"));
 			tramite.setFechaDocumento(sdf.parse(sdf.format(tramite.getFechaDocumento())));
+		}
+
+		Date fechaDocumento = null;
+		if(tramiteBodyRequest.getFechaDocumento()!=null){
+			ZoneId defaultZoneId = ZoneId.systemDefault();
+			LocalDate localDate = tramiteBodyRequest.getFechaDocumento();
+			tramiteBodyRequest.setFechaDocumento(null);
+			fechaDocumento =Date.from(localDate.atStartOfDay(defaultZoneId).toInstant());
+			tramite.setFechaDocumento(fechaDocumento);
 		}
 
 		//ObjectMapper objectMapper = new ObjectMapper();
