@@ -232,8 +232,19 @@ public class DocumentoAdjuntoService {
 			throws IOException {
 		String fileDownloadUri = "/documentos-adjuntos"
 				.concat("/downloadFile/" + documentoAdjunto.getId());
+
+		Tramite tramite = documentoAdjunto.getTramite();
+		if(StringUtils.isBlank(documentoAdjunto.getNombreArchivoDescarga()) && tramite!=null)
+			documentoAdjunto.setNombreArchivoDescarga(crearNombreDescarga(tramite,file.getFilename()));
+
+		String nombreArchivo = StringUtils.isBlank(documentoAdjunto.getNombreArchivoDescarga())?file.getFilename():documentoAdjunto.getNombreArchivoDescarga();
+
+		UploadFileResponse uploadFileResponse = new UploadFileResponse(nombreArchivo, fileDownloadUri,
+				documentoAdjunto.getExtension(), FileUtils.getFileSize(file.contentLength()));
+		/*
 		UploadFileResponse uploadFileResponse = new UploadFileResponse(file.getFilename(), fileDownloadUri,
 				documentoAdjunto.getExtension(), FileUtils.getFileSize(file.contentLength()));
+		*/
 		return uploadFileResponse;
 	}
 
