@@ -235,9 +235,9 @@ public class DocumentoAdjuntoService {
 
 		Tramite tramite = documentoAdjunto.getTramite();
 		if(StringUtils.isBlank(documentoAdjunto.getNombreArchivoDescarga()) && tramite!=null)
-			documentoAdjunto.setNombreArchivoDescarga(crearNombreDescarga(tramite,file.getFilename()));
+			documentoAdjunto.setNombreArchivoDescarga(crearNombreDescarga(tramite,documentoAdjunto.getNombreArchivo()));
 
-		String nombreArchivo = StringUtils.isBlank(documentoAdjunto.getNombreArchivoDescarga())?file.getFilename():documentoAdjunto.getNombreArchivoDescarga();
+		String nombreArchivo = StringUtils.isBlank(documentoAdjunto.getNombreArchivoDescarga())?documentoAdjunto.getNombreArchivo():documentoAdjunto.getNombreArchivoDescarga();
 
 		UploadFileResponse uploadFileResponse = new UploadFileResponse(nombreArchivo, fileDownloadUri,
 				documentoAdjunto.getExtension(), FileUtils.getFileSize(file.contentLength()));
