@@ -481,7 +481,7 @@ public class TramiteDerivacionService {
 			tramiteDerivacion.setEmailUsuarioCreacion(usuarioCreacionMap.get(tramite.getCreatedByUser()).get("emailUsuarioCreacion").toString());
 			*/
 
-			if(StringUtils.isBlank(tramiteDerivacion.getDependenciaNombreUsuarioInicio())){
+			if(StringUtils.isBlank(tramiteDerivacion.getDependenciaNombreUsuarioInicio()) && tramiteDerivacion.getUsuarioInicio()!=null){
 				uriBusqueda = uri + tramiteDerivacion.getUsuarioInicio().getId();
 				response = restTemplate.exchange(uriBusqueda, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
 
@@ -528,7 +528,7 @@ public class TramiteDerivacionService {
 				tramiteDerivacion.setDependenciaNombreUsuarioInicio(personaDto.getRazonSocialNombre());
 			*/
 
-			if(StringUtils.isBlank(tramiteDerivacion.getDependenciaNombreUsuarioFin())){
+			if(StringUtils.isBlank(tramiteDerivacion.getDependenciaNombreUsuarioFin()) && tramiteDerivacion.getUsuarioFin()!=null){
 
 				//Se completan datos de usuario Fin
 				uriBusqueda = uri + tramiteDerivacion.getUsuarioFin().getId();
