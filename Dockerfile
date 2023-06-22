@@ -24,6 +24,6 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y ttf-mscorefonts-installer 
 
 #ENTRYPOINT ["java", "-Xms256m", "-Xmx512m", "-Duser.timezone=America/Lima", "-Dfile.encoding=UTF-8", "-jar", "-Dspring.profiles.active=${profile}", "-Dsiops.cloud.config.host=${siopscloudhost}", "-Dsiops.cloud.config.port=${siopscloudport}", "/app/application.jar", "server"]
 
-ENTRYPOINT ["java", "-Xms256m", "-Xmx512m", "-Duser.timezone=America/Lima", "-Dfile.encoding=UTF-8", "-jar", "/app/application.jar", "server"]
+ENTRYPOINT ["java", "-Xms256m", "-Xmx2048m", "-Duser.timezone=America/Lima", "-Dfile.encoding=UTF-8", "-jar", "/app/application.jar", "server"]
 
 

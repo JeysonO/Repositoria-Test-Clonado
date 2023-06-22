@@ -21,9 +21,9 @@ spring:
       # Threshold after which files are written to disk.
       #file-size-threshold: 2KB
       # Max file size.
-      max-file-size: 900MB
+      max-file-size: 10MB
       # Max Request Size
-      max-request-size: 905MB
+      max-request-size: 11MB
 
 #  jpa:
 #    hibernate:
