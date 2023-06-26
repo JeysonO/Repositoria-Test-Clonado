@@ -70,6 +70,8 @@ public class TramiteDerivacionResponse {
 
 	private boolean conAdjunto;
 
+	private String estadoTramite;
+
 	@Mapping("tramite.id")
 	public String getTramiteId(){return tramiteId;}
 
@@ -105,5 +107,8 @@ public class TramiteDerivacionResponse {
 
 	@Mapping("tramite.createdDate")
 	public Date getTramiteCreatedDate(){return tramiteCreatedDate;}
+
+	@Mapping("tramite.estado")
+	public String getEstadoTramite(){return estadoTramite;}
 
 }

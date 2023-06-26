@@ -312,24 +312,32 @@ public class DocumentoAdjuntoService {
 		//Primero registramos el archivo en disco
 
 		Tramite tramiteTmp = null;
-
+		String rutaArchivo = null;
 		if(documentoAdjunto.getTramite()!=null
 				&& documentoAdjunto.getTramite().getId()!=null) {
 			// Se crea el archivo para guardarlo
 			tramiteTmp = tramiteMongoRepository.findById(documentoAdjunto.getTramite().getId()).get();
 
 			// Seteamos la ruta
+			/*
 			fileStorageService.setFileStorageLocation(
 					construirRutaArchivo(tramiteTmp, documentoAdjunto.getTipoAdjunto()));
+			*/
+			rutaArchivo = construirRutaArchivo(tramiteTmp, documentoAdjunto.getTipoAdjunto());
 		}else {
 			// Seteamos la ruta
+			/*
 			fileStorageService.setFileStorageLocation(
 					construirRutaArchivo(documentoAdjunto));
+			*/
+			rutaArchivo = construirRutaArchivo(documentoAdjunto);
 		}
 
 		// Registramos el archivo adjunto
 		// Enviamos reemplazar igual a N siempre, para que no chanque los archivos.
-		fileNameInServer = fileStorageService.storeFile(new FileInputStream(fileTramiteAntiguo), fileNameInServer,false);
+		//TODO: Revisar aca no debe usar este metodo
+		//fileNameInServer = fileStorageService.storeFile(new FileInputStream(fileTramiteAntiguo), fileNameInServer,false);
+		fileNameInServer = fileStorageService.storeFileMigracion(rutaArchivo, new FileInputStream(fileTramiteAntiguo), fileNameInServer,false);
 		documentoAdjunto.setNombreArchivoServer(fileNameInServer);
 
 		//Guardamos en BD

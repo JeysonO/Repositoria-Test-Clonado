@@ -1314,7 +1314,8 @@ public class TramiteDerivacionService {
 	}
 
 	public TramiteDerivacion registrarTramiteDerivacion(TramiteDerivacionBodyRequest tramiteDerivacionBodyRequest) throws Exception {
-
+		//Se comenta esta parte, al parecer no es necesario
+		/*
 		//Obtener Usuario Inicio
 		RestTemplate restTemplate = new RestTemplate();
 		String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/"+tramiteDerivacionBodyRequest.getUsuarioInicio();
@@ -1346,6 +1347,13 @@ public class TramiteDerivacionService {
 		persona = mapper.map(personaL,Persona.class);
 		usuario.replace("persona",persona);
 		Usuario userFin = mapper.map(usuario,Usuario.class);
+		*/
+
+		//Se coloca solo esta parte en lugar de las lineas comentadas anteriormente
+		Usuario userInicio = new Usuario();
+		userInicio.setId(tramiteDerivacionBodyRequest.getUsuarioInicio());
+		Usuario userFin = new Usuario();
+		userFin.setId(tramiteDerivacionBodyRequest.getUsuarioFin());
 
 		Date fechaMaxima = null;
 		if(tramiteDerivacionBodyRequest.getFechaMaximaAtencion()!=null){
@@ -1970,6 +1978,9 @@ public class TramiteDerivacionService {
 
 		//Marcamos con estado fin notificado
 		tramiteDerivacion.setEstadoFin(EstadoTramiteConstant.NOTIFICADO);
+		//Cuando es mesa de partes puede llegar el indicador de rechazo, con eso se marca como rechazado por mesa de partes
+		if(tramiteDerivacionNotificacionBodyRequest.isEsRechazo())
+			tramiteDerivacion.setEstadoFin(EstadoTramiteConstant.RECHAZADO);
 		tramiteDerivacion.setFechaFin(new Date());
 		tramiteDerivacion.setEstado(EstadoTramiteDerivacionConstant.ATENDIDO);
 		tramiteDerivacion.setComentarioFin(tramiteDerivacionNotificacionBodyRequest.getMensaje());
@@ -1979,8 +1990,12 @@ public class TramiteDerivacionService {
 		DocumentoAdjuntoBodyRequest documentoAdjuntoBodyRequest = new DocumentoAdjuntoBodyRequest();
 		documentoAdjuntoBodyRequest.setTramiteId(tramiteId);
 		documentoAdjuntoBodyRequest.setDescripcion("NOTIFICACION");
+		if(tramiteDerivacionNotificacionBodyRequest.isEsRechazo())
+			documentoAdjuntoBodyRequest.setDescripcion("RECHAZO");
 		documentoAdjuntoBodyRequest.setFile(tramiteDerivacionNotificacionBodyRequest.getFile());
 		documentoAdjuntoBodyRequest.setTipoAdjunto(TipoAdjuntoConstant.NOTIFICACION_AMSAC);
+		if(tramiteDerivacionNotificacionBodyRequest.isEsRechazo())
+			documentoAdjuntoBodyRequest.setTipoAdjunto(TipoAdjuntoConstant.RECHAZO_AMSAC);
 		DocumentoAdjuntoResponse documentoAdjuntoResponse = documentoAdjuntoService.registrarDocumentoAdjunto(documentoAdjuntoBodyRequest);
 
 		//Preparamos el body para el envio de corro de la notificacion
@@ -1992,6 +2007,8 @@ public class TramiteDerivacionService {
 		Map<String, Object> param = new HashMap<>();
 		param.put("correo", tramiteDerivacionNotificacionBodyRequest.getEmail());
 		param.put("asunto", "NOTIFICACION TRAMITE DOCUMENTARIO AMSAC - Nro. Tramite: "+tramiteDerivacion.getTramite().getNumeroTramite());
+		if(tramiteDerivacionNotificacionBodyRequest.isEsRechazo())
+			param.put("asunto", "RECHAZO TRAMITE DOCUMENTARIO AMSAC - Nro. Tramite: "+tramiteDerivacion.getTramite().getNumeroTramite());
 		param.put("cuerpo",  String.format(cuerpo.toString(),tramiteDerivacionNotificacionBodyRequest.getMensaje()));
 		param.put("file", documentoAdjuntoNotificacionResource);
 
@@ -1999,7 +2016,10 @@ public class TramiteDerivacionService {
 		enviarCorreo(param);
 
 		//Actualizamos estado del tramite
-		tramiteService.actualizarEstadoTramite(tramiteId,EstadoTramiteConstant.NOTIFICADO);
+		if(tramiteDerivacionNotificacionBodyRequest.isEsRechazo())
+			tramiteService.actualizarEstadoTramite(tramiteId,EstadoTramiteConstant.RECHAZADO);
+		else
+			tramiteService.actualizarEstadoTramite(tramiteId,EstadoTramiteConstant.NOTIFICADO);
 
 	}
 

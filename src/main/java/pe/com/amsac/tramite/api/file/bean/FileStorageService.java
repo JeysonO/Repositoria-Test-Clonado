@@ -20,18 +20,19 @@ import java.nio.file.Paths;
 import java.util.Date;
 
 @Component
-@RequestScope
+//@RequestScope
 public class FileStorageService {
     private static final Logger log = LoggerFactory.getLogger(FileStorageService.class);
-    private Path fileStorageLocation;
+    //private Path fileStorageLocation;
     public static final int DEFAULT_BUFFER_SIZE = 8192;
 
     public FileStorageService() {
     }
-
+    /*
     public void setFileStorageLocation(String fileStorageLocatino) {
         this.fileStorageLocation = Paths.get(fileStorageLocatino).toAbsolutePath().normalize();
     }
+    */
 
     public String getFileName(String fileNameOriginal) {
         String fileName = StringUtils.cleanPath(fileNameOriginal);
@@ -45,7 +46,7 @@ public class FileStorageService {
     public String getFileExtention(String fileNameOriginal) {
         return StringUtils.getFilenameExtension(fileNameOriginal).toLowerCase();
     }
-
+    /*
     public String storeFile(MultipartFile file, boolean reemplazar) {
         String fileName = StringUtils.cleanPath(file.getOriginalFilename());
 
@@ -79,16 +80,17 @@ public class FileStorageService {
             throw new FileStorageException("No se puede registrar el archivo " + fileName + ". Vuelva a intentar!");
         }
     }
+    */
 
-    public String storeFile(InputStream file, String nombreOriginal, boolean reemplazar) {
+    public String storeFileMigracion(String rutaArchivo, InputStream file, String nombreOriginal, boolean reemplazar) {
         String fileName = StringUtils.cleanPath(nombreOriginal);
 
         try {
             if (fileName.contains("..")) {
                 throw new FileStorageException("Nombre de archivo no tiene formato valido" + fileName);
             } else {
-                System.out.println("Ruta completa archivo guardar: " + this.fileStorageLocation.toString().concat(File.separator).concat(fileName));
-                String fullFilePath = this.fileStorageLocation.toString().concat(File.separator).concat(fileName);
+                System.out.println("Ruta completa archivo guardar: " + rutaArchivo.concat(File.separator).concat(fileName)); // this.fileStorageLocation.toString().concat(File.separator).concat(fileName));
+                String fullFilePath = rutaArchivo.concat(File.separator).concat(fileName);//this.fileStorageLocation.toString().concat(File.separator).concat(fileName);
                 File targetFile = new File(fullFilePath);
                 if (reemplazar) {
                     this.copyInputStreamToFile(file, targetFile);
@@ -100,7 +102,7 @@ public class FileStorageService {
                         String soloNombreArchivo = this.obtenerNombreArchivo(arregloCadena);
                         soloNombreArchivo = soloNombreArchivo + "-[" + DateUtils.formatDate(new Date(), "HHmmssSSS") + "]";
                         fileName = soloNombreArchivo + "." + extension;
-                        fullFilePath = this.fileStorageLocation.toString().concat(File.separator).concat(fileName);
+                        fullFilePath = rutaArchivo.concat(File.separator).concat(fileName);//this.fileStorageLocation.toString().concat(File.separator).concat(fileName);
                         targetFile = new File(fullFilePath);
                     }
 
@@ -145,7 +147,7 @@ public class FileStorageService {
             throw new ResourceNotFoundException("Archivo no encontrado " + fileName);
         }
     }
-
+    /*
     public Resource loadFileAsResource(String fileName) throws Exception {
         try {
             log.info("Dentro de loadFileAsResource");
@@ -162,6 +164,7 @@ public class FileStorageService {
             throw new ResourceNotFoundException("Archivo no encontrado " + fileName);
         }
     }
+    */
 
     public boolean createDirectory(String ruta) {
         Path rutaTemporal = Paths.get(ruta).toAbsolutePath().normalize();

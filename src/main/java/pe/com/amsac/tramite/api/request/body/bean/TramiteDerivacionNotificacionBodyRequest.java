@@ -16,5 +16,6 @@ public class TramiteDerivacionNotificacionBodyRequest {
 	private String email;
 	private String mensaje;
 	private MultipartFile file;
+	private boolean esRechazo;
 
 }
