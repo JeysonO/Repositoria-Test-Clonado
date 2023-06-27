@@ -5,6 +5,7 @@ import lombok.Data;
 import org.dozer.Mapping;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.Date;
 
 @Data
@@ -23,7 +24,7 @@ public class TramiteMigracionBodyRequest {
 
 	//Datos del documento
 
-	private Date fechaDocumento;
+	private LocalDate fechaDocumento;
 	private String tipoDocumentoId;
 	private String origenDocumento; //INTERNO, EXTERNO
 	private String numeroDocumento;
@@ -119,5 +120,10 @@ public class TramiteMigracionBodyRequest {
 
 	@Mapping("tramitePrioridad.id")
 	public String getTramitePrioridadId(){return tramitePrioridadId;}
+
+	@Mapping("dependenciaUsuarioCreacion.id")
+	public String getDependenciaUsuarioCreacionId(){return dependenciaUsuarioCreacionId;}
+
+
 	
 }

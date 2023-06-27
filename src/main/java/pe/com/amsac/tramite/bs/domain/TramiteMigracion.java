@@ -63,6 +63,12 @@ public class TramiteMigracion {
 	@DBRef
 	private TramitePrioridad tramitePrioridad;
 
+	@DBRef
+	private Tramite tramiteRelacionado;
+
+	@DBRef(db = "amsac-seguridad")
+	private Dependencia dependenciaUsuarioCreacion;
+
 	private Date createdDate;
 	private Date lastModifiedDate;
 	private String createdByUser;

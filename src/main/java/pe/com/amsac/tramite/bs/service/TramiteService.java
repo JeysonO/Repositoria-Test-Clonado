@@ -868,7 +868,20 @@ public class TramiteService {
 		}
 		*/
 
+		Date fechaDocumento = null;
+		if(tramiteBodyRequest.getFechaDocumento()!=null){
+			ZoneId defaultZoneId = ZoneId.systemDefault();
+			LocalDate localDate = tramiteBodyRequest.getFechaDocumento();
+			tramiteBodyRequest.setFechaDocumento(null);
+			fechaDocumento =Date.from(localDate.atStartOfDay(defaultZoneId).toInstant());
+		}
+
 		TramiteMigracion tramite = mapper.map(tramiteBodyRequest,TramiteMigracion.class);
+
+		if(fechaDocumento!=null)
+			tramite.setFechaDocumento(fechaDocumento);
+
+		tramite.setTramiteRelacionado(null);
 		/*
 		List<Tramite> tramiteList = obtenerNumeroTramite();
 
@@ -884,9 +897,19 @@ public class TramiteService {
 			tramite.setEntidadInterna(null);
 			tramite.setEntidadExterna(null);
 			tramite.setTramitePrioridad(null);
+			tramite.setDependenciaUsuarioCreacion(null);
+			//tramite.setCargoUsuarioCreacion(null); No va porque no registran cargo
+			//Se setea la forma de recepcion siempre como digital
+			tramite.setFormaRecepcion(formaRecepcionService.findByFormaRecepcion("DIGITAL").get(0));
 		}else{
+			if(tramiteBodyRequest.getOrigen().equals("INTERNO")){
+				tramite.setEntidadExterna(null);
+				tramite.setFormaRecepcion(null);
+			}else{
+				tramite.setEntidadInterna(null);
+			}
 			tramite.setDependenciaDestino(null);
-			tramite.setEntidadInterna(null);
+
 		}
 		tramiteMigracionMongoRepository.save(tramite);
 		/*
