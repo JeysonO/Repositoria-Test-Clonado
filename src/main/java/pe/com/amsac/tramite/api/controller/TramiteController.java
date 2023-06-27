@@ -232,7 +232,8 @@ public class TramiteController {
 
 			TramiteMigracion tramite = tramiteService.registrarTramiteMigracion(tramiteBodyrequest);
 
-			TramiteResponse tramiteResponse = mapper.map(tramite, TramiteResponse.class);
+			TramiteResponse tramiteResponse = new TramiteResponse(); //mapper.map(tramite, TramiteResponse.class);
+			tramiteResponse.setId(tramite.getId());
 
 			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(tramiteResponse).build();
 
