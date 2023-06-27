@@ -370,7 +370,8 @@ public class TramiteDerivacionController {
 			}
 			*/
 
-			TramiteDerivacionResponse tramiteDerivacionResponse = mapper.map(tramiteDerivacion, TramiteDerivacionResponse.class);
+			TramiteDerivacionResponse tramiteDerivacionResponse = new TramiteDerivacionResponse(); //  mapper.map(tramiteDerivacion, TramiteDerivacionResponse.class);
+			tramiteDerivacionResponse.setId(tramiteDerivacion.getId());
 
 			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(tramiteDerivacionResponse).build();
 
