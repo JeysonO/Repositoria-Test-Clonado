@@ -1315,7 +1315,7 @@ public class TramiteDerivacionService {
 
 	public TramiteDerivacion registrarTramiteDerivacion(TramiteDerivacionBodyRequest tramiteDerivacionBodyRequest) throws Exception {
 		//Se comenta esta parte, al parecer no es necesario
-		/*
+
 		//Obtener Usuario Inicio
 		RestTemplate restTemplate = new RestTemplate();
 		String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/"+tramiteDerivacionBodyRequest.getUsuarioInicio();
@@ -1347,13 +1347,15 @@ public class TramiteDerivacionService {
 		persona = mapper.map(personaL,Persona.class);
 		usuario.replace("persona",persona);
 		Usuario userFin = mapper.map(usuario,Usuario.class);
-		*/
+
 
 		//Se coloca solo esta parte en lugar de las lineas comentadas anteriormente
+		/*
 		Usuario userInicio = new Usuario();
 		userInicio.setId(tramiteDerivacionBodyRequest.getUsuarioInicio());
 		Usuario userFin = new Usuario();
 		userFin.setId(tramiteDerivacionBodyRequest.getUsuarioFin());
+		*/
 
 		Date fechaMaxima = null;
 		if(tramiteDerivacionBodyRequest.getFechaMaximaAtencion()!=null){
