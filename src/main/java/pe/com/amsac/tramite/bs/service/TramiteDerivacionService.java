@@ -1533,6 +1533,9 @@ public class TramiteDerivacionService {
 	public TramiteDerivacion registrarTramiteDerivacionMigracion(TramiteDerivacionMigracionBodyRequest tramiteDerivacionBodyRequest) throws Exception {
 
 		TramiteDerivacion registroTramiteDerivacion = mapper.map(tramiteDerivacionBodyRequest,TramiteDerivacion.class);
+		//colocamos null porque en el tramite actual no hay cargo
+		registroTramiteDerivacion.setCargoUsuarioFin(null);
+		registroTramiteDerivacion.setCargoUsuarioInicio(null);
 		/*
 		if(fechaMaxima!=null)
 			registroTramiteDerivacion.setFechaMaximaAtencion(fechaMaxima);
