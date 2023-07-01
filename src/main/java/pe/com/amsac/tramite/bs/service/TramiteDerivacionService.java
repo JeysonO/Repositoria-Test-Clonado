@@ -84,6 +84,9 @@ public class TramiteDerivacionService {
 	private DocumentoAdjuntoService documentoAdjuntoService;
 
 	@Autowired
+	private ConfiguracionUsuarioService configuracionUsuarioService;
+
+	@Autowired
 	private Environment env;
 
 	public List<TramiteDerivacion> obtenerTramiteDerivacionByTramiteId(String tramiteId) throws Exception {
@@ -1167,7 +1170,7 @@ public class TramiteDerivacionService {
 	// N° Tramite, fecha derivacion, fecha maxima de atencion, dias de atraso.
 	// Para dar atencion al tramite, ingrese al siguiente link: link. Firma AMSAC.
 
-	public void alertaTramiteFueraPlazoAtencion () throws IOException {
+	public void alertaTramiteFueraPlazoAtencion () throws Exception {
 		//Obtener Lista de Tramites Derivacion, condiciones: estado->P y fechaMaxima>=Hoy
 		Date todaysDate = new Date();
 		Query query = new Query();
@@ -1175,10 +1178,26 @@ public class TramiteDerivacionService {
 		query.addCriteria(criteria);
 		List<TramiteDerivacion> tramitePendienteList = mongoTemplate.find(query, TramiteDerivacion.class);
 		//Obtener correo de cada usuarioFin de la lista de Tramite Derivacion Pendiente
+		Map<String, Boolean> mapaUsuarios = new HashMap<>();
+		String usuarioId = null;
+		boolean enviarCorreoTramitePendiente;
 		for(TramiteDerivacion usuarioTmp : tramitePendienteList){
+			enviarCorreoTramitePendiente = true;
+			usuarioId = usuarioTmp.getUsuarioFin().getId();
+			if(mapaUsuarios.containsKey(usuarioId))
+				enviarCorreoTramitePendiente = mapaUsuarios.get(usuarioId);
+			else{
+				//Obtenemos la configuracion del usuario para ver si corresponde enviarle notificacion
+				ConfiguracionUsuario configuracionUsuario = configuracionUsuarioService.obtenerConfiguracionUsuario(usuarioTmp.getUsuarioFin().getId());
+				if(configuracionUsuario!=null)
+					enviarCorreoTramitePendiente = !StringUtils.isBlank(configuracionUsuario.getEnviarAlertaTramitePendiente())?(configuracionUsuario.getEnviarAlertaTramitePendiente().equals("S")?true:false):true;
+
+				mapaUsuarios.put(usuarioId,enviarCorreoTramitePendiente);
+			}
 			String correoUsuarioFin = usuarioTmp.getUsuarioFin().getEmail();
 			//Enviar correo de alerta a cada usuarioFin
-			enviarCorreoAlerta(correoUsuarioFin,usuarioTmp);
+			if(enviarCorreoTramitePendiente)
+				enviarCorreoAlerta(correoUsuarioFin,usuarioTmp);
 		}
 	}
 
