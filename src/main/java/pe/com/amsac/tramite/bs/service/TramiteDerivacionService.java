@@ -2011,21 +2011,25 @@ public class TramiteDerivacionService {
 		tramiteDerivacionMongoRepository.save(tramiteDerivacion);
 
 		//Colocamos el adjunto como un nuevo adjunto al tramite
-		DocumentoAdjuntoBodyRequest documentoAdjuntoBodyRequest = new DocumentoAdjuntoBodyRequest();
-		documentoAdjuntoBodyRequest.setTramiteId(tramiteId);
-		documentoAdjuntoBodyRequest.setDescripcion("NOTIFICACION");
-		if(tramiteDerivacionNotificacionBodyRequest.isEsRechazo())
-			documentoAdjuntoBodyRequest.setDescripcion("RECHAZO");
-		documentoAdjuntoBodyRequest.setFile(tramiteDerivacionNotificacionBodyRequest.getFile());
-		documentoAdjuntoBodyRequest.setTipoAdjunto(TipoAdjuntoConstant.NOTIFICACION_AMSAC);
-		if(tramiteDerivacionNotificacionBodyRequest.isEsRechazo())
-			documentoAdjuntoBodyRequest.setTipoAdjunto(TipoAdjuntoConstant.RECHAZO_AMSAC);
-		DocumentoAdjuntoResponse documentoAdjuntoResponse = documentoAdjuntoService.registrarDocumentoAdjunto(documentoAdjuntoBodyRequest);
+		Resource documentoAdjuntoNotificacionResource = null;
+		if(tramiteDerivacionNotificacionBodyRequest.getFile()!=null){
+			DocumentoAdjuntoBodyRequest documentoAdjuntoBodyRequest = new DocumentoAdjuntoBodyRequest();
+			documentoAdjuntoBodyRequest.setTramiteId(tramiteId);
+			documentoAdjuntoBodyRequest.setDescripcion("NOTIFICACION");
+			if(tramiteDerivacionNotificacionBodyRequest.isEsRechazo())
+				documentoAdjuntoBodyRequest.setDescripcion("RECHAZO");
+			documentoAdjuntoBodyRequest.setFile(tramiteDerivacionNotificacionBodyRequest.getFile());
+			documentoAdjuntoBodyRequest.setTipoAdjunto(TipoAdjuntoConstant.NOTIFICACION_AMSAC);
+			if(tramiteDerivacionNotificacionBodyRequest.isEsRechazo())
+				documentoAdjuntoBodyRequest.setTipoAdjunto(TipoAdjuntoConstant.RECHAZO_AMSAC);
+			DocumentoAdjuntoResponse documentoAdjuntoResponse = documentoAdjuntoService.registrarDocumentoAdjunto(documentoAdjuntoBodyRequest);
 
-		//Preparamos el body para el envio de corro de la notificacion
-		DocumentoAdjuntoRequest documentoAdjuntoRequest = new DocumentoAdjuntoRequest();
-		documentoAdjuntoRequest.setId(documentoAdjuntoResponse.getId());
-		Resource documentoAdjuntoNotificacionResource = documentoAdjuntoService.obtenerDocumentoAdjunto(documentoAdjuntoRequest);
+			//Preparamos el body para el envio de corro de la notificacion
+			DocumentoAdjuntoRequest documentoAdjuntoRequest = new DocumentoAdjuntoRequest();
+			documentoAdjuntoRequest.setId(documentoAdjuntoResponse.getId());
+			documentoAdjuntoNotificacionResource = documentoAdjuntoService.obtenerDocumentoAdjunto(documentoAdjuntoRequest);
+		}
+
 
 		StringBuffer cuerpo = obtenerPlantillaHtml("plantillaNotificacion.html");
 		Map<String, Object> param = new HashMap<>();
@@ -2034,7 +2038,8 @@ public class TramiteDerivacionService {
 		if(tramiteDerivacionNotificacionBodyRequest.isEsRechazo())
 			param.put("asunto", "RECHAZO TRAMITE DOCUMENTARIO AMSAC - Nro. Tramite: "+tramiteDerivacion.getTramite().getNumeroTramite());
 		param.put("cuerpo",  String.format(cuerpo.toString(),tramiteDerivacionNotificacionBodyRequest.getMensaje()));
-		param.put("file", documentoAdjuntoNotificacionResource);
+		if(documentoAdjuntoNotificacionResource!=null)
+			param.put("file", documentoAdjuntoNotificacionResource);
 
 		//Enviamos el correo
 		enviarCorreo(param);
@@ -2058,7 +2063,8 @@ public class TramiteDerivacionService {
 		//bodyMap.add("to","evelyn.flores@bitall.com.pe");
 		bodyMap.add("asunto",param.get("asunto").toString());
 		bodyMap.add("cuerpo",param.get("cuerpo").toString());
-		bodyMap.add("files", param.get("file"));
+		if(param.get("file")!=null)
+			bodyMap.add("files", param.get("file"));
 
 		HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(bodyMap, headers);
 

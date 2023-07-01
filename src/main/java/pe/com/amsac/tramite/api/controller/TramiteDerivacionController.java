@@ -494,7 +494,7 @@ public class TramiteDerivacionController {
 			@RequestParam(value = "tramiteDerivacionId", required = true) String tramiteDerivacionId,
 			@RequestParam(value = "email", required = false) String email,
 			@RequestParam(value = "mensaje", required = false) String mensaje,
-			@RequestParam(value = "file", required = true) MultipartFile file,
+			@RequestParam(value = "file", required = false) MultipartFile file,
 			@RequestParam(value = "esRechazo", required = false) boolean esRechazo) throws Exception {
 
 		CommonResponse commonResponse = null;
