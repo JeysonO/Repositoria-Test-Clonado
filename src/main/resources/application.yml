@@ -82,8 +82,8 @@ app:
     #mail: http://amsac-mail-api:8100
     mail: https://gatewayapp.amsac.pe/amsac-mail
     #mail: http://190.119.248.132:8180/amsac-mail
-    linkTramite: http://std1.amsac.pe/admin/login
-    scheduler: http://std1.amsac.pe/admin/login
+    linkTramite: https://std.amsac.pe/admin/login
+    scheduler: https://std.amsac.pe/admin/login
     enviarAcuseTramite: http://amsac-tramite-api:8100/tramites/enviar-acuse-tramite/%s
 
   field:
