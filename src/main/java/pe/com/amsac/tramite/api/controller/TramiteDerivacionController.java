@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
+import pe.com.amsac.tramite.api.request.bean.AtenderDerivacionLoteRequest;
 import pe.com.amsac.tramite.api.request.body.bean.*;
 import pe.com.amsac.tramite.api.request.bean.TramiteDerivacionRequest;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
@@ -553,5 +554,24 @@ public class TramiteDerivacionController {
 
 		return new ResponseEntity<CommonResponse>(commonResponse,httpStatus);
 
+	}
+
+	@PostMapping("/atender-derivacion-lote")
+	public ResponseEntity<CommonResponse> atenderDerivacionLote(@Valid @RequestBody AtenderDerivacionLoteRequest atenderDerivacionLoteRequest) throws Exception {
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.OK;
+
+		Map mapa = tramiteDerivacionService.atenderDerivacionLote(atenderDerivacionLoteRequest);
+
+		Map<String, Object> param = new HashMap<>();
+		param.put("tramites", atenderDerivacionLoteRequest.getTramites());
+		param.put("usuario", atenderDerivacionLoteRequest.getUsuario());
+		param.put("tramitesCerrados", mapa.get("tramitesCerrados").toString());
+
+		commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(param).build();
+
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 	}
 }

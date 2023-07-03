@@ -28,6 +28,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
+import pe.com.amsac.tramite.api.request.bean.AtenderDerivacionLoteRequest;
 import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
 import pe.com.amsac.tramite.api.request.body.bean.*;
 import pe.com.amsac.tramite.api.request.bean.TramiteDerivacionRequest;
@@ -54,6 +55,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -85,6 +87,9 @@ public class TramiteDerivacionService {
 
 	@Autowired
 	private ConfiguracionUsuarioService configuracionUsuarioService;
+
+	@Autowired
+	private UsuarioService usuarioService;
 
 	@Autowired
 	private Environment env;
@@ -254,6 +259,7 @@ public class TramiteDerivacionService {
 			return tramitePendienteList;
 
 		//Ordenamos por numero de tramite
+		/*
 		Collections.sort(tramitePendienteList, new Comparator<TramiteDerivacion>(){
 			@Override
 			public int compare(TramiteDerivacion a, TramiteDerivacion b)
@@ -261,6 +267,7 @@ public class TramiteDerivacionService {
 				return b.getTramite().getNumeroTramite() - a.getTramite().getNumeroTramite();
 			}
 		});
+		*/
 
 		return tramitePendienteList;
 	}
@@ -382,6 +389,9 @@ public class TramiteDerivacionService {
 			criteriaGlobal = criteriaGlobal.andOperator(criteriaAnd);
 
 		andQuery.addCriteria(criteriaGlobal);
+		andQuery.with(Sort.by(
+				Sort.Order.desc("fechaInicio")
+		));
 
 		List<TramiteDerivacion> tramiteDerivacionList = mongoTemplate.find(andQuery, TramiteDerivacion.class);
 
@@ -2148,6 +2158,89 @@ public class TramiteDerivacionService {
 
 	public void save(TramiteDerivacion tramiteDerivacion){
 		tramiteDerivacionMongoRepository.save(tramiteDerivacion);
+	}
+
+
+	private List<UsuarioResponse> obtenerUsuarioByUsuario(String usuario){
+		RestTemplate restTemplate = new RestTemplate();
+		String uri = env.getProperty("app.url.seguridad") + "/usuarios?email="+usuario;
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
+		HttpEntity entity = new HttpEntity<>(null, headers);
+
+		ResponseEntity<CommonResponse> response = restTemplate.exchange(uri, HttpMethod.GET,entity, CommonResponse.class);
+		ObjectMapper objectMapper = new ObjectMapper();
+		List<UsuarioResponse> usuarioResponseList = objectMapper.convertValue(response.getBody().getData(),new TypeReference<List<UsuarioResponse>>() {});
+
+		//ResponseEntity<CommonResponse> response = restTemplate.exchange(uri,HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+		return usuarioResponseList;
+	}
+
+
+	public Map atenderDerivacionLote(AtenderDerivacionLoteRequest atenderDerivacionLoteRequest) throws Exception {
+		Map<String, Object> param = new HashMap<>();
+		String cadenaResultado = "";
+
+		//Obtener id del usuario
+		List<UsuarioResponse> usuarioResponseList = obtenerUsuarioByUsuario(atenderDerivacionLoteRequest.getUsuario());
+		if(usuarioResponseList.size()>1)
+			throw new Exception("Mas de un registro para usuario");
+		
+		String usuarioId = usuarioResponseList.get(0).getId();
+
+		TramiteDerivacionRequest tramiteDerivacionRequest = new TramiteDerivacionRequest();
+		tramiteDerivacionRequest.setUsuarioFin(usuarioId);
+		tramiteDerivacionRequest.setEstado("P");
+
+		Query andQuery = new Query();
+		Criteria andCriteria = new Criteria();
+		Criteria criteriaGlobal = new Criteria();
+		List<Criteria> andExpression =  new ArrayList<>();
+
+		Map<String, Object> parameters = mapper.map(tramiteDerivacionRequest,Map.class);
+		parameters.values().removeIf(Objects::isNull);
+		if(parameters.get("numeroTramite").equals(0)){
+			parameters.remove("numeroTramite");
+		}
+		List<Criteria> listCriteria =  new ArrayList<>();
+
+		if(!listCriteria.isEmpty()) {
+			andExpression.add(new Criteria().andOperator(listCriteria.toArray(new Criteria[listCriteria.size()])));
+		}
+
+		Criteria expression = new Criteria();
+		parameters.forEach((key, value) -> expression.and(key).is(value));
+		andExpression.add(expression);
+
+		Criteria criteriaAnd = andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()]));
+
+		criteriaGlobal = criteriaGlobal.andOperator(criteriaAnd);
+
+		andQuery.addCriteria(criteriaGlobal);
+
+		List<TramiteDerivacion> tramiteDerivacionList = mongoTemplate.find(andQuery, TramiteDerivacion.class);
+
+		List<Integer> listaNumeroTramitesPendientes = new ArrayList<>();
+
+		if(!StringUtils.isBlank(atenderDerivacionLoteRequest.getTramites())){
+			String[] splitArray = atenderDerivacionLoteRequest.getTramites().split(",");
+			for (int i = 0; i < splitArray.length; i++) {
+				//array[i] = Integer.parseInt(splitArray[i]);
+				listaNumeroTramitesPendientes.add(Integer.parseInt(splitArray[i]));
+			}
+		}
+
+		Predicate<TramiteDerivacion> predicate = x -> !listaNumeroTramitesPendientes.contains(x.getTramite().getNumeroTramite());
+		List<TramiteDerivacion> tramiteDerivacionListFinal = tramiteDerivacionList.stream().filter(predicate).collect(Collectors.toList());
+
+		for(TramiteDerivacion tramiteDerivacion : tramiteDerivacionListFinal){
+			tramiteDerivacion.setEstado("A");
+			cadenaResultado = cadenaResultado + tramiteDerivacion.getTramite().getNumeroTramite() + ",";
+			save(tramiteDerivacion);
+		}
+
+		param.put("tramitesCerrados", cadenaResultado.substring(0,cadenaResultado.length()-1));
+		return param;
 	}
 
 }
