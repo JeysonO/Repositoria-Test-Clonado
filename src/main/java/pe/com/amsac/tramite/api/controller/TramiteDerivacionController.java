@@ -568,6 +568,7 @@ public class TramiteDerivacionController {
 		param.put("tramites", atenderDerivacionLoteRequest.getTramites());
 		param.put("usuario", atenderDerivacionLoteRequest.getUsuario());
 		param.put("tramitesCerrados", mapa.get("tramitesCerrados").toString());
+		param.put("derivacionesIdCerrados", mapa.get("derivacionesIdCerrados").toString());
 
 		commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(param).build();
 

@@ -2180,6 +2180,7 @@ public class TramiteDerivacionService {
 	public Map atenderDerivacionLote(AtenderDerivacionLoteRequest atenderDerivacionLoteRequest) throws Exception {
 		Map<String, Object> param = new HashMap<>();
 		String cadenaResultado = "";
+		String derivacionesIdCerrados = "";
 
 		//Obtener id del usuario
 		List<UsuarioResponse> usuarioResponseList = obtenerUsuarioByUsuario(atenderDerivacionLoteRequest.getUsuario());
@@ -2187,22 +2188,28 @@ public class TramiteDerivacionService {
 			throw new Exception("Mas de un registro para usuario");
 		
 		String usuarioId = usuarioResponseList.get(0).getId();
-
+		/*
 		TramiteDerivacionRequest tramiteDerivacionRequest = new TramiteDerivacionRequest();
 		tramiteDerivacionRequest.setUsuarioFin(usuarioId);
 		tramiteDerivacionRequest.setEstado("P");
+		*/
 
 		Query andQuery = new Query();
 		Criteria andCriteria = new Criteria();
 		Criteria criteriaGlobal = new Criteria();
 		List<Criteria> andExpression =  new ArrayList<>();
 
-		Map<String, Object> parameters = mapper.map(tramiteDerivacionRequest,Map.class);
-		parameters.values().removeIf(Objects::isNull);
-		if(parameters.get("numeroTramite").equals(0)){
-			parameters.remove("numeroTramite");
-		}
+		//Map<String, Object> parameters = mapper.map(tramiteDerivacionRequest,Map.class);
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("usuarioFin",usuarioId);
+		parameters.put("estado","P");
+
 		List<Criteria> listCriteria =  new ArrayList<>();
+
+		if(parameters.containsKey("usuarioFin")){
+			listCriteria.add(Criteria.where("usuarioFin.id").is(parameters.get("usuarioFin")));
+			parameters.remove("usuarioFin");
+		}
 
 		if(!listCriteria.isEmpty()) {
 			andExpression.add(new Criteria().andOperator(listCriteria.toArray(new Criteria[listCriteria.size()])));
@@ -2235,11 +2242,15 @@ public class TramiteDerivacionService {
 
 		for(TramiteDerivacion tramiteDerivacion : tramiteDerivacionListFinal){
 			tramiteDerivacion.setEstado("A");
+			tramiteDerivacion.setFechaFin(new Date());
+			tramiteDerivacion.setEstadoFin(EstadoTramiteConstant.ATENDIDO);
 			cadenaResultado = cadenaResultado + tramiteDerivacion.getTramite().getNumeroTramite() + ",";
+			derivacionesIdCerrados = derivacionesIdCerrados + tramiteDerivacion.getId() + ",";
 			save(tramiteDerivacion);
 		}
 
 		param.put("tramitesCerrados", cadenaResultado.substring(0,cadenaResultado.length()-1));
+		param.put("derivacionesIdCerrados", derivacionesIdCerrados.substring(0,derivacionesIdCerrados.length()-1));
 		return param;
 	}
 

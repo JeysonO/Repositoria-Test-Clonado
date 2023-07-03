@@ -7,7 +7,7 @@ import pe.com.amsac.tramite.api.request.BaseRequest;
 import java.util.Date;
 
 @Data
-public class AtenderDerivacionLoteRequest extends BaseRequest {
+public class AtenderDerivacionLoteRequest {
 
 	private String usuario;
 	private String tramites;
