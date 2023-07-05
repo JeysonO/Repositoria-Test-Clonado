@@ -89,8 +89,10 @@ public class TramiteResponse {
 	public String getUsuarioId(){return usuarioId;}
 
 	//Entidad externa
+	/*
 	@Mapping("entidadExterna.razonSocial")
 	public String getRazonSocial(){return razonSocial;}
+	*/
 
 	@Mapping("entidadExterna.cargo")
 	public String getCargo(){return cargo;}

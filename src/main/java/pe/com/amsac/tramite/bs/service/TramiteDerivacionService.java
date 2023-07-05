@@ -453,7 +453,9 @@ public class TramiteDerivacionService {
 						Persona personaDto = mapper.map(persona,Persona.class);
 						dependenciaEmpresa = personaDto.getRazonSocialNombre();
 					}else{
-						dependenciaEmpresa = tramite.getDependenciaUsuarioCreacion().getNombre();; // ((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre").toString();
+						//dependenciaEmpresa = tramite.getDependenciaUsuarioCreacion().getNombre();; // ((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre").toString();
+						//Si es tramite interno, entonces se muestra lo que se encuentra en el campo entidadExterna.razonSocial
+						dependenciaEmpresa = tramite.getEntidadExterna()!=null?tramite.getEntidadExterna().getRazonSocial():"";
 					}
 					paramTmp = new HashMap<>();
 					paramTmp.put("usuarioCreacion",usuarioCreacion);
@@ -810,9 +812,10 @@ public class TramiteDerivacionService {
 		//Se limpia la fecha maxima de atencion del tramite actual, para que no se copie al nuevo tramite derivacion
 		derivacionTramiteActual.setFechaMaximaAtencion(null);
 
-		//Crear nuevo tramite
+		//Crear nuevo tramite detivacion
 		TramiteDerivacionBodyRequest derivacionTramiteBodyRequest = mapper.map(derivacionTramiteActual, TramiteDerivacionBodyRequest.class);
 		derivacionTramiteBodyRequest.setSecuencia(sec);
+
 		//Usuario Inicio
 		derivacionTramiteBodyRequest.setUsuarioInicio(usuarioId);
 		derivacionTramiteBodyRequest.setDependenciaIdUsuarioInicio(dependenciaIdUserSession);
@@ -825,9 +828,10 @@ public class TramiteDerivacionService {
 
 		derivacionTramiteBodyRequest.setEstadoInicio(EstadoTramiteConstant.DERIVADO);
 		derivacionTramiteBodyRequest.setFechaInicio(new Date());
+		derivacionTramiteBodyRequest.setForma(derivartramiteBodyrequest.getForma());
 		if(fechaMaxima!=null)
 			derivacionTramiteBodyRequest.setFechaMaximaAtencion(fechaMaxima);
-		//TODO: PENDIENTE DATO COMENTARIO INICIO
+
 		derivacionTramiteBodyRequest.setComentarioInicio(derivacionTramiteActual.getComentarioFin());
 		derivacionTramiteBodyRequest.setProveidoAtencion(derivartramiteBodyrequest.getProveidoAtencion());
 
@@ -1123,6 +1127,7 @@ public class TramiteDerivacionService {
 		String avisoConfidencialidad = "-";
 		String codigoEtica = "-";
 		String proveido = "-";
+		String tipoDocumento = registrotramiteDerivacion.getTramite().getTipoDocumento()!=null?registrotramiteDerivacion.getTramite().getTipoDocumento().getTipoDocumento():"-";
 
 		String urlTramite = env.getProperty("app.url.linkTramite");
 		String numTramite = String.valueOf(registrotramiteDerivacion.getTramite().getNumeroTramite());
@@ -1130,6 +1135,9 @@ public class TramiteDerivacionService {
 		String asunto = registrotramiteDerivacion.getTramite().getAsunto();
 		String razonSocialEmisor = registrotramiteDerivacion.getUsuarioInicio().getPersona().getRazonSocialNombre();
 		String correoEmisor = registrotramiteDerivacion.getUsuarioInicio().getEmail();
+
+		if(registrotramiteDerivacion.getTramite().getOrigenDocumento().equals("INTERNO"))
+			razonSocialEmisor = registrotramiteDerivacion.getTramite().getEntidadExterna()!=null?registrotramiteDerivacion.getTramite().getEntidadExterna().getRazonSocial():"-";
 
 		if(registrotramiteDerivacion.getProveidoAtencion()!=null)
 			proveido = registrotramiteDerivacion.getProveidoAtencion();
@@ -1149,8 +1157,12 @@ public class TramiteDerivacionService {
 		if(registrotramiteDerivacion.getFechaMaximaAtencion()!=null)
 			hasta = Formato.format(registrotramiteDerivacion.getFechaMaximaAtencion());
 
+		/*
 		String bodyHtmlFinal = String.format(msjHTML.toString(), urlTramite, numTramite, fecha, asunto, razonSocialEmisor,
 				correoEmisor, proveido, plazoMaximo, horaRecepcion, avisoConfidencialidad, codigoEtica, desde, hasta);
+		*/
+		String bodyHtmlFinal = String.format(msjHTML.toString(), urlTramite, numTramite, fecha, asunto, razonSocialEmisor,
+				correoEmisor, proveido, plazoMaximo, horaRecepcion, tipoDocumento, desde, hasta);
 
 		Map<String, String> params = new HashMap<String, String>();
 		//params.put("to", "evelyn.flores@bitall.com.pe");

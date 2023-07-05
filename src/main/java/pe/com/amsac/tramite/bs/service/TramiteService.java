@@ -1,5 +1,6 @@
 package pe.com.amsac.tramite.bs.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jasperreports.engine.*;
@@ -132,6 +133,7 @@ public class TramiteService {
 		/*if(parameters.containsKey("fechaDocumentoDesde") && parameters.containsKey("fechaDocumentoHasta"))
 			listCriteria.add(Criteria.where("fechaDocumento").gte(parameters.get("fechaDocumentoDesde")).lte(parameters.get("fechaDocumentoHasta")));
 		*/
+		/*
 		if(parameters.containsKey("fechaCreacionDesde")){
 			listCriteria.add(Criteria.where("createdDate").gte(parameters.get("fechaCreacionDesde")));
 			filtroParam.put("fechaCreacionDesde",formatter.format(parameters.get("fechaCreacionDesde")));
@@ -142,10 +144,32 @@ public class TramiteService {
 			filtroParam.put("fechaCreaciontoHasta",formatter.format(parameters.get("fechaCreaciontoHasta")));
 			parameters.remove("fechaCreaciontoHasta");
 		}
+		*/
+		if(tramiteRequest.getFechaCreacionDesde()!=null){
+			listCriteria.add(Criteria.where("createdDate").gte(tramiteRequest.getFechaCreacionDesde()));
+			parameters.remove("fechaCreacionDesde");
+		}
+
+
+		if(tramiteRequest.getFechaCreaciontoHasta()!=null){
+			Date fechaHasta = tramiteRequest.getFechaCreaciontoHasta();
+			String fechaHastaCadena = new SimpleDateFormat("dd/MM/yyyy").format(fechaHasta);
+			fechaHastaCadena = fechaHastaCadena + " " + "23:59:59";
+			fechaHasta = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").parse(fechaHastaCadena);
+			//listCriteria.add(Criteria.where("fechaInicio").lte((Date)parameters.get("fechaDerivacionHasta")));
+			listCriteria.add(Criteria.where("createdDate").lte(fechaHasta));
+			parameters.remove("fechaCreaciontoHasta");
+		}
+
 		if(parameters.containsKey("asunto")){
 			listCriteria.add(Criteria.where("asunto").regex(".*"+parameters.get("asunto")+".*","i"));
 			parameters.remove("asunto");
 		}
+		if(parameters.containsKey("razonSocial")){
+			listCriteria.add(Criteria.where("razonSocial").regex(".*"+parameters.get("razonSocial")+".*","i"));
+			parameters.remove("razonSocial");
+		}
+
 		if(!StringUtils.isBlank(tramiteRequest.getMisTramite())){
 			parameters.remove("misTramite");
 			parameters.put("createdByUser",securityHelper.obtenerUserIdSession());
@@ -271,6 +295,15 @@ public class TramiteService {
 			tramite.setCargoUsuarioCreacion(null);
 			//Se setea la forma de recepcion siempre como digital
 			tramite.setFormaRecepcion(formaRecepcionService.findByFormaRecepcion("DIGITAL").get(0));
+
+			//Seteamos la razon social del usuario en el campo razon social del tramite
+			try{
+				String usuarioId = securityHelper.obtenerUserIdSession();
+				UsuarioResponse usuarioResponse = obtenerUsuarioById(usuarioId);
+				tramite.setRazonSocial(usuarioResponse.getPersona().getRazonSocialNombre());
+			}catch (Exception ex){
+				log.error("ERROR AL OBTENER RAZON SOCIAL",ex);
+			}
 		}else{
 			if(tramiteBodyRequest.getOrigen().equals("INTERNO")){
 				tramite.setEntidadExterna(null);
@@ -738,7 +771,7 @@ public class TramiteService {
 		HttpEntity entity = new HttpEntity<>(null, headers);
 
 		//List<TramiteReporteResponse> tramiteReporteResponseList = buscarTramiteParams(tramiteRequest);
-		String soloOriginal = tramiteRequest.getSoloOriginal();
+		//String soloOriginal = tramiteRequest.getSoloOriginal();
 		List<Tramite> tramiteList = buscarTramiteParams(tramiteRequest);
 		List<TramiteResponse> tramiteResponseList = new ArrayList<>();
 
@@ -767,6 +800,9 @@ public class TramiteService {
 			tramiteResponse.setUsuario(user.getNombreCompleto());
 			tramiteResponse.setPersona(persona.getRazonSocialNombre());
 			tramiteResponse.setCreatedDate(tramite.getCreatedDate());
+			if(StringUtils.isBlank(tramiteResponse.getRazonSocial())){
+				tramiteResponse.setRazonSocial(tramite.getEntidadExterna()!=null?tramite.getEntidadExterna().getRazonSocial():persona.getRazonSocialNombre());
+			}
 			tramiteResponseList.add(tramiteResponse);
 		}
 
@@ -1121,6 +1157,22 @@ public class TramiteService {
 
 		return mapRetorno;
 
+	}
+
+	private UsuarioResponse obtenerUsuarioById(String usuarioId){
+
+		RestTemplate restTemplate = new RestTemplate();
+		String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/"+usuarioId;
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
+		HttpEntity entity = new HttpEntity<>(null, headers);
+
+		ResponseEntity<CommonResponse> response = restTemplate.exchange(uri, HttpMethod.GET,entity, CommonResponse.class);
+		ObjectMapper objectMapper = new ObjectMapper();
+		UsuarioResponse usuarioResponse = objectMapper.convertValue(response.getBody().getData(),new TypeReference<UsuarioResponse>() {});
+
+		//ResponseEntity<CommonResponse> response = restTemplate.exchange(uri,HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+		return usuarioResponse;
 	}
 
 }
