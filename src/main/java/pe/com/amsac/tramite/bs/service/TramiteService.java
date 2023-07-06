@@ -1060,7 +1060,7 @@ public class TramiteService {
 			//Obtener tramites pendientes por usuario y dependencia
 			int cantidadTramitesPendientesPorUsuarioYDependencia = cantidadTramitesPendientesByUsuarioAndDependencia(usuarioId,dependenciaId);
 
-			//Obtener tramites pendientes por usuario y dependencia
+			//Obtener tramites atendidos por usuario y dependencia
 			int cantidadTramitesAtendidosPorUsuarioYDependencia = cantidadTramitesAtendidosByUsuarioAndDependencia(usuarioId,dependenciaId);
 
 			mapaRespuesta.put("cantidadTramitesGeneradosPorUsuarioYDependencia",cantidadTramitesGeneradosPorUsuarioYDependencia);
@@ -1115,7 +1115,7 @@ public class TramiteService {
 		tramiteDerivacionRequest.setDependenciaIdUsuarioFin(dependenciaId);
 		tramiteDerivacionRequest.setUsuarioFin(usuarioId);
 		tramiteDerivacionRequest.setEstado("A");
-		tramiteDerivacionRequest.setNotEstadoFin(EstadoTramiteConstant.RECEPCIONADO);
+		//tramiteDerivacionRequest.setNotEstadoFin(EstadoTramiteConstant.RECEPCIONADO);
 
 		return tramiteDerivacionService.totalRegistros(tramiteDerivacionRequest);
 	}
