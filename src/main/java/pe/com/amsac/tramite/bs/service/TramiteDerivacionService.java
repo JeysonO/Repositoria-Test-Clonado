@@ -249,9 +249,11 @@ public class TramiteDerivacionService {
 		if(!StringUtils.isBlank(dependenciaIdUserSession)){
 			tramiteDerivacionRequest.setDependenciaIdUsuarioFin(dependenciaIdUserSession);
 		}
+		/*
 		if(tramiteDerivacionRequest.getEstado().equals("A")){
 			tramiteDerivacionRequest.setNotEstadoFin("RECEPCIONADO");
 		}
+		*/
 
 		List<TramiteDerivacion> tramitePendienteList = buscarTramiteDerivacionParams(tramiteDerivacionRequest);
 
