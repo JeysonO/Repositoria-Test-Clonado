@@ -284,7 +284,10 @@ public class TramiteService {
 			tramite.setTramiteRelacionado(tramiteRelacionado);
 		}
 
-		tramite.setNumeroTramite(obtenerNumeroTramite());
+		//Solo si es registro, genero un numero de tramite
+		if(StringUtils.isBlank(tramite.getId()))
+			tramite.setNumeroTramite(obtenerNumeroTramite());
+
 		//tramite.setEstado("A");
 		tramite.setEstado(EstadoTramiteConstant.REGISTRADO);
 		if(tramiteBodyRequest.getOrigenDocumento().equals("EXTERNO")){
@@ -326,6 +329,13 @@ public class TramiteService {
 				cargo.setId(cargoIdUserSession);
 				tramite.setCargoUsuarioCreacion(cargo);
 			}
+		}
+
+		//Si es modificacion
+		if(!StringUtils.isBlank(tramite.getId())){
+			Tramite tramiteTemporal = tramiteMongoRepository.findById(tramite.getId()).get();
+			tramite.setCreatedByUser(tramiteTemporal.getCreatedByUser());
+			tramite.setCreatedDate(tramiteTemporal.getCreatedDate());
 		}
 
 		tramiteMongoRepository.save(tramite);
