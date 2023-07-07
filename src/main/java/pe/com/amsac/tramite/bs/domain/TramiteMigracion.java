@@ -50,6 +50,8 @@ public class TramiteMigracion {
 
 	private String idTramiteRelacionado;
 
+	private String razonSocial;
+
 	@DBRef
 	private TipoDocumento tipoDocumento;
 

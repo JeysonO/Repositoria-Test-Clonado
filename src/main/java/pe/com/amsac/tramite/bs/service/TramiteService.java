@@ -313,6 +313,7 @@ public class TramiteService {
 				tramite.setFormaRecepcion(null);
 			}else{
 				tramite.setEntidadInterna(null);
+				tramite.setRazonSocial(tramiteBodyRequest.getRazonSocial());
 			}
 			tramite.setDependenciaDestino(null);
 			//Obtenemos la dependencia que llega en el header para registrar el tramite
@@ -940,6 +941,7 @@ public class TramiteService {
 		tramite.setNumeroTramite(numeroTramite);
 		*/
 		//tramite.setEstado("A");
+		tramite.setRazonSocial(tramiteBodyRequest.getRazonSocial());
 		if(tramiteBodyRequest.getOrigenDocumento().equals("EXTERNO")){
 			tramite.setEntidadInterna(null);
 			tramite.setEntidadExterna(null);
