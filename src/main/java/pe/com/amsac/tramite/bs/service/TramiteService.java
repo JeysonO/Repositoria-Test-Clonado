@@ -211,7 +211,9 @@ public class TramiteService {
 		//Criteria criteria = Criteria.where("createdByUser").regex(".*63326743b5ebc131b21522e1.*");
 		//andQuery.addCriteria(criteria);
 		andQuery.addCriteria(andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()])));
-
+		andQuery.with(Sort.by(
+				Sort.Order.desc("numeroTramite")
+		));
 
 		/*
 		if(andExpression.size()>1)
