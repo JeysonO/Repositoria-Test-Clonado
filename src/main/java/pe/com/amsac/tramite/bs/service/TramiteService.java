@@ -1005,6 +1005,7 @@ public class TramiteService {
 		/*if(parameters.containsKey("fechaDocumentoDesde") && parameters.containsKey("fechaDocumentoHasta"))
 			listCriteria.add(Criteria.where("fechaDocumento").gte(parameters.get("fechaDocumentoDesde")).lte(parameters.get("fechaDocumentoHasta")));
 		*/
+		/*
 		if(parameters.containsKey("fechaCreacionDesde")){
 			listCriteria.add(Criteria.where("createdDate").gte(parameters.get("fechaCreacionDesde")));
 			filtroParam.put("fechaCreacionDesde",formatter.format(parameters.get("fechaCreacionDesde")));
@@ -1015,9 +1016,30 @@ public class TramiteService {
 			filtroParam.put("fechaCreaciontoHasta",formatter.format(parameters.get("fechaCreaciontoHasta")));
 			parameters.remove("fechaCreaciontoHasta");
 		}
+		*/
+
+		if(tramiteRequest.getFechaCreacionDesde()!=null){
+			listCriteria.add(Criteria.where("createdDate").gte(tramiteRequest.getFechaCreacionDesde()));
+			parameters.remove("fechaCreacionDesde");
+		}
+		if(tramiteRequest.getFechaCreaciontoHasta()!=null){
+			Date fechaHasta = tramiteRequest.getFechaCreaciontoHasta();
+			String fechaHastaCadena = new SimpleDateFormat("dd/MM/yyyy").format(fechaHasta);
+			fechaHastaCadena = fechaHastaCadena + " " + "23:59:59";
+			fechaHasta = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").parse(fechaHastaCadena);
+			//listCriteria.add(Criteria.where("fechaInicio").lte((Date)parameters.get("fechaDerivacionHasta")));
+			listCriteria.add(Criteria.where("createdDate").lte(fechaHasta));
+			parameters.remove("fechaCreaciontoHasta");
+		}
+
 		if(parameters.containsKey("asunto")){
 			listCriteria.add(Criteria.where("asunto").regex(".*"+parameters.get("asunto")+".*"));
 			parameters.remove("asunto");
+		}
+
+		if(parameters.containsKey("razonSocial")){
+			listCriteria.add(Criteria.where("razonSocial").regex(".*"+parameters.get("razonSocial")+".*","i"));
+			parameters.remove("razonSocial");
 		}
 
 		if(!listCriteria.isEmpty())
