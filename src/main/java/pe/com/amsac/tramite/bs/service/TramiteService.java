@@ -247,9 +247,9 @@ public class TramiteService {
 	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
 	public Tramite registrarTramite(TramiteBodyRequest tramiteBodyRequest) throws Exception {
 
-		if(StringUtils.isBlank(tramiteBodyRequest.getIdTramiteRelacionado()) && tramiteBodyRequest.isValidarTramiteRelacionado() && StringUtils.isBlank(tramiteBodyRequest.getId())){
+		if(StringUtils.isBlank(tramiteBodyRequest.getIdTramiteRelacionado()) && tramiteBodyRequest.isValidarTramiteRelacionado()){
 			Map<String, Object> mapaRetorno = numeroDocumentoRepetido(tramiteBodyRequest);
-			if(mapaRetorno!=null){
+			if(mapaRetorno!=null && !((Map)mapaRetorno.get("atributos")).get("idTramiteRelacionado").toString().equals(tramiteBodyRequest.getId()) ){
 				throw new ServiceException((List<Mensaje>) mapaRetorno.get("errores"), (Map) mapaRetorno.get("atributos"));
 			}
 		}
