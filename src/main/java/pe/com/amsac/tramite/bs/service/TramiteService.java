@@ -336,6 +336,7 @@ public class TramiteService {
 			Tramite tramiteTemporal = tramiteMongoRepository.findById(tramite.getId()).get();
 			tramite.setCreatedByUser(tramiteTemporal.getCreatedByUser());
 			tramite.setCreatedDate(tramiteTemporal.getCreatedDate());
+			tramite.setNumeroTramite(tramiteTemporal.getNumeroTramite());
 		}
 
 		tramiteMongoRepository.save(tramite);
