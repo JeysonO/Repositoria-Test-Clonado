@@ -1142,7 +1142,7 @@ public class TramiteDerivacionService {
 		String fecha = fechaa.format(registrotramiteDerivacion.getCreatedDate());
 		String asunto = registrotramiteDerivacion.getTramite().getAsunto();
 		String razonSocialEmisor = registrotramiteDerivacion.getTramite().getRazonSocial(); // registrotramiteDerivacion.getUsuarioInicio().getPersona().getRazonSocialNombre();
-		String correoEmisor = registrotramiteDerivacion.getUsuarioInicio().getEmail();
+		//String correoEmisor = registrotramiteDerivacion.getUsuarioInicio().getEmail();
 
 		if(registrotramiteDerivacion.getTramite().getOrigenDocumento().equals("INTERNO"))
 			razonSocialEmisor = registrotramiteDerivacion.getTramite().getEntidadExterna()!=null?registrotramiteDerivacion.getTramite().getEntidadExterna().getRazonSocial():"-";
@@ -1174,7 +1174,7 @@ public class TramiteDerivacionService {
 				correoEmisor, proveido, plazoMaximo, horaRecepcion, tipoDocumento, desde, hasta);
 		*/
 		String bodyHtmlFinal = String.format(msjHTML.toString(), numTramite, nombreDestinatario, numTramite, fecha, asunto, razonSocialEmisor,
-				correoEmisor, proveido, plazoMaximo, horaRecepcion, tipoDocumento, urlTramite);
+				proveido, plazoMaximo, horaRecepcion, tipoDocumento, urlTramite);
 
 		Map<String, String> params = new HashMap<String, String>();
 		//params.put("to", "evelyn.flores@bitall.com.pe");
