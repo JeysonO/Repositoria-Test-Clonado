@@ -1141,7 +1141,7 @@ public class TramiteDerivacionService {
 		String numTramite = String.valueOf(registrotramiteDerivacion.getTramite().getNumeroTramite());
 		String fecha = fechaa.format(registrotramiteDerivacion.getCreatedDate());
 		String asunto = registrotramiteDerivacion.getTramite().getAsunto();
-		String razonSocialEmisor = registrotramiteDerivacion.getUsuarioInicio().getPersona().getRazonSocialNombre();
+		String razonSocialEmisor = registrotramiteDerivacion.getTramite().getRazonSocial(); // registrotramiteDerivacion.getUsuarioInicio().getPersona().getRazonSocialNombre();
 		String correoEmisor = registrotramiteDerivacion.getUsuarioInicio().getEmail();
 
 		if(registrotramiteDerivacion.getTramite().getOrigenDocumento().equals("INTERNO"))
