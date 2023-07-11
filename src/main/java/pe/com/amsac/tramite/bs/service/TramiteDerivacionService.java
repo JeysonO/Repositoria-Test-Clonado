@@ -1174,7 +1174,7 @@ public class TramiteDerivacionService {
 				correoEmisor, proveido, plazoMaximo, horaRecepcion, tipoDocumento, desde, hasta);
 		*/
 		String bodyHtmlFinal = String.format(msjHTML.toString(), numTramite, nombreDestinatario, numTramite, fecha, asunto, razonSocialEmisor,
-				proveido, plazoMaximo, horaRecepcion, tipoDocumento, urlTramite);
+				proveido, plazoMaximo, tipoDocumento, urlTramite);
 
 		Map<String, String> params = new HashMap<String, String>();
 		//params.put("to", "evelyn.flores@bitall.com.pe");
