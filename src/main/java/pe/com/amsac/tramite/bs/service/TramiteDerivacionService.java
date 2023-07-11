@@ -1137,7 +1137,7 @@ public class TramiteDerivacionService {
 		String tipoDocumento = registrotramiteDerivacion.getTramite().getTipoDocumento()!=null?registrotramiteDerivacion.getTramite().getTipoDocumento().getTipoDocumento():"-";
 		String nombreDestinatario = registrotramiteDerivacion.getUsuarioFin().getNombre() + (StringUtils.isBlank(registrotramiteDerivacion.getUsuarioFin().getApePaterno())?"":" " + registrotramiteDerivacion.getUsuarioFin().getApePaterno()) + (StringUtils.isBlank(registrotramiteDerivacion.getUsuarioFin().getApeMaterno())?"":" " + registrotramiteDerivacion.getUsuarioFin().getApeMaterno());
 
-		String urlTramite = env.getProperty("app.url.linkTramite");
+		String urlTramite = env.getProperty("app.url.linkTramite")+registrotramiteDerivacion.getId();
 		String numTramite = String.valueOf(registrotramiteDerivacion.getTramite().getNumeroTramite());
 		String fecha = fechaa.format(registrotramiteDerivacion.getCreatedDate());
 		String asunto = registrotramiteDerivacion.getTramite().getAsunto();
@@ -1261,7 +1261,7 @@ public class TramiteDerivacionService {
 		}
 		String nombreDestinatario = tramiteDerivacion.getUsuarioFin().getNombre() + (StringUtils.isBlank(tramiteDerivacion.getUsuarioFin().getApePaterno())?"":" " + tramiteDerivacion.getUsuarioFin().getApePaterno()) + (StringUtils.isBlank(tramiteDerivacion.getUsuarioFin().getApeMaterno())?"":" " + tramiteDerivacion.getUsuarioFin().getApeMaterno());
 
-		String urlTramite = env.getProperty("app.url.linkTramite");
+		String urlTramite = env.getProperty("app.url.linkTramite")+tramiteDerivacion.getId();
 
 		String bodyHtmlFinal = String.format(msjHTML.toString(),numTramite, nombreDestinatario, numTramite, fechaDerivacion,fechaMaximaAtencion,diasAtraso,urlTramite);
 

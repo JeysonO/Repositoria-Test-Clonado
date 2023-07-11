@@ -41,7 +41,7 @@ public class TramiteDerivacionController {
 	@Autowired
 	private SecurityHelper securityHelper;
 
-	@GetMapping("{id}")
+	@GetMapping("/{id}")
 	public ResponseEntity<CommonResponse> obtenerTramiteDerivacionById(@PathVariable String id) throws Exception {
 		CommonResponse commonResponse = null;
 
@@ -51,7 +51,16 @@ public class TramiteDerivacionController {
 
 			TramiteDerivacion tramiteDerivacion = tramiteDerivacionService.obtenerTramiteDerivacionById(id);
 
+			LocalDate fechaMaxima = null;
+			if (tramiteDerivacion.getFechaMaximaAtencion()!=null){
+				fechaMaxima =tramiteDerivacion.getFechaMaximaAtencion().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+				tramiteDerivacion.setFechaMaximaAtencion(null);
+			}
+
 			TramiteDerivacionResponse tramiteDerivacionResponse = mapper.map(tramiteDerivacion, TramiteDerivacionResponse.class);
+
+			if(fechaMaxima!=null)
+				tramiteDerivacionResponse.setFechaMaximaAtencion(fechaMaxima);
 
 			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(tramiteDerivacionResponse).build();
 
