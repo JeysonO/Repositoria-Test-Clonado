@@ -844,7 +844,12 @@ public class TramiteDerivacionService {
 
 		TramiteDerivacion nuevoDerivacionTramite = registrarTramiteDerivacion(derivacionTramiteBodyRequest);
 
-		envioCorreoDerivacion(nuevoDerivacionTramite);
+		try{
+			envioCorreoDerivacion(nuevoDerivacionTramite);
+		}catch (Exception ex){
+			log.error("ERROR ENVIANDO CORREO DERIVACION: ",ex);
+		}
+
 
 		return nuevoDerivacionTramite;
 	}
