@@ -1130,6 +1130,7 @@ public class TramiteDerivacionService {
 		String codigoEtica = "-";
 		String proveido = "-";
 		String tipoDocumento = registrotramiteDerivacion.getTramite().getTipoDocumento()!=null?registrotramiteDerivacion.getTramite().getTipoDocumento().getTipoDocumento():"-";
+		String nombreDestinatario = registrotramiteDerivacion.getUsuarioFin().getNombre() + (StringUtils.isBlank(registrotramiteDerivacion.getUsuarioFin().getApePaterno())?"":" " + registrotramiteDerivacion.getUsuarioFin().getApePaterno()) + (StringUtils.isBlank(registrotramiteDerivacion.getUsuarioFin().getApeMaterno())?"":" " + registrotramiteDerivacion.getUsuarioFin().getApeMaterno());
 
 		String urlTramite = env.getProperty("app.url.linkTramite");
 		String numTramite = String.valueOf(registrotramiteDerivacion.getTramite().getNumeroTramite());
@@ -1163,8 +1164,12 @@ public class TramiteDerivacionService {
 		String bodyHtmlFinal = String.format(msjHTML.toString(), urlTramite, numTramite, fecha, asunto, razonSocialEmisor,
 				correoEmisor, proveido, plazoMaximo, horaRecepcion, avisoConfidencialidad, codigoEtica, desde, hasta);
 		*/
+		/*
 		String bodyHtmlFinal = String.format(msjHTML.toString(), urlTramite, numTramite, fecha, asunto, razonSocialEmisor,
 				correoEmisor, proveido, plazoMaximo, horaRecepcion, tipoDocumento, desde, hasta);
+		*/
+		String bodyHtmlFinal = String.format(msjHTML.toString(), numTramite, nombreDestinatario, numTramite, fecha, asunto, razonSocialEmisor,
+				correoEmisor, proveido, plazoMaximo, horaRecepcion, tipoDocumento, urlTramite);
 
 		Map<String, String> params = new HashMap<String, String>();
 		//params.put("to", "evelyn.flores@bitall.com.pe");
@@ -1249,10 +1254,11 @@ public class TramiteDerivacionService {
 			long dias = DAYS.between(fechaMaxima, fechahoy);
 			diasAtraso = String.valueOf(dias).replace("-","");
 		}
+		String nombreDestinatario = tramiteDerivacion.getUsuarioFin().getNombre() + (StringUtils.isBlank(tramiteDerivacion.getUsuarioFin().getApePaterno())?"":" " + tramiteDerivacion.getUsuarioFin().getApePaterno()) + (StringUtils.isBlank(tramiteDerivacion.getUsuarioFin().getApeMaterno())?"":" " + tramiteDerivacion.getUsuarioFin().getApeMaterno());
 
 		String urlTramite = env.getProperty("app.url.linkTramite");
 
-		String bodyHtmlFinal = String.format(msjHTML.toString(),numTramite,fechaDerivacion,fechaMaximaAtencion,diasAtraso,urlTramite);
+		String bodyHtmlFinal = String.format(msjHTML.toString(),numTramite, nombreDestinatario, numTramite, fechaDerivacion,fechaMaximaAtencion,diasAtraso,urlTramite);
 
 		Map<String, String> params = new HashMap<String, String>();
 		//params.put("to", "evelyn.flores@bitall.com.pe");

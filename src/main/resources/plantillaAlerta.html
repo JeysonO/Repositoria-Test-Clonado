@@ -1,38 +1,59 @@
 <html>
-    <body>
-        <div>
-            <h3>Estimado(a)</h3>
-            <p>Usted tiene un tramite pendiente de atencion con el siguiente detalle:</p>
-
-            <p></p>
-            <table style="text-align:left">
-                <caption>Datos del Tramite Documentario</caption>
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="container">
+    <div class="d-flex justify-content-between mt-4">
+        <div class="col-4"><img class="img-fluid" style="width: 15rem;" src="https://www.amsac.pe/wp-content/uploads/2023/06/2023-Logo-AMSAC-Devolvemos-vida-al-planeta.png" alt=""></div>
+        <div class="col-4 align-self-center"><h2 class="text-center" style="color: rgb(26, 138, 65);">TRÁMITE DOCUMENTARIO</h2></div>
+        <div class="col-4 align-self-start"><h5 class="d-flex justify-content-center">N° de Trámite: %s</h5></div>
+    </div>
+    <div class="d-flex flex-column mt-3 mb-3">
+        <div class="d-flex">
+            Sr(a):&nbsp <strong> %s</strong>
+        </div>
+        Usted tiene un tramite pendiente de atencion con el siguiente detalle:
+    </div>
+    <div class="d-flex justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8 col-xl-7 col-xxl-6">
+            <table class="table table-bordered border-secondary">
                 <tr>
-                    <th>N° Tramite</th>
-                    <td>%s</td>
+                    <tH colspan="2" class="text-center bg-secondary" style="--bs-bg-opacity: .5;">DATOS DEL TRÁMITE</tH>
                 </tr>
                 <tr>
-                    <th>Fecha derivacion</th>
-                    <td>%s</td>
+                    <th>N° Trámite</th>
+                    <td class="text-center">%s</td>
                 </tr>
                 <tr>
-                    <th>Fecha maxima de atencion</th>
-                    <td>%s</td>
+                    <th>Fecha Derivación</th>
+                    <td class="text-center">%s</td>
                 </tr>
                 <tr>
-                    <th>Dias de atraso</th>
-                    <td>%s dias</td>
+                    <th>Fecha Máxima de Atención</th>
+                    <td class="text-center">%s</td>
+                </tr>
+                <tr>
+                    <th>Días de Atraso</th>
+                    <td class="text-center">%s dias</td>
+                </tr>
+                <tr>
+                    <th>Enlace de Acceso Directo</th>
+                    <td class="text-center"><button class="btn btn-outline-success" href="%s">Ir a Tramite Documentario</button> </span><br></td>
                 </tr>
             </table>
-            <p></p>
-            <span>Para ir al sistema de Tramite Documentario haga click en el siguiente enlace: <br>
-            <p><a href="%s">Link Tramite Documentario</a> </span><br></p>
-            <br><br>
-            <p>Saludos Cordiales</p>
-            <br>
-            <p>Tramite Documentario</p>
-            <p>Activos Mineros S.A.C.</p>
-            <p>Sistema Tramite Documentario - AMSAC</p>
         </div>
-    </body>
+    </div>
+    <div class="container mt-5">
+        Atentamente,<br>
+        <strong>SITEMA DE TRÁMITE DOCUMENTARIO - AMSAC</strong>
+    </div>
+    <hr>
+</div>
+</body>
+<footer class="container d-flex justify-content-center">
+    <hr>
+    <strong>AMSAC Copyright 2023, todos los derechos reservados.</strong>
+</footer>
 </html>
