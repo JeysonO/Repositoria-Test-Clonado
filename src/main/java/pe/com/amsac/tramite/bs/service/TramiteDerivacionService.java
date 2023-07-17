@@ -1776,10 +1776,15 @@ public class TramiteDerivacionService {
 			listCriteria.add(Criteria.where("origenDocumento").is(tramiteDerivacionRequest.getOrigenDocumento()));
 		}
 		//Si esta marcado origenDocumento INTERNO
+		/*
 		if(!StringUtils.isBlank(tramiteDerivacionRequest.getOrigenDocumento())
 				&& tramiteDerivacionRequest.getOrigenDocumento().equals("INTERNO")
 				&& !StringUtils.isBlank(tramiteDerivacionRequest.getRazonSocial())){
 			listCriteria.add(Criteria.where("entidadExterna.razonSocial").is(tramiteDerivacionRequest.getRazonSocial()));
+		}
+		*/
+		if(!StringUtils.isBlank(tramiteDerivacionRequest.getRazonSocial())){
+			listCriteria.add(Criteria.where("razonSocial").regex(".*"+tramiteDerivacionRequest.getRazonSocial()+".*","i"));
 		}
 
 		if(tramiteDerivacionRequest.getFechaDerivacionDesde()!=null)
