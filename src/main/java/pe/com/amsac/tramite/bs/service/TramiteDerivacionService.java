@@ -450,6 +450,8 @@ public class TramiteDerivacionService {
 					LinkedHashMap<Object, Object> usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
 					usuarioCreacion = ((LinkedHashMap)response.getBody().getData()).get("nombre").toString() + " " + ((LinkedHashMap)response.getBody().getData()).get("apePaterno").toString() + ((((LinkedHashMap)response.getBody().getData()).get("apeMaterno")!=null)?" "+((LinkedHashMap)response.getBody().getData()).get("apeMaterno").toString():"");
 					emailUsuarioCreacion = usuario.get("email").toString();
+					dependenciaEmpresa = tramite.getRazonSocial();
+					/*
 					if(usuario.get("tipoUsuario").equals("EXTERNO")){//tramite.getOrigenDocumento().equals("EXTERNO")){
 						LinkedHashMap<String, String> persona = (LinkedHashMap<String, String>) usuario.get("persona");
 						Persona personaDto = mapper.map(persona,Persona.class);
@@ -459,6 +461,7 @@ public class TramiteDerivacionService {
 						//Si es tramite interno, entonces se muestra lo que se encuentra en el campo entidadExterna.razonSocial
 						dependenciaEmpresa = tramite.getEntidadExterna()!=null?tramite.getEntidadExterna().getRazonSocial():"";
 					}
+					*/
 					paramTmp = new HashMap<>();
 					paramTmp.put("usuarioCreacion",usuarioCreacion);
 					paramTmp.put("dependenciaEmpresa",dependenciaEmpresa);
