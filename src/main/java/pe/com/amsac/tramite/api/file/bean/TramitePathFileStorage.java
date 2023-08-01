@@ -9,7 +9,7 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 
 @Component
-//@RequestScope
+@RequestScope
 public class TramitePathFileStorage extends CreatePathFileStorage<DocumentoAdjunto> {
     @Autowired
     private FileTxProperties fileTxProperties;

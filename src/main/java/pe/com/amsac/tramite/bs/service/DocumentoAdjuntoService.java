@@ -138,6 +138,7 @@ public class DocumentoAdjuntoService {
 		documentoAdjunto.setTramiteDerivacionId(documentoAdjuntoRequest.getTramiteDerivacionId());
 
 		//Primero registramos el archivo en disco
+		//11631
 
 		Tramite tramiteTmp = null;
 
@@ -158,6 +159,7 @@ public class DocumentoAdjuntoService {
 			// Seteamos la ruta
 			//fileStorageService.setFileStorageLocation(construirRutaArchivo(documentoAdjunto));
 			rutaArchivo = construirRutaArchivo(documentoAdjunto);
+			//rutaArchivo = crearRutaDocumentoAdjunto(documentoAdjunto);
 		}
 
 		// Registramos el archivo adjunto
@@ -186,7 +188,9 @@ public class DocumentoAdjuntoService {
 		DocumentoAdjunto documentoAdjunto = new DocumentoAdjunto();
 		documentoAdjunto.setTipoAdjunto(tipoAdjunto);
 		documentoAdjunto.setTramite(tramite);
-		return construirRutaArchivo(documentoAdjunto);
+		//return construirRutaArchivo(documentoAdjunto);
+		return crearRutaDocumentoAdjunto(documentoAdjunto);
+
 	}
 	private String construirRutaArchivo(DocumentoAdjunto documentoAdjunto) {
 		String ruta = "";
@@ -330,7 +334,8 @@ public class DocumentoAdjuntoService {
 			fileStorageService.setFileStorageLocation(
 					construirRutaArchivo(documentoAdjunto));
 			*/
-			rutaArchivo = construirRutaArchivo(documentoAdjunto);
+			//rutaArchivo = construirRutaArchivo(documentoAdjunto);
+			rutaArchivo = crearRutaDocumentoAdjunto(documentoAdjunto);
 		}
 
 		// Registramos el archivo adjunto
@@ -448,6 +453,19 @@ public class DocumentoAdjuntoService {
 			}
 			tramiteDerivacionService.save(tramiteDerivacion);
 		}
+
+	}
+
+	public void actualizarDocumentoAdjunto(DocumentoAdjuntoBodyRequest documentoAdjuntoRequest) throws Exception {
+
+		DocumentoAdjunto documentoAdjunto = documentoAdjuntoMongoRepository.findById(documentoAdjuntoRequest.getId()).get();
+		Tramite tramite = tramiteService.findById(documentoAdjuntoRequest.getTramiteId());
+		String nombreArchivoDescarga = crearNombreDescarga(tramite,documentoAdjunto.getNombreArchivo());
+
+		documentoAdjunto.setNombreArchivoDescarga(nombreArchivoDescarga);
+		documentoAdjunto.setTramite(tramite);
+
+		documentoAdjuntoMongoRepository.save(documentoAdjunto);
 
 	}
 

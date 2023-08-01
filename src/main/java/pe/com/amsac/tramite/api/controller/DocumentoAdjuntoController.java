@@ -66,7 +66,7 @@ public class DocumentoAdjuntoController {
 
 	@PostMapping
 	public ResponseEntity<CommonResponse> registrarDocumentoAdjunto(
-			@RequestParam(value = "tramiteId", required = true) String tramiteId,
+			@RequestParam(value = "tramiteId", required = false) String tramiteId,
 			@RequestParam(value = "descripcion", required = false) String descripcion,
 			@RequestParam(value = "tipoAdjunto", required = false) String tipoAdjunto,
 			@RequestParam(value = "tramiteDerivacionId", required = false) String tramiteDerivacionId,
@@ -233,6 +233,24 @@ public class DocumentoAdjuntoController {
 		try {
 
 			documentoAdjuntoService.eliminarDocumentoAdjunto(documentoAdjuntoId);
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).build();
+
+		} catch (ServiceException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+	}
+
+	@PutMapping
+	public ResponseEntity<CommonResponse> actualizarDocumentoAdjunto(@Valid @RequestBody DocumentoAdjuntoBodyRequest documentoAdjuntoBodyRequest) throws Exception {
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.OK;
+
+		try {
+			documentoAdjuntoService.actualizarDocumentoAdjunto(documentoAdjuntoBodyRequest);
 			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).build();
 
 		} catch (ServiceException se) {
