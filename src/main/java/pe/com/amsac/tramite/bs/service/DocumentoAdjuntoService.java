@@ -188,8 +188,8 @@ public class DocumentoAdjuntoService {
 		DocumentoAdjunto documentoAdjunto = new DocumentoAdjunto();
 		documentoAdjunto.setTipoAdjunto(tipoAdjunto);
 		documentoAdjunto.setTramite(tramite);
-		//return construirRutaArchivo(documentoAdjunto);
-		return crearRutaDocumentoAdjunto(documentoAdjunto);
+		return construirRutaArchivo(documentoAdjunto);
+		//return crearRutaDocumentoAdjunto(documentoAdjunto);
 
 	}
 	private String construirRutaArchivo(DocumentoAdjunto documentoAdjunto) {
