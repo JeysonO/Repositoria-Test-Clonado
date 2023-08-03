@@ -207,8 +207,14 @@ public class DocumentoAdjuntoService {
 		String fileDownloadUri = "/documentos-adjuntos"
 				.concat("/downloadFile/" + documentoAdjunto.getId());
 
+		String fileName = fileStorageService.getFileName(file.getOriginalFilename());
+		UploadFileResponse uploadFileResponse = new UploadFileResponse(fileName, fileDownloadUri,
+				file.getContentType(), FileUtils.getFileSize(file.getSize()));
+		/*
 		UploadFileResponse uploadFileResponse = new UploadFileResponse(file.getOriginalFilename(), fileDownloadUri,
 				file.getContentType(), FileUtils.getFileSize(file.getSize()));
+
+		 */
 		return uploadFileResponse;
 	}
 

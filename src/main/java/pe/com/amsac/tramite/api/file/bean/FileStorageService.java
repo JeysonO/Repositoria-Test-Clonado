@@ -36,11 +36,18 @@ public class FileStorageService {
 
     public String getFileName(String fileNameOriginal) {
         String fileName = StringUtils.cleanPath(fileNameOriginal);
+        //Reemplazamos el doble punto por uno solo
+        if (fileName.contains("..")) {
+            fileName = fileName.replace("..",".");
+        }
+        return fileName;
+        /*
         if (fileName.contains("..")) {
             throw new FileStorageException("Nombre de archivo no tiene formato valido" + fileName);
         } else {
             return fileName;
         }
+        */
     }
 
     public String getFileExtention(String fileNameOriginal) {
