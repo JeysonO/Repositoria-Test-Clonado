@@ -1212,4 +1212,62 @@ public class TramiteService {
 		return usuarioResponse;
 	}
 
+	public void ejecutgarActividadesComplementarias(){
+		//Obtenemos los tramites que tiene el campo razonSocial en blanco
+
+		Query andQuery = new Query();
+		List<Criteria> listCriteria =  new ArrayList<>();
+		//listCriteria.add(Criteria.where("razonSocial").is(null));
+		listCriteria.add(Criteria.where("createdByUser").is(null));
+
+		Criteria andCriteria = new Criteria();
+		List<Criteria> andExpression =  new ArrayList<>();
+
+
+
+		if(!listCriteria.isEmpty())
+			andExpression.add(new Criteria().andOperator(listCriteria.toArray(new Criteria[listCriteria.size()])));
+
+
+
+		//Criteria criteria = Criteria.where("createdByUser").regex(".*63326743b5ebc131b21522e1.*");
+		//andQuery.addCriteria(criteria);
+		andQuery.addCriteria(andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()])));
+
+
+		/*
+		if(andExpression.size()>1)
+			andQuery.addCriteria(andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()])));
+		else
+			andQuery.addCriteria(andExpression.get(0));
+		*/
+
+		Pageable pageable = PageRequest.of(0, 500);
+		andQuery.with(pageable);
+		andQuery.with(Sort.by(
+				Sort.Order.desc("numeroTramite")
+		));
+
+
+		List<Tramite> tramiteList = mongoTemplate.find(andQuery, Tramite.class);
+		UsuarioResponse usuarioResponse = null;
+		for(Tramite tramite:tramiteList){
+			if(tramite.getOrigenDocumento().equals("EXTERNO") && !StringUtils.isBlank(tramite.getCreatedByUser())){
+				usuarioResponse = obtenerUsuarioById(tramite.getCreatedByUser());
+				tramite.setRazonSocial(usuarioResponse.getPersona().getRazonSocialNombre());
+				save(tramite);
+				System.out.println("Tramite Externo:"+tramite.getNumeroTramite());
+			}
+			if(tramite.getOrigenDocumento().equals("INTERNO")
+					&& tramite.getEntidadExterna()!=null){
+				tramite.setRazonSocial(tramite.getEntidadExterna().getRazonSocial());
+				save(tramite);
+				System.out.println("Tramite Interno/Externo:"+tramite.getNumeroTramite());
+			}
+		}
+
+		System.out.println(tramiteList.size());
+
+	}
+
 }

@@ -321,5 +321,20 @@ public class TramiteController {
 
 	}
 
+	@PostMapping("/actividades-complementarias")
+	public ResponseEntity<CommonResponse> ejecutgarActividadesComplementarias() throws Exception {
+
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.OK;
+
+		tramiteService.ejecutgarActividadesComplementarias();
+
+		commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).build();
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+
+	}
+
 
 }
