@@ -19,6 +19,7 @@ import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.request.bean.TramiteRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TramiteBodyRequest;
+import pe.com.amsac.tramite.api.request.body.bean.TramiteMigracionBatchBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TramiteMigracionBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.api.response.bean.Meta;
@@ -331,6 +332,39 @@ public class TramiteController {
 		tramiteService.ejecutgarActividadesComplementarias();
 
 		commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).build();
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+
+	}
+
+	@PostMapping("/registrar-tramite-carga-batch")
+	public ResponseEntity<CommonResponse> registrarTramiteCargBatch(@Valid @RequestBody TramiteMigracionBatchBodyRequest tramiteBodyrequest) throws Exception {
+
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.CREATED;
+
+		try {
+
+			/*
+			log.info("Tramite a migrar:"+new ObjectMapper().writeValueAsString(tramiteBodyrequest));
+			log.info("CreeateDate:"+new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(tramiteBodyrequest.getCreatedDate()));
+			String userTimezoneProp = System.getProperty("user.timezone");
+			log.info("userTimezoneProp:"+userTimezoneProp);
+			*/
+
+			TramiteMigracion tramite = tramiteService.registrarTramiteCargBatch(tramiteBodyrequest);
+
+			TramiteResponse tramiteResponse = new TramiteResponse(); //mapper.map(tramite, TramiteResponse.class);
+			tramiteResponse.setId(tramite.getId());
+
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(tramiteResponse).build();
+
+
+		} catch (ServiceException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes(),se.getAtributos())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}
 
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 

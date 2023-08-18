@@ -32,8 +32,7 @@ import pe.com.amsac.tramite.api.file.bean.FileStorageService;
 import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
 import pe.com.amsac.tramite.api.request.bean.EventSchedule;
 import pe.com.amsac.tramite.api.request.bean.TramiteDerivacionRequest;
-import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoBodyRequest;
-import pe.com.amsac.tramite.api.request.body.bean.TramiteMigracionBodyRequest;
+import pe.com.amsac.tramite.api.request.body.bean.*;
 import pe.com.amsac.tramite.api.response.bean.*;
 import pe.com.amsac.tramite.api.util.CustomMultipartFile;
 import pe.com.amsac.tramite.bs.domain.*;
@@ -42,8 +41,6 @@ import pe.com.amsac.tramite.bs.repository.TramiteMigracionMongoRepository;
 import pe.com.amsac.tramite.bs.repository.UsuarioMongoRepository;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.request.bean.TramiteRequest;
-import pe.com.amsac.tramite.api.request.body.bean.TramiteBodyRequest;
-import pe.com.amsac.tramite.api.request.body.bean.TramiteDerivacionBodyRequest;
 import pe.com.amsac.tramite.bs.repository.TramiteMongoRepository;
 import pe.com.amsac.tramite.bs.util.EstadoTramiteConstant;
 import pe.com.amsac.tramite.bs.util.TipoAdjuntoConstant;
@@ -1269,5 +1266,104 @@ public class TramiteService {
 		System.out.println(tramiteList.size());
 
 	}
+
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
+	public TramiteMigracion registrarTramiteCargBatch(TramiteMigracionBatchBodyRequest tramiteBodyRequest) throws Exception {
+
+		Date fechaDocumento = null;
+		if(tramiteBodyRequest.getFechaDocumento()!=null){
+			ZoneId defaultZoneId = ZoneId.systemDefault();
+			LocalDate localDate = tramiteBodyRequest.getFechaDocumento();
+			tramiteBodyRequest.setFechaDocumento(null);
+			fechaDocumento =Date.from(localDate.atStartOfDay(defaultZoneId).toInstant());
+		}
+
+		TramiteMigracion tramite = mapper.map(tramiteBodyRequest,TramiteMigracion.class);
+
+		if(fechaDocumento!=null)
+			tramite.setFechaDocumento(fechaDocumento);
+
+		tramite.setTramiteRelacionado(null);
+		/*
+		List<Tramite> tramiteList = obtenerNumeroTramite();
+
+		int numeroTramite = 1;
+
+		if(!CollectionUtils.isEmpty(tramiteList))
+			numeroTramite = obtenerNumeroTramite().get(0).getNumeroTramite()+1;
+
+		tramite.setNumeroTramite(numeroTramite);
+		*/
+		//tramite.setEstado("A");
+		tramite.setRazonSocial(tramiteBodyRequest.getRazonSocial());
+		if(tramiteBodyRequest.getOrigenDocumento().equals("EXTERNO")){
+			tramite.setEntidadInterna(null);
+			tramite.setEntidadExterna(null);
+			tramite.setTramitePrioridad(null);
+			tramite.setDependenciaUsuarioCreacion(null);
+			//tramite.setCargoUsuarioCreacion(null); No va porque no registran cargo
+			//Se setea la forma de recepcion siempre como digital
+			//tramite.setFormaRecepcion(formaRecepcionService.findByFormaRecepcion("DIGITAL").get(0));
+		}else{
+			if(tramiteBodyRequest.getOrigen().equals("INTERNO")){
+				tramite.setEntidadExterna(null);
+				tramite.setFormaRecepcion(null);
+			}else{
+				tramite.setEntidadInterna(null);
+			}
+			tramite.setDependenciaDestino(null);
+
+		}
+		tramiteMigracionMongoRepository.save(tramite);
+
+		if(tramiteBodyRequest.getOrigenDocumento().equals("EXTERNO")){
+			registrarDerivacionBatch(tramite);
+		}
+
+		return tramite;
+
+	}
+
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
+	public void registrarDerivacionBatch(TramiteMigracion tramite) throws Exception {
+		//Obtener 1er Usuario de Seguridad-UsuarioCargo
+		RestTemplate restTemplate = new RestTemplate();
+		String uri = env.getProperty("app.url.seguridad") + "/usuario-cargo/cargo/RECEPCION_MESA_PARTES";
+		//String uri = env.getProperty("app.url.seguridad") + "/usuario-app-rol/MESA_PARTES";
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
+		HttpEntity entity = new HttpEntity<>(null, headers);
+		ResponseEntity<CommonResponse> response = restTemplate.exchange(uri,HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+
+		TramiteDerivacionBodyRequest tramiteDerivacionBodyRequest = new TramiteDerivacionBodyRequest();
+		tramiteDerivacionBodyRequest.setSecuencia(1);
+		tramiteDerivacionBodyRequest.setUsuarioInicio(tramite.getCreatedByUser());
+		/*
+		if(tramite.getDependenciaUsuarioCreacion()!=null)
+			tramiteDerivacionBodyRequest.setDependenciaIdUsuarioInicio(tramite.getDependenciaUsuarioCreacion().getId());
+		if(tramite.getCargoUsuarioCreacion()!=null)
+			tramiteDerivacionBodyRequest.setCargoIdUsuarioInicio(tramite.getCargoUsuarioCreacion().getId());
+		*/
+
+		tramiteDerivacionBodyRequest.setUsuarioFin(((LinkedHashMap)((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("usuario")).get("id").toString());
+
+		CargoDTOResponse cargoResponse = mapper.map(((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("cargo"),CargoDTOResponse.class);
+
+		tramiteDerivacionBodyRequest.setDependenciaIdUsuarioFin(cargoResponse.getDependencia().getId());
+		tramiteDerivacionBodyRequest.setCargoIdUsuarioFin(cargoResponse.getId());
+		tramiteDerivacionBodyRequest.setEstadoInicio("REGISTRADO");
+		tramiteDerivacionBodyRequest.setFechaInicio(tramite.getCreatedDate());
+		tramiteDerivacionBodyRequest.setTramiteId(tramite.getId());
+		tramiteDerivacionBodyRequest.setComentarioInicio("Se inicia registro del Tramite");
+		tramiteDerivacionBodyRequest.setForma("ORIGINAL");
+		TramiteDerivacion tramiteDerivacion = tramiteDerivacionService.registrarTramiteDerivacion(tramiteDerivacionBodyRequest);
+
+		//Se recepciona el tramite para que mesa de partes lo deje pendiente de atencion
+
+		tramiteDerivacion = tramiteDerivacionService.registrarRecepcionTramiteDerivacion(tramiteDerivacion.getId());
+
+
+	}
+
 
 }
