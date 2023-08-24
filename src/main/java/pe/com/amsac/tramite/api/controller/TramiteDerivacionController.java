@@ -19,6 +19,7 @@ import pe.com.amsac.tramite.api.response.bean.Meta;
 import pe.com.amsac.tramite.api.response.bean.TramiteDerivacionResponse;
 import pe.com.amsac.tramite.api.response.bean.UsuarioFirmaLogoCreateResponse;
 import pe.com.amsac.tramite.api.util.EstadoRespuestaConstant;
+import pe.com.amsac.tramite.bs.domain.Tramite;
 import pe.com.amsac.tramite.bs.domain.TramiteDerivacion;
 import pe.com.amsac.tramite.bs.service.TramiteDerivacionService;
 
@@ -565,6 +566,50 @@ public class TramiteDerivacionController {
 
 	}
 
+	@PostMapping("/registrar-tramite-derivacion-batch-lista")
+	public ResponseEntity<CommonResponse> registrarTramitesDerivacionMigracionBatchLista(@Valid @RequestBody WrapperTramiteDerivacionBodyRequest tramiteDerivacionBodyrequest) throws Exception {
+
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.CREATED;
+
+		try {
+
+			//String usuarioInicioId = securityHelper.obtenerUserIdSession();
+			//tramiteDerivacionBodyrequest.setUsuarioInicio(usuarioInicioId);
+			int secuencia = 2;
+			for(TramiteDerivacionBodyRequest tramiteDerivacionMigracionBodyRequest : tramiteDerivacionBodyrequest.getTramiteDerivacion()){
+				//tramiteDerivacionService.registrarTramiteDerivacionMigracion(tramiteDerivacionMigracionBodyRequest);
+				//tramiteDerivacionService.registrarTramiteDerivacionMigracionBatch(tramiteDerivacionMigracionBodyRequest);
+				tramiteDerivacionMigracionBodyRequest.setSecuencia(secuencia++);
+				tramiteDerivacionService.registrarTramiteDerivacionBatch(tramiteDerivacionMigracionBodyRequest, null);
+			}
+
+			//TramiteDerivacion tramiteDerivacion = tramiteDerivacionService.registrarTramiteDerivacionMigracion(tramiteDerivacionBodyrequest);
+			/*
+			LocalDate localDate = null;
+			if(tramiteDerivacion.getFechaMaximaAtencion()!=null){
+				localDate = tramiteDerivacion.getFechaMaximaAtencion().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+				tramiteDerivacion.setFechaMaximaAtencion(null);
+			}
+			*/
+
+			//TramiteDerivacionResponse tramiteDerivacionResponse = mapper.map(tramiteDerivacion, TramiteDerivacionResponse.class);
+
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).build();
+
+
+		} catch (ServiceException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+
+	}
+
+	/* Esta api fue de forma temporal  */
+	/*
 	@PostMapping("/atender-derivacion-lote")
 	public ResponseEntity<CommonResponse> atenderDerivacionLote(@Valid @RequestBody AtenderDerivacionLoteRequest atenderDerivacionLoteRequest) throws Exception {
 		CommonResponse commonResponse = null;
@@ -584,4 +629,5 @@ public class TramiteDerivacionController {
 
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 	}
+	*/
 }

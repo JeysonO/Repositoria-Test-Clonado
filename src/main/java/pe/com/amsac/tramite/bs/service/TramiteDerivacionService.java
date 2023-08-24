@@ -2209,7 +2209,6 @@ public class TramiteDerivacionService {
 		return usuarioResponseList;
 	}
 
-
 	public Map atenderDerivacionLote(AtenderDerivacionLoteRequest atenderDerivacionLoteRequest) throws Exception {
 		Map<String, Object> param = new HashMap<>();
 		String cadenaResultado = "";
@@ -2221,11 +2220,6 @@ public class TramiteDerivacionService {
 			throw new Exception("Mas de un registro para usuario");
 		
 		String usuarioId = usuarioResponseList.get(0).getId();
-		/*
-		TramiteDerivacionRequest tramiteDerivacionRequest = new TramiteDerivacionRequest();
-		tramiteDerivacionRequest.setUsuarioFin(usuarioId);
-		tramiteDerivacionRequest.setEstado("P");
-		*/
 
 		Query andQuery = new Query();
 		Criteria andCriteria = new Criteria();
@@ -2286,5 +2280,105 @@ public class TramiteDerivacionService {
 		param.put("derivacionesIdCerrados", derivacionesIdCerrados.substring(0,derivacionesIdCerrados.length()-1));
 		return param;
 	}
+
+
+	public TramiteDerivacion registrarTramiteDerivacionBatch(TramiteDerivacionBodyRequest tramiteDerivacionBodyRequest, Tramite tramite) throws Exception {
+		//Se comenta esta parte, al parecer no es necesario
+		if(tramite==null)
+			tramite = tramiteMongoRepository.findById(tramiteDerivacionBodyRequest.getTramiteId()).get();
+
+		//Obtener Usuario Inicio
+		RestTemplate restTemplate = new RestTemplate();
+		String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/"+tramiteDerivacionBodyRequest.getUsuarioInicio();
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
+		HttpEntity entity = new HttpEntity<>(null, headers);
+		ResponseEntity<CommonResponse> response = restTemplate.exchange(uri,HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+
+		//Mapear Persona de Usuario Inicio
+		LinkedHashMap<Object, Object> usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
+		LinkedHashMap<String, String> personaL = (LinkedHashMap<String, String>) usuario.get("persona");
+		personaL.remove("createdDate");
+		personaL.remove("lastModifiedDate");
+		personaL.remove("tipoDocumento");
+		personaL.remove("entityId");
+		Persona persona = mapper.map(personaL,Persona.class);
+		usuario.replace("persona",persona);
+		Usuario userInicio = mapper.map(usuario,Usuario.class);
+
+		//Mapear Usuario Fin
+		uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/"+tramiteDerivacionBodyRequest.getUsuarioFin();
+		response = restTemplate.exchange(uri,HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+		usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
+		personaL = (LinkedHashMap<String, String>) usuario.get("persona");
+		personaL.remove("createdDate");
+		personaL.remove("lastModifiedDate");
+		personaL.remove("tipoDocumento");
+		personaL.remove("entityId");
+		persona = mapper.map(personaL,Persona.class);
+		usuario.replace("persona",persona);
+		Usuario userFin = mapper.map(usuario,Usuario.class);
+
+
+		Date fechaMaxima = null;
+		if(tramiteDerivacionBodyRequest.getFechaMaximaAtencion()!=null){
+			ZoneId defaultZoneId = ZoneId.systemDefault();
+			LocalDate localDate = tramiteDerivacionBodyRequest.getFechaMaximaAtencion();
+			tramiteDerivacionBodyRequest.setFechaMaximaAtencion(null);
+			fechaMaxima =Date.from(localDate.atStartOfDay(defaultZoneId).toInstant());
+		}
+
+		TramiteDerivacion registroTramiteDerivacion = mapper.map(tramiteDerivacionBodyRequest,TramiteDerivacion.class);
+		if(fechaMaxima!=null)
+			registroTramiteDerivacion.setFechaMaximaAtencion(fechaMaxima);
+		registroTramiteDerivacion.setUsuarioInicio(userInicio);
+		registroTramiteDerivacion.setUsuarioFin(userFin);
+		//registroTramiteDerivacion.setFechaInicio(new Date());
+		//registroTramiteDerivacion.setTramite(tramiteMongoRepository.findById(tramiteDerivacionBodyRequest.getTramiteId()).get());
+		registroTramiteDerivacion.setTramite(tramite);
+		registroTramiteDerivacion.setEstado("A");
+
+		/*
+		int sec = obtenerSecuencia(tramiteDerivacionBodyRequest.getTramiteId());
+		registroTramiteDerivacion.setSecuencia(sec);
+		*/
+
+
+		if(!StringUtils.isBlank(tramiteDerivacionBodyRequest.getDependenciaIdUsuarioInicio())){
+			Dependencia dependencia =  new Dependencia();
+			dependencia.setId(tramiteDerivacionBodyRequest.getDependenciaIdUsuarioInicio());
+			registroTramiteDerivacion.setDependenciaUsuarioInicio(dependencia);
+		}else{
+			registroTramiteDerivacion.setDependenciaUsuarioInicio(null);
+		}
+		if(!StringUtils.isBlank(tramiteDerivacionBodyRequest.getDependenciaIdUsuarioFin())){
+			Dependencia dependencia =  new Dependencia();
+			dependencia.setId(tramiteDerivacionBodyRequest.getDependenciaIdUsuarioFin());
+			registroTramiteDerivacion.setDependenciaUsuarioFin(dependencia);
+		}else{
+			registroTramiteDerivacion.setDependenciaUsuarioFin(null);
+		}
+		//Cargos
+		if(!StringUtils.isBlank(tramiteDerivacionBodyRequest.getCargoIdUsuarioInicio())){
+			Cargo cargo =  new Cargo();
+			cargo.setId(tramiteDerivacionBodyRequest.getCargoIdUsuarioInicio());
+			registroTramiteDerivacion.setCargoUsuarioInicio(cargo);
+		}else{
+			registroTramiteDerivacion.setCargoUsuarioInicio(null);
+		}
+		if(!StringUtils.isBlank(tramiteDerivacionBodyRequest.getCargoIdUsuarioFin())){
+			Cargo cargo =  new Cargo();
+			cargo.setId(tramiteDerivacionBodyRequest.getCargoIdUsuarioFin());
+			registroTramiteDerivacion.setCargoUsuarioFin(cargo);
+		}else{
+			registroTramiteDerivacion.setCargoUsuarioFin(null);
+		}
+
+		tramiteDerivacionMongoRepository.save(registroTramiteDerivacion);
+
+		return registroTramiteDerivacion;
+
+	}
+
 
 }

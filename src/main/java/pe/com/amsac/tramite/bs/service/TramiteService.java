@@ -1317,15 +1317,47 @@ public class TramiteService {
 		tramiteMigracionMongoRepository.save(tramite);
 
 		if(tramiteBodyRequest.getOrigenDocumento().equals("EXTERNO")){
-			registrarDerivacionBatch(tramite);
+			//Obtener 1er Usuario de Seguridad-UsuarioCargo
+			RestTemplate restTemplate = new RestTemplate();
+			String uri = env.getProperty("app.url.seguridad") + "/usuario-cargo/cargo/RECEPCION_MESA_PARTES";
+			//String uri = env.getProperty("app.url.seguridad") + "/usuario-app-rol/MESA_PARTES";
+			HttpHeaders headers = new HttpHeaders();
+			headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
+			HttpEntity entity = new HttpEntity<>(null, headers);
+			ResponseEntity<CommonResponse> response = restTemplate.exchange(uri,HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+
+			TramiteDerivacionBodyRequest tramiteDerivacionBodyRequest = new TramiteDerivacionBodyRequest();
+			tramiteDerivacionBodyRequest.setSecuencia(1);
+			tramiteDerivacionBodyRequest.setUsuarioInicio(tramite.getCreatedByUser());
+
+			tramiteDerivacionBodyRequest.setUsuarioFin(((LinkedHashMap)((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("usuario")).get("id").toString());
+
+			CargoDTOResponse cargoResponse = mapper.map(((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("cargo"),CargoDTOResponse.class);
+
+			tramiteDerivacionBodyRequest.setDependenciaIdUsuarioFin(cargoResponse.getDependencia().getId());
+			tramiteDerivacionBodyRequest.setCargoIdUsuarioFin(cargoResponse.getId());
+			tramiteDerivacionBodyRequest.setEstadoInicio("REGISTRADO");
+			tramiteDerivacionBodyRequest.setFechaInicio(tramite.getCreatedDate());
+			tramiteDerivacionBodyRequest.setTramiteId(tramite.getId());
+			tramiteDerivacionBodyRequest.setComentarioInicio("Se inicia registro del Tramite");
+			tramiteDerivacionBodyRequest.setForma("ORIGINAL");
+
+			tramiteDerivacionBodyRequest.setFechaFin(tramite.getCreatedDate());
+			tramiteDerivacionBodyRequest.setEstadoFin("DERIVADO");
+
+			Tramite tramiteRegistrado = tramiteMongoRepository.findById(tramiteDerivacionBodyRequest.getTramiteId()).get();
+
+			tramiteDerivacionService.registrarTramiteDerivacionBatch(tramiteDerivacionBodyRequest, tramiteRegistrado);
+
 		}
 
 		return tramite;
 
 	}
 
+	/*
 	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
-	public void registrarDerivacionBatch(TramiteMigracion tramite) throws Exception {
+	public void registrarDerivacionTramiteBatch(TramiteMigracion tramite) throws Exception {
 		//Obtener 1er Usuario de Seguridad-UsuarioCargo
 		RestTemplate restTemplate = new RestTemplate();
 		String uri = env.getProperty("app.url.seguridad") + "/usuario-cargo/cargo/RECEPCION_MESA_PARTES";
@@ -1338,12 +1370,7 @@ public class TramiteService {
 		TramiteDerivacionBodyRequest tramiteDerivacionBodyRequest = new TramiteDerivacionBodyRequest();
 		tramiteDerivacionBodyRequest.setSecuencia(1);
 		tramiteDerivacionBodyRequest.setUsuarioInicio(tramite.getCreatedByUser());
-		/*
-		if(tramite.getDependenciaUsuarioCreacion()!=null)
-			tramiteDerivacionBodyRequest.setDependenciaIdUsuarioInicio(tramite.getDependenciaUsuarioCreacion().getId());
-		if(tramite.getCargoUsuarioCreacion()!=null)
-			tramiteDerivacionBodyRequest.setCargoIdUsuarioInicio(tramite.getCargoUsuarioCreacion().getId());
-		*/
+
 
 		tramiteDerivacionBodyRequest.setUsuarioFin(((LinkedHashMap)((LinkedHashMap)((List)response.getBody().getData()).get(0)).get("usuario")).get("id").toString());
 
@@ -1358,12 +1385,15 @@ public class TramiteService {
 		tramiteDerivacionBodyRequest.setForma("ORIGINAL");
 		TramiteDerivacion tramiteDerivacion = tramiteDerivacionService.registrarTramiteDerivacion(tramiteDerivacionBodyRequest);
 
+		TramiteDerivacion tramiteDerivacion = tramiteDerivacionService.registrarTramiteDerivacion(tramiteDerivacionBodyRequest);
+
 		//Se recepciona el tramite para que mesa de partes lo deje pendiente de atencion
 
 		tramiteDerivacion = tramiteDerivacionService.registrarRecepcionTramiteDerivacion(tramiteDerivacion.getId());
 
 
 	}
+	*/
 
 
 }
