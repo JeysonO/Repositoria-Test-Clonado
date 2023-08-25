@@ -1272,6 +1272,21 @@ public class TramiteService {
 
 		TramiteMigracion tramite = null;
 
+		try{
+			UsuarioResponse usuarioResponse = obtenerUsuarioById(tramiteBodyRequest.getCreatedByUser());
+			if(StringUtils.isBlank(usuarioResponse.getId())){
+				tramite = new TramiteMigracion();
+				tramite.setId("NO_EXISTE_USUARIO");
+				return tramite;
+			}
+
+		}catch (Exception ex){
+			log.error("ERROR",ex);
+			tramite = new TramiteMigracion();
+			tramite.setId("NO_EXISTE_USUARIO");
+			return tramite;
+		}
+
 		//Validamos que no haya repetidos
 		Map<String, Object> param = new HashMap<>();
 		param.put("numeroTramite", tramiteBodyRequest.getNumeroTramite());
