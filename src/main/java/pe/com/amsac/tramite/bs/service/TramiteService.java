@@ -1270,6 +1270,17 @@ public class TramiteService {
 	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
 	public TramiteMigracion registrarTramiteCargBatch(TramiteMigracionBatchBodyRequest tramiteBodyRequest) throws Exception {
 
+		TramiteMigracion tramite = null;
+
+		//Validamos que no haya repetidos
+		Map<String, Object> param = new HashMap<>();
+		param.put("numeroTramite", tramiteBodyRequest.getNumeroTramite());
+		if(!CollectionUtils.isEmpty(buscarHistorialTramite(param))){
+			tramite = new TramiteMigracion();
+			tramite.setId("YA_EXISTE");
+			return tramite;
+		}
+
 		Date fechaDocumento = null;
 		if(tramiteBodyRequest.getFechaDocumento()!=null){
 			ZoneId defaultZoneId = ZoneId.systemDefault();
@@ -1278,7 +1289,7 @@ public class TramiteService {
 			fechaDocumento =Date.from(localDate.atStartOfDay(defaultZoneId).toInstant());
 		}
 
-		TramiteMigracion tramite = mapper.map(tramiteBodyRequest,TramiteMigracion.class);
+		tramite = mapper.map(tramiteBodyRequest,TramiteMigracion.class);
 
 		if(fechaDocumento!=null)
 			tramite.setFechaDocumento(fechaDocumento);
