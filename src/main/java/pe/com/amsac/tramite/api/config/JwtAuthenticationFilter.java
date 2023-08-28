@@ -53,8 +53,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id";
                     HttpHeaders headers = new HttpHeaders();
                     headers.add("Authorization", String.format("%s %s", "Bearer", jwt));
-                    log.info("uri obtener usuario: "+uri);
-                    log.info("datosToken: "+new ObjectMapper().writeValueAsString(datosToken));
+                    //log.info("uri obtener usuario: "+uri);
+                    //log.info("datosToken: "+new ObjectMapper().writeValueAsString(datosToken));
                     HttpEntity entity = new HttpEntity<>(null, headers);
                     ResponseEntity<CommonResponse> responseConsultaUsuario = restTemplate.exchange(uri, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
                     if(((LinkedHashMap)responseConsultaUsuario.getBody().getData()).get("id")!=null)

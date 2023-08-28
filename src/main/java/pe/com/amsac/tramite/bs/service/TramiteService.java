@@ -941,12 +941,13 @@ public class TramiteService {
 		*/
 		//tramite.setEstado("A");
 		tramite.setRazonSocial(tramiteBodyRequest.getRazonSocial());
+		tramite.setCargoUsuarioCreacion(null); //No va porque no registran cargo
 		if(tramiteBodyRequest.getOrigenDocumento().equals("EXTERNO")){
 			tramite.setEntidadInterna(null);
 			tramite.setEntidadExterna(null);
 			tramite.setTramitePrioridad(null);
 			tramite.setDependenciaUsuarioCreacion(null);
-			//tramite.setCargoUsuarioCreacion(null); No va porque no registran cargo
+			//tramite.setCargoUsuarioCreacion(null); //No va porque no registran cargo
 			//Se setea la forma de recepcion siempre como digital
 			tramite.setFormaRecepcion(formaRecepcionService.findByFormaRecepcion("DIGITAL").get(0));
 		}else{
@@ -1327,7 +1328,7 @@ public class TramiteService {
 			tramite.setEntidadExterna(null);
 			tramite.setTramitePrioridad(null);
 			tramite.setDependenciaUsuarioCreacion(null);
-			//tramite.setCargoUsuarioCreacion(null); No va porque no registran cargo
+			tramite.setCargoUsuarioCreacion(null);
 			//Se setea la forma de recepcion siempre como digital
 			//tramite.setFormaRecepcion(formaRecepcionService.findByFormaRecepcion("DIGITAL").get(0));
 		}else{
@@ -1340,6 +1341,7 @@ public class TramiteService {
 			tramite.setDependenciaDestino(null);
 
 		}
+
 		tramiteMigracionMongoRepository.save(tramite);
 
 		if(tramiteBodyRequest.getOrigenDocumento().equals("EXTERNO")){

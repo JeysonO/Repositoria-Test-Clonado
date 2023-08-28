@@ -70,6 +70,7 @@ public class TramiteMigracionBatchBodyRequest {
 	private String lastModifiedByUser;
 
 	private String dependenciaUsuarioCreacionId;
+	private String cargoUsuarioCreacionId;
 
 	@Mapping("dependenciaDestino.id")
 	public String getDependenciaDestinoId(){return dependenciaDestinoId;}
@@ -122,6 +123,7 @@ public class TramiteMigracionBatchBodyRequest {
 	@Mapping("dependenciaUsuarioCreacion.id")
 	public String getDependenciaUsuarioCreacionId(){return dependenciaUsuarioCreacionId;}
 
-
+	@Mapping("cargoUsuarioCreacion.id")
+	public String getCargoUsuarioCreacionId(){return cargoUsuarioCreacionId;}
 	
 }

@@ -577,11 +577,11 @@ public class TramiteDerivacionController {
 
 			//String usuarioInicioId = securityHelper.obtenerUserIdSession();
 			//tramiteDerivacionBodyrequest.setUsuarioInicio(usuarioInicioId);
-			int secuencia = 2;
+			//int secuencia = 2;
 			for(TramiteDerivacionBodyRequest tramiteDerivacionMigracionBodyRequest : tramiteDerivacionBodyrequest.getTramiteDerivacion()){
 				//tramiteDerivacionService.registrarTramiteDerivacionMigracion(tramiteDerivacionMigracionBodyRequest);
 				//tramiteDerivacionService.registrarTramiteDerivacionMigracionBatch(tramiteDerivacionMigracionBodyRequest);
-				tramiteDerivacionMigracionBodyRequest.setSecuencia(secuencia++);
+				//tramiteDerivacionMigracionBodyRequest.setSecuencia(secuencia++);
 				tramiteDerivacionService.registrarTramiteDerivacionBatch(tramiteDerivacionMigracionBodyRequest, null);
 			}
 

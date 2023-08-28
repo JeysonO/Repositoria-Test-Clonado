@@ -2338,11 +2338,8 @@ public class TramiteDerivacionService {
 		registroTramiteDerivacion.setTramite(tramite);
 		registroTramiteDerivacion.setEstado("A");
 
-		/*
 		int sec = obtenerSecuencia(tramiteDerivacionBodyRequest.getTramiteId());
 		registroTramiteDerivacion.setSecuencia(sec);
-		*/
-
 
 		if(!StringUtils.isBlank(tramiteDerivacionBodyRequest.getDependenciaIdUsuarioInicio())){
 			Dependencia dependencia =  new Dependencia();

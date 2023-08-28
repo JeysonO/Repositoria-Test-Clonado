@@ -71,6 +71,9 @@ public class TramiteMigracion {
 	@DBRef(db = "amsac-seguridad")
 	private Dependencia dependenciaUsuarioCreacion;
 
+	@DBRef(db = "amsac-seguridad")
+	private Cargo cargoUsuarioCreacion;
+
 	private Date createdDate;
 	private Date lastModifiedDate;
 	private String createdByUser;
