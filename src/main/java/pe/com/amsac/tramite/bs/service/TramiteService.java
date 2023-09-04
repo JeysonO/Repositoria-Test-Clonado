@@ -29,9 +29,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.annotation.RequestScope;
 import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.file.bean.FileStorageService;
-import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
-import pe.com.amsac.tramite.api.request.bean.EventSchedule;
-import pe.com.amsac.tramite.api.request.bean.TramiteDerivacionRequest;
+import pe.com.amsac.tramite.api.request.bean.*;
 import pe.com.amsac.tramite.api.request.body.bean.*;
 import pe.com.amsac.tramite.api.response.bean.*;
 import pe.com.amsac.tramite.api.util.CustomMultipartFile;
@@ -40,7 +38,6 @@ import pe.com.amsac.tramite.bs.repository.TipoDocumentoMongoRepository;
 import pe.com.amsac.tramite.bs.repository.TramiteMigracionMongoRepository;
 import pe.com.amsac.tramite.bs.repository.UsuarioMongoRepository;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
-import pe.com.amsac.tramite.api.request.bean.TramiteRequest;
 import pe.com.amsac.tramite.bs.repository.TramiteMongoRepository;
 import pe.com.amsac.tramite.bs.util.EstadoTramiteConstant;
 import pe.com.amsac.tramite.bs.util.TipoAdjuntoConstant;
@@ -1210,7 +1207,10 @@ public class TramiteService {
 		return usuarioResponse;
 	}
 
-	public void ejecutgarActividadesComplementarias(){
+	public void ejecutarActividadesComplementarias(){
+
+
+		/*
 		//Obtenemos los tramites que tiene el campo razonSocial en blanco
 
 		Query andQuery = new Query();
@@ -1233,12 +1233,6 @@ public class TramiteService {
 		andQuery.addCriteria(andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()])));
 
 
-		/*
-		if(andExpression.size()>1)
-			andQuery.addCriteria(andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()])));
-		else
-			andQuery.addCriteria(andExpression.get(0));
-		*/
 
 		Pageable pageable = PageRequest.of(0, 500);
 		andQuery.with(pageable);
@@ -1265,6 +1259,7 @@ public class TramiteService {
 		}
 
 		System.out.println(tramiteList.size());
+		*/
 
 	}
 
@@ -1422,6 +1417,62 @@ public class TramiteService {
 
 	}
 	*/
+
+	public Map ejecutarActividadesComplementariasMigracion(TareasComplementariasMigracionRequest tareasComplementariasMigracionRequest) throws Exception {
+
+		//Obtener tramite
+		Tramite tramite = tramiteMongoRepository.findById(tareasComplementariasMigracionRequest.getIdTramite()).get();
+
+		//Aumentamos 5 horas, para nivelas la horas al tiempo correcto
+		tramite.setCreatedDate(sumarCincoHoras(tramite.getCreatedDate()));
+		tramite.setLastModifiedDate(sumarCincoHoras(tramite.getLastModifiedDate()));
+
+		save(tramite);
+
+		Map<String, Object> param = new HashMap<>();
+		param.put("tramiteActualizado", true);
+		int cantidadDerivacionesActualizadas = 0;
+		try{
+			Query query = new Query();
+			Criteria criteria = Criteria.where("tramite.id").is(tareasComplementariasMigracionRequest.getIdTramite());
+			query.addCriteria(criteria);
+			List<TramiteDerivacion> tramiteDerivacionList = mongoTemplate.find(query, TramiteDerivacion.class);
+
+			for(TramiteDerivacion tramiteDerivacion : tramiteDerivacionList){
+
+				actualizarFechaHoraDerivacion(tramiteDerivacion);
+
+				if((tramiteDerivacion.getSecuencia()==1 && tramite.getOrigenDocumento().equals("EXTERNO"))
+						|| tareasComplementariasMigracionRequest.isIncluirDerivaciones()){
+					tramiteDerivacionService.save(tramiteDerivacion);
+					cantidadDerivacionesActualizadas++;
+				}
+
+			}
+			param.put("actualizacionDerivacionesConExito", true);
+			param.put("cantidadDerivacionesActualizadas", cantidadDerivacionesActualizadas);
+
+		}catch (Exception ex){
+			log.error("ERROR",ex);
+			param.put("actualizacionDerivacionesConExito", false);
+			param.put("cantidadDerivacionesActualizadas", cantidadDerivacionesActualizadas);
+		}
+
+		return param;
+
+	}
+
+	private void actualizarFechaHoraDerivacion(TramiteDerivacion tramiteDerivacion){
+		tramiteDerivacion.setFechaInicio(sumarCincoHoras(tramiteDerivacion.getFechaInicio()));
+		tramiteDerivacion.setFechaFin(sumarCincoHoras(tramiteDerivacion.getFechaFin()));
+	}
+
+	private Date sumarCincoHoras(Date fechaHoraAnterior){
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(fechaHoraAnterior); // Configuramos la fecha que se recibe
+		calendar.add(Calendar.HOUR, 5);
+		return calendar.getTime();
+	}
 
 
 }

@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
+import pe.com.amsac.tramite.api.request.bean.TareasComplementariasMigracionRequest;
 import pe.com.amsac.tramite.api.request.bean.TramiteRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TramiteBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TramiteMigracionBatchBodyRequest;
@@ -322,16 +323,16 @@ public class TramiteController {
 
 	}
 
-	@PostMapping("/actividades-complementarias")
-	public ResponseEntity<CommonResponse> ejecutgarActividadesComplementarias() throws Exception {
+	@PostMapping("/actividades-complementarias-migracion")
+	public ResponseEntity<CommonResponse> ejecutgarActividadesComplementarias(@Valid @RequestBody TareasComplementariasMigracionRequest tareasComplementariasMigracionRequest) throws Exception {
 
 		CommonResponse commonResponse = null;
 
 		HttpStatus httpStatus = HttpStatus.OK;
 
-		tramiteService.ejecutgarActividadesComplementarias();
+		Map mapa = tramiteService.ejecutarActividadesComplementariasMigracion(tareasComplementariasMigracionRequest);
 
-		commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).build();
+		commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(mapa).build();
 
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 
