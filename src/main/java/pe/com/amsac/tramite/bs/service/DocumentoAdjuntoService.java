@@ -1,5 +1,6 @@
 package pe.com.amsac.tramite.bs.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dozer.Mapper;
@@ -25,6 +26,7 @@ import pe.com.amsac.tramite.api.file.bean.TramitePathFileStorage;
 import pe.com.amsac.tramite.api.file.bean.UploadFileResponse;
 import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
 import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoBodyRequest;
+import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoCargaFromDirectoryBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoMigracionBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.api.response.bean.DocumentoAdjuntoResponse;
@@ -48,6 +50,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 @Service
+@Slf4j
 public class DocumentoAdjuntoService {
 
 	@Autowired
@@ -473,6 +476,53 @@ public class DocumentoAdjuntoService {
 
 		documentoAdjuntoMongoRepository.save(documentoAdjunto);
 
+	}
+
+	public void migrarDocumentosAdjuntosFromFileDirectory(DocumentoAdjuntoCargaFromDirectoryBodyRequest documentoAdjuntoCargaFromDirectoryBodyRequest) throws Exception {
+
+		String tramiteIdAnterior = documentoAdjuntoCargaFromDirectoryBodyRequest.getTramiteIdAnterior();
+
+		//Creamos la ruta de donde obtener la lista de archivos
+		DocumentoAdjunto documentoAdjunto = new DocumentoAdjunto();
+		Tramite tramite = new Tramite();
+		tramite.setId(documentoAdjuntoCargaFromDirectoryBodyRequest.getTramiteIdAnterior());
+		tramite.setCreatedDate(new Date());
+		documentoAdjunto.setTramite(tramite);
+		String ruta = tramiteRuthFileStorage.setObject(documentoAdjunto).build();
+
+		//Obtener la lista de documentos
+		File file = new File(ruta);
+		File[] listado = file.listFiles();
+		if (listado == null || listado.length == 0) {
+			throw new Exception("No hay archivos en la ruta "+ruta);
+		}
+		tramite = tramiteService.findById(documentoAdjuntoCargaFromDirectoryBodyRequest.getTramiteIdNuevo());
+		Usuario usuarioCreacionAdjunto = new Usuario();
+		usuarioCreacionAdjunto.setId(tramite.getCreatedByUser());
+		for (int i=0; i< listado.length; i++) {
+			File fileAdjunto = listado[i];
+			if(fileAdjunto.isFile()){
+				String nombreArchivoOriginal = fileStorageService.getFileName(fileAdjunto.getName());
+				String nombreArchivo = "Adjunto " + (i+1) + "." + obtenerExtensionArchivo(nombreArchivoOriginal);
+				String nombreArchivoServer = nombreArchivoOriginal;
+				String nombreArchivoDescarga = crearNombreDescarga(tramite,nombreArchivo);
+
+				Path path = fileAdjunto.toPath();
+				String mimeType = Files.probeContentType(path);
+
+				documentoAdjunto = new DocumentoAdjunto();
+				documentoAdjunto.setNombreArchivo(nombreArchivo);
+				documentoAdjunto.setNombreArchivoDescarga(nombreArchivoDescarga);
+				documentoAdjunto.setNombreArchivoServer(nombreArchivoServer);
+				documentoAdjunto.setEstado("A");
+				documentoAdjunto.setExtension(mimeType);
+				documentoAdjunto.setTramite(tramite);
+				documentoAdjunto.setSize(Files.size(path));
+				documentoAdjunto.setUsuarioCreacionAdjunto(usuarioCreacionAdjunto);
+				documentoAdjuntoMongoRepository.save(documentoAdjunto);
+				log.info("Se registra el archivo "+nombreArchivoServer+", " + nombreArchivo + " para tramite "+tramite.getNumeroTramite());
+			}
+		}
 	}
 
 }

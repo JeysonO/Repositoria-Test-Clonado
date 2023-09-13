@@ -15,10 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
-import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoBodyRequest;
-import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoMigracionBodyRequest;
-import pe.com.amsac.tramite.api.request.body.bean.FirmaDocumentoTramiteHibridoBodyRequest;
-import pe.com.amsac.tramite.api.request.body.bean.WrapperDocumentoAdjuntoMigracionBodyRequest;
+import pe.com.amsac.tramite.api.request.body.bean.*;
 import pe.com.amsac.tramite.api.response.bean.*;
 import pe.com.amsac.tramite.api.util.EstadoRespuestaConstant;
 import pe.com.amsac.tramite.bs.service.DocumentoAdjuntoService;
@@ -251,6 +248,24 @@ public class DocumentoAdjuntoController {
 
 		try {
 			documentoAdjuntoService.actualizarDocumentoAdjunto(documentoAdjuntoBodyRequest);
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).build();
+
+		} catch (ServiceException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+	}
+
+	@PostMapping("/cargar-documento-adjunto-migracion")
+	public ResponseEntity<CommonResponse> cargarDocumentoAdjuntoMigracion(@Valid @RequestBody DocumentoAdjuntoCargaFromDirectoryBodyRequest documentoAdjuntoCargaFromDirectoryBodyRequest) throws Exception {
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.OK;
+
+		try {
+			documentoAdjuntoService.migrarDocumentosAdjuntosFromFileDirectory(documentoAdjuntoCargaFromDirectoryBodyRequest);
 			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).build();
 
 		} catch (ServiceException se) {
