@@ -275,4 +275,22 @@ public class DocumentoAdjuntoController {
 
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 	}
+
+	@PostMapping("/renombrar-directorio-carga-migracion")
+	public ResponseEntity<CommonResponse> renombrarDirectorioCargaMigracion(@Valid @RequestBody DocumentoAdjuntoCargaFromDirectoryBodyRequest documentoAdjuntoCargaFromDirectoryBodyRequest) throws Exception {
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.OK;
+
+		try {
+			documentoAdjuntoService.renombrarDirectorioCargaMigracion(documentoAdjuntoCargaFromDirectoryBodyRequest);
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).build();
+
+		} catch (ServiceException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+	}
 }

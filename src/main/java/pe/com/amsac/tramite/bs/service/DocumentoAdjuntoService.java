@@ -1,5 +1,6 @@
 package pe.com.amsac.tramite.bs.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -524,5 +525,47 @@ public class DocumentoAdjuntoService {
 			}
 		}
 	}
+
+	public void renombrarDirectorioCargaMigracion(DocumentoAdjuntoCargaFromDirectoryBodyRequest documentoAdjuntoCargaFromDirectoryBodyRequest) throws Exception {
+
+		log.info("Renombrando directorio: "+new ObjectMapper().writeValueAsString(documentoAdjuntoCargaFromDirectoryBodyRequest));
+		String tramiteIdAnterior = documentoAdjuntoCargaFromDirectoryBodyRequest.getTramiteIdAnterior();
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy");
+
+		//Creamos la ruta de donde obtener la lista de archivos
+		//Tramite tramite = tramiteService.findById(documentoAdjuntoCargaFromDirectoryBodyRequest.getTramiteIdAnterior());
+		Tramite tramite = new Tramite();
+		tramite.setCreatedDate(new Date()); //TODO como se sabe que todos los tramites son de 2023 se coloca new Date, si se migrara de otros años se tiene que hacer una consulta a bd del tramite
+		tramite.setId(documentoAdjuntoCargaFromDirectoryBodyRequest.getTramiteIdAnterior());
+		String rutaDirectorio = fileTxProperties.getBaseUploadDir()
+				.concat(File.separator)
+				.concat(String.valueOf(sdf.format(tramite.getCreatedDate())))
+				.concat(File.separator)
+				.concat(String.valueOf(tramite.getId()));
+		File directorioOrigen = new File(rutaDirectorio);
+
+		if(directorioOrigen.exists() && directorioOrigen.isDirectory()){
+			tramite = new Tramite();
+			tramite.setCreatedDate(new Date());
+			tramite.setId(documentoAdjuntoCargaFromDirectoryBodyRequest.getTramiteIdNuevo());
+			rutaDirectorio = fileTxProperties.getBaseUploadDir()
+					.concat(File.separator)
+					.concat(String.valueOf(sdf.format(tramite.getCreatedDate())))
+					.concat(File.separator)
+					.concat(String.valueOf(tramite.getId()));
+			File directorioFin = new File(rutaDirectorio);
+
+			if(!directorioFin.exists()){
+				//Obtener la lista de documentos
+				boolean renombramientoCorrecto = directorioOrigen.renameTo(directorioFin);
+				log.info("Se cambio nombre de directorio de: "+directorioOrigen.getAbsolutePath()+" a " +directorioFin.getAbsolutePath());
+			}else{
+				throw new Exception("YA EXISTE RUTA: "+directorioFin.getAbsolutePath());
+			}
+		}else{
+			throw new Exception("NO EXISTE RUTA: "+directorioOrigen.getAbsolutePath());
+		}
+	}
+
 
 }
