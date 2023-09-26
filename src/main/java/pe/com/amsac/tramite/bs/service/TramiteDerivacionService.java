@@ -470,7 +470,8 @@ public class TramiteDerivacionService {
 				}
 
 				tramiteDerivacion.setUsuarioCreacion(usuarioCreacionMap.get(tramite.getCreatedByUser()).get("usuarioCreacion").toString());
-				tramiteDerivacion.setDependenciaEmpresa(usuarioCreacionMap.get(tramite.getCreatedByUser()).get("dependenciaEmpresa").toString());
+				if(usuarioCreacionMap.get(tramite.getCreatedByUser()).get("dependenciaEmpresa")!=null)
+					tramiteDerivacion.setDependenciaEmpresa(usuarioCreacionMap.get(tramite.getCreatedByUser()).get("dependenciaEmpresa").toString());
 				tramiteDerivacion.setEmailUsuarioCreacion(usuarioCreacionMap.get(tramite.getCreatedByUser()).get("emailUsuarioCreacion").toString());
 				actualizarTramiteDerivacion = true;
 			}
