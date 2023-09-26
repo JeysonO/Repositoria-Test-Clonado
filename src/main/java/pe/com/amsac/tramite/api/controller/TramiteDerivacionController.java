@@ -1,5 +1,6 @@
 package pe.com.amsac.tramite.api.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -30,6 +31,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/tramites-derivaciones")
+@Slf4j
 public class TramiteDerivacionController {
 	private static final Logger LOGGER = LogManager.getLogger(TramiteDerivacionController.class);
 
@@ -138,6 +140,11 @@ public class TramiteDerivacionController {
 		} catch (ServiceException se) {
 			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
 			httpStatus = HttpStatus.CONFLICT;
+			log.error("ERROR",se);
+		}	catch (Exception ex) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, null)).build();
+			httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+			log.error("ERROR",ex);
 		}
 
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
