@@ -108,6 +108,8 @@ public class TramiteDerivacionController {
 		} catch (ServiceException se) {
 			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
 			httpStatus = HttpStatus.CONFLICT;
+		} catch (Exception ex){
+			log.error("ERROR pendientes",ex);
 		}
 
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
