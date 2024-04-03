@@ -128,7 +128,7 @@ public class DocumentoAdjuntoService {
 		//parameters.forEach((key, value) -> builder.equal(root.get(key), value));
 		parameters.forEach((key, value) -> listaFiltros.add(builder.equal(root.get(key), value)));
 
-		List<DocumentoAdjunto> documentoAdjuntoList = entityManager.createQuery(query.select(root).where((Predicate[])listaFiltros.toArray())).getResultList();
+		List<DocumentoAdjunto> documentoAdjuntoList = entityManager.createQuery(query.select(root).where(listaFiltros.toArray(new Predicate[listaFiltros.size()]))).getResultList();
 
 		return documentoAdjuntoList;
 	}
