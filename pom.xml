@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>pe.com.amsac.tramite</groupId>
 	<artifactId>amsac-tramite-service</artifactId>
-	<version>2.0</version>
+	<version>1.0</version>
 	<name>amsac-tramite-service</name>
 	<description>Microservicio de tramite documentario</description>
     
