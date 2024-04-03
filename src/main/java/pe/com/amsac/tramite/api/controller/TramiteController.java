@@ -216,6 +216,7 @@ public class TramiteController {
 
 	}
 
+	/*
 	@PostMapping("/registrar-tramite-migracion")
 	public ResponseEntity<CommonResponse> registrarTramiteExternoMigracion(@Valid @RequestBody TramiteMigracionBodyRequest tramiteBodyrequest) throws Exception {
 
@@ -224,13 +225,6 @@ public class TramiteController {
 		HttpStatus httpStatus = HttpStatus.CREATED;
 
 		try {
-
-			/*
-			log.info("Tramite a migrar:"+new ObjectMapper().writeValueAsString(tramiteBodyrequest));
-			log.info("CreeateDate:"+new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(tramiteBodyrequest.getCreatedDate()));
-			String userTimezoneProp = System.getProperty("user.timezone");
-			log.info("userTimezoneProp:"+userTimezoneProp);
-			*/
 
 			TramiteMigracion tramite = tramiteService.registrarTramiteMigracion(tramiteBodyrequest);
 
@@ -248,6 +242,7 @@ public class TramiteController {
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 
 	}
+	*/
 
 	@GetMapping("/record-count")
 	public ResponseEntity<CommonResponse> cantidadRegistrosBuscarTramiteParams(@Valid TramiteRequest tramiteRequest) throws Exception {
@@ -338,6 +333,7 @@ public class TramiteController {
 
 	}
 
+	/*
 	@PostMapping("/registrar-tramite-carga-batch")
 	public ResponseEntity<CommonResponse> registrarTramiteCargBatch(@Valid @RequestBody TramiteMigracionBatchBodyRequest tramiteBodyrequest) throws Exception {
 
@@ -346,13 +342,6 @@ public class TramiteController {
 		HttpStatus httpStatus = HttpStatus.CREATED;
 
 		try {
-
-			/*
-			log.info("Tramite a migrar:"+new ObjectMapper().writeValueAsString(tramiteBodyrequest));
-			log.info("CreeateDate:"+new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(tramiteBodyrequest.getCreatedDate()));
-			String userTimezoneProp = System.getProperty("user.timezone");
-			log.info("userTimezoneProp:"+userTimezoneProp);
-			*/
 
 			TramiteMigracion tramite = tramiteService.registrarTramiteCargBatch(tramiteBodyrequest);
 
@@ -370,6 +359,7 @@ public class TramiteController {
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 
 	}
+	*/
 
 
 }

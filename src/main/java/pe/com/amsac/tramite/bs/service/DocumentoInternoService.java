@@ -5,13 +5,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pe.com.amsac.tramite.api.request.body.bean.DocumentoInternoBodyRequest;
 import pe.com.amsac.tramite.bs.domain.DocumentoInterno;
-import pe.com.amsac.tramite.bs.repository.DocumentoInternoJPARepository;
 
 @Service
 public class DocumentoInternoService {
 
+	/*
 	@Autowired
 	private DocumentoInternoJPARepository documentoInternoJPARepository;
+	*/
 
 	@Autowired
 	private Mapper mapper;
@@ -20,7 +21,7 @@ public class DocumentoInternoService {
 
 		DocumentoInterno documentoInterno = mapper.map(documentoInternoBodyRequest,DocumentoInterno.class);
 		documentoInterno.setEstado("A");
-		documentoInternoJPARepository.save(documentoInterno);
+		//documentoInternoJPARepository.save(documentoInterno);
 		return documentoInterno;
 
 	}

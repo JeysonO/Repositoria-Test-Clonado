@@ -87,8 +87,8 @@ public class Tramite extends BaseAuditableEntity<String> {
 	@Column(name = "estado")
 	private String estado;
 
-	@Column(name = "id_tramite")
-	private String idTramiteRelacionado;
+	//@Column(name = "id_tramite_relacionado")
+	//private String idTramiteRelacionado;
 
 	@Column(name = "razon_social")
 	private String razonSocial;

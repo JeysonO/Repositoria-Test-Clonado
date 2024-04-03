@@ -1,21 +1,18 @@
 package pe.com.amsac.tramite;
 
-import com.mongodb.ConnectionString;
-import com.mongodb.MongoClientSettings;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
 import org.dozer.CustomConverter;
 import org.dozer.DozerBeanMapper;
 import org.dozer.Mapper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-//import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
-import org.springframework.data.mongodb.config.EnableMongoAuditing;
-import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.client.RestTemplate;
 import pe.com.amsac.tramite.api.config.SpringSecurityAuditorAware;
 import pe.com.amsac.tramite.api.util.StringConverter;
@@ -33,11 +30,15 @@ import java.util.List;
 import java.util.TimeZone;
 
 @SpringBootApplication
+@Configuration
 //@ComponentScan(basePackages = {"pe.com.bitall.framework.api.*", "pe.com.bitall.security.*"})
 @ComponentScan(basePackages = {"pe.com.amsac.tramite.*"})
+@EntityScan(basePackages = {"pe.com.amsac.tramite.*"})
+@EnableJpaRepositories(basePackages = {"pe.com.amsac.tramite.*"})
 @EnableSwagger2
 //@EnableFeignClients(basePackages = {"pe.com.bitall.tc.mail.*"})
-@EnableMongoAuditing(auditorAwareRef = "auditorAware")
+//@EnableMongoAuditing(auditorAwareRef = "auditorAware")
+@EnableJpaAuditing(auditorAwareRef = "auditorAware")
 public class AmsacTramiteApplication {
 
 	@PostConstruct

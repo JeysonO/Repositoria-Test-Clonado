@@ -14,6 +14,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -410,9 +411,9 @@ public class TramiteService {
 		}
 		*/
 		int numeroTramite=1;
-		Tramite tramite = tramiteJPARepository.obtenerUltimoRegistroMaxNumeroTramite(PageRequest.of(0, 1));
-		if(tramite!=null){
-			numeroTramite = tramite.getNumeroTramite()+1;
+		Optional<Tramite> tramite = tramiteJPARepository.obtenerUltimoRegistroMaxNumeroTramite(PageRequest.of(0, 1, Sort.by("numeroTramite").descending())).get().findFirst();
+		if(tramite.isPresent()){
+			numeroTramite = tramite.get().getNumeroTramite()+1;
 		}
 		return numeroTramite;
 	}

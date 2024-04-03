@@ -50,7 +50,7 @@ public class DocumentoAdjunto extends BaseAuditableEntity<String> {
 	@Column(name = "size")
 	private Long size;
 
-	@Column(name = "id_documento_adjunto")
+	@Column(name = "id_tramite_derivacion")
 	private String tramiteDerivacionId;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -58,7 +58,7 @@ public class DocumentoAdjunto extends BaseAuditableEntity<String> {
 	private Tramite tramite;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "id_usuario", referencedColumnName = "id_usuario")
+	@JoinColumn(name = "id_usuario_creacion_adjunto", referencedColumnName = "id_usuario")
 	private Usuario usuarioCreacionAdjunto;
 
 	@Override
