@@ -1,27 +1,29 @@
 package pe.com.amsac.tramite.bs.domain;
 
 import lombok.Data;
-import org.springframework.data.mongodb.core.mapping.Document;
-import pe.com.amsac.tramite.api.util.BaseAuditableEntity;
+import org.hibernate.annotations.GenericGenerator;
 import pe.com.amsac.tramite.api.util.BaseEntity;
 
-import javax.persistence.AttributeOverride;
-import javax.persistence.AttributeOverrides;
-import javax.persistence.Column;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.io.Serializable;
 
 @Data
-@Document(collection = "texto_firma")
+@Entity
+@Table(name = "texto_firma")
 public class TextoFirma extends BaseEntity {
 
 	private static final long serialVersionUID = 7857201376677339392L;
 
 	@Id
+	@Column(name = "id_texto_firma")
+	@GeneratedValue(generator = "uuid-hibernate-generator")
+	@GenericGenerator(name = "uuid-hibernate-generator", strategy = "org.hibernate.id.UUIDGenerator")
 	private String id;
 
+	@Column(name = "texto")
 	private String texto;
 
+	@Column(name = "estado")
 	private String estado;
 
 	@Override

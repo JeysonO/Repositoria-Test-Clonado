@@ -1,21 +1,11 @@
 package pe.com.amsac.tramite.bs.domain;
 
 import lombok.Data;
-import org.springframework.data.mongodb.core.mapping.DBRef;
-import org.springframework.data.mongodb.core.mapping.Document;
-import pe.com.amsac.tramite.api.util.BaseAuditableEntity;
-
-import javax.persistence.AttributeOverride;
-import javax.persistence.AttributeOverrides;
-import javax.persistence.Column;
-import javax.persistence.Id;
-import java.io.Serializable;
-import java.util.Date;
 
 @Data
-@Document(collection = "tramite")
+//@Document(collection = "tramite")
 public class TramiteMigracion {
-
+	/*
 	private static final long serialVersionUID = 7857201376677339392L;
 
 	@Id
@@ -78,5 +68,6 @@ public class TramiteMigracion {
 	private Date lastModifiedDate;
 	private String createdByUser;
 	private String lastModifiedByUser;
+	*/
 
 }

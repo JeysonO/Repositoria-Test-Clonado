@@ -1,31 +1,33 @@
 package pe.com.amsac.tramite.bs.domain;
 
 import lombok.Data;
-import org.springframework.data.mongodb.core.mapping.DBRef;
-import org.springframework.data.mongodb.core.mapping.Document;
-import pe.com.amsac.tramite.api.util.BaseAuditableEntity;
+import org.hibernate.annotations.GenericGenerator;
 import pe.com.amsac.tramite.api.util.BaseEntity;
 
-import javax.persistence.AttributeOverride;
-import javax.persistence.AttributeOverrides;
-import javax.persistence.Column;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.io.Serializable;
 
 @Data
-@Document(collection = "configuracion_usuario")
+@Entity
+@Table(name = "configuracion_usuario")
 public class ConfiguracionUsuario extends BaseEntity {
 
     private static final long serialVersionUID = 7857201376677339392L;
 
     @Id
+    @Column(name = "id_configuracion_usuario")
+    @GeneratedValue(generator = "uuid-hibernate-generator")
+    @GenericGenerator(name = "uuid-hibernate-generator", strategy = "org.hibernate.id.UUIDGenerator")
     private String id;
 
-    @DBRef(db = "amsac-seguridad")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_usuario", referencedColumnName = "id_usuario")
     private Usuario usuario;
 
+    @Column(name = "enviar_alerta_tramite_pendiente")
     private String enviarAlertaTramitePendiente;
 
+    @Column(name = "estado")
     private String estado;
 
     @Override

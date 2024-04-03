@@ -5,13 +5,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pe.com.amsac.tramite.api.request.body.bean.DocumentoConfiguracionBodyRequest;
 import pe.com.amsac.tramite.bs.domain.DocumentoConfiguracion;
-import pe.com.amsac.tramite.bs.repository.DocumentoConfiguracionMongoRepository;
+import pe.com.amsac.tramite.bs.repository.DocumentoConfiguracionJPARepository;
 
 @Service
 public class DocumentoConfiguracionService {
 
 	@Autowired
-	private DocumentoConfiguracionMongoRepository documentoConfiguracionMongoRepository;
+	private DocumentoConfiguracionJPARepository documentoConfiguracionJPARepository;
 
 	@Autowired
 	private Mapper mapper;
@@ -20,7 +20,7 @@ public class DocumentoConfiguracionService {
 
 		DocumentoConfiguracion documentoConfiguracion = mapper.map(documentoConfiguracionBodyRequest,DocumentoConfiguracion.class);
 		documentoConfiguracion.setEstado("A");
-		documentoConfiguracionMongoRepository.save(documentoConfiguracion);
+		documentoConfiguracionJPARepository.save(documentoConfiguracion);
 		return documentoConfiguracion;
 
 	}

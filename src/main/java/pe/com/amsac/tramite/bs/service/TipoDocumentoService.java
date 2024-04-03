@@ -3,16 +3,12 @@ package pe.com.amsac.tramite.bs.service;
 import lombok.extern.slf4j.Slf4j;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import pe.com.amsac.tramite.api.request.bean.TipoDocumentoRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TipoDocumentoBodyRequest;
 import pe.com.amsac.tramite.bs.domain.TipoDocumento;
-import pe.com.amsac.tramite.bs.repository.TipoDocumentoMongoRepository;
+import pe.com.amsac.tramite.bs.repository.TipoDocumentoJPARepository;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -21,29 +17,32 @@ import java.util.List;
 public class TipoDocumentoService {
 
 	@Autowired
-	private TipoDocumentoMongoRepository tipoDocumentoMongoRepository;
+	private TipoDocumentoJPARepository tipoDocumentoJPARepository;
 
 	@Autowired
 	private Mapper mapper;
 
+	/*
 	@Autowired
 	private MongoTemplate mongoTemplate;
+	*/
 
 	public TipoDocumento registrarTipoDocumento(TipoDocumentoBodyRequest tipoDocumentoBodyRequest) throws Exception {
 
 		TipoDocumento tipoDocumento = mapper.map(tipoDocumentoBodyRequest,TipoDocumento.class);
 		tipoDocumento.setEstado("A");
-		tipoDocumentoMongoRepository.save(tipoDocumento);
+		tipoDocumentoJPARepository.save(tipoDocumento);
 		return tipoDocumento;
 
 	}
 
 	public List<TipoDocumento> findByAllTipoDocumento() throws Exception{
-		return tipoDocumentoMongoRepository.findByEstado("A");
+		return tipoDocumentoJPARepository.findByEstado("A");
 	}
 
 	public List<TipoDocumento> obtenerTipoDocumento(TipoDocumentoRequest tipoDocumentoRequest) throws Exception{
 
+		/*
 		List<String> ambitos = Arrays.asList("A",tipoDocumentoRequest.getTipoAmbito());
 		Query query = new Query();
 		//query.addCriteria(Criteria.where("estado").is("A"));
@@ -71,6 +70,11 @@ public class TipoDocumentoService {
 		//List<TipoDocumento> users = mongoTemplate.find(query, TipoDocumento.class);
 		//return tipoDocumentoMongoRepository.findByEstado("A");
 		return mongoTemplate.find(query, TipoDocumento.class);
+		*/
+
+		List<String> ambitos = Arrays.asList("A",tipoDocumentoRequest.getTipoAmbito());
+
+		return tipoDocumentoJPARepository.obtenerTipoDocumentoByAmbito(ambitos);
 	}
 		
 	

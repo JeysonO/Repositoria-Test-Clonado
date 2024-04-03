@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pe.com.amsac.tramite.api.request.body.bean.TramitePrioridadBodyRequest;
 import pe.com.amsac.tramite.bs.domain.TramitePrioridad;
-import pe.com.amsac.tramite.bs.repository.TramitePrioridadMongoRepository;
+import pe.com.amsac.tramite.bs.repository.TramitePrioridadJPARepository;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ import java.util.List;
 public class TramitePrioridadService {
 
 	@Autowired
-	private TramitePrioridadMongoRepository tramitePrioridadMongoRepository;
+	private TramitePrioridadJPARepository tramitePrioridadJPARepository;
 
 	@Autowired
 	private Mapper mapper;
@@ -22,13 +22,13 @@ public class TramitePrioridadService {
 
 		TramitePrioridad tramitePrioridad = mapper.map(tramitePrioridadBodyRequest,TramitePrioridad.class);
 		tramitePrioridad.setEstado("A");
-		tramitePrioridadMongoRepository.save(tramitePrioridad);
+		tramitePrioridadJPARepository.save(tramitePrioridad);
 		return tramitePrioridad;
 
 	}
 
 	public List<TramitePrioridad> findByAllTramitePrioridad() throws Exception{
-		return tramitePrioridadMongoRepository.findByEstado("A");
+		return tramitePrioridadJPARepository.findByEstado("A");
 	}
 	
 }

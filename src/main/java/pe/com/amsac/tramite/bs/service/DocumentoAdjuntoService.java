@@ -6,22 +6,14 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
+import pe.com.amsac.tramite.api.file.bean.FileStorageService;
 import pe.com.amsac.tramite.api.file.bean.FileTxProperties;
 import pe.com.amsac.tramite.api.file.bean.TramitePathFileStorage;
 import pe.com.amsac.tramite.api.file.bean.UploadFileResponse;
@@ -29,18 +21,21 @@ import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
 import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoCargaFromDirectoryBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoMigracionBodyRequest;
-import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.api.response.bean.DocumentoAdjuntoResponse;
-import pe.com.amsac.tramite.api.file.bean.FileStorageService;
 import pe.com.amsac.tramite.api.response.bean.Mensaje;
 import pe.com.amsac.tramite.api.util.FileUtils;
 import pe.com.amsac.tramite.bs.domain.DocumentoAdjunto;
 import pe.com.amsac.tramite.bs.domain.Tramite;
 import pe.com.amsac.tramite.bs.domain.TramiteDerivacion;
 import pe.com.amsac.tramite.bs.domain.Usuario;
-import pe.com.amsac.tramite.bs.repository.DocumentoAdjuntoMongoRepository;
-import pe.com.amsac.tramite.bs.repository.TramiteMongoRepository;
+import pe.com.amsac.tramite.bs.repository.DocumentoAdjuntoJPARepository;
+import pe.com.amsac.tramite.bs.repository.TramiteJPARepository;
 
+import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -55,10 +50,10 @@ import java.util.regex.Pattern;
 public class DocumentoAdjuntoService {
 
 	@Autowired
-	private TramiteMongoRepository tramiteMongoRepository;
+	private TramiteJPARepository tramiteJPARepository;
 
 	@Autowired
-	private DocumentoAdjuntoMongoRepository documentoAdjuntoMongoRepository;
+	private DocumentoAdjuntoJPARepository documentoAdjuntoJPARepository;
 
 	@Autowired
 	private TramitePathFileStorage tramiteRuthFileStorage;
@@ -69,8 +64,8 @@ public class DocumentoAdjuntoService {
 	@Autowired
 	private Environment env;
 
-	@Autowired
-	private MongoTemplate mongoTemplate;
+	//@Autowired
+	//private MongoTemplate mongoTemplate;
 
 	@Autowired
 	private FileStorageService fileStorageService;
@@ -86,6 +81,9 @@ public class DocumentoAdjuntoService {
 
 	@Autowired
 	private SecurityHelper securityHelper;
+
+	@Autowired
+	private EntityManager entityManager;
 
 	public List<DocumentoAdjuntoResponse> obtenerDocumentoAdjuntoList(DocumentoAdjuntoRequest documentoAdjuntoRequest) throws Exception {
 
@@ -106,6 +104,8 @@ public class DocumentoAdjuntoService {
 	}
 
 	public List<DocumentoAdjunto> obtenerDocumentoAdjuntoParams(DocumentoAdjuntoRequest documentoAdjuntoRequest) throws Exception {
+
+		/*
 		Query andQuery = new Query();
 		Criteria andCriteria = new Criteria();
 		List<Criteria> andExpression =  new ArrayList<>();
@@ -116,6 +116,19 @@ public class DocumentoAdjuntoService {
 		andExpression.add(expression);
 		andQuery.addCriteria(andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()])));
 		List<DocumentoAdjunto> documentoAdjuntoList = mongoTemplate.find(andQuery, DocumentoAdjunto.class);
+		*/
+		Map<String, Object> parameters = mapper.map(documentoAdjuntoRequest, Map.class);
+		parameters.values().removeIf(Objects::isNull);
+
+		CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+		CriteriaQuery<DocumentoAdjunto> query = builder.createQuery(DocumentoAdjunto.class);
+		Root<DocumentoAdjunto> root = query.from(DocumentoAdjunto.class);
+
+		List<Predicate> listaFiltros = new ArrayList<>();
+		parameters.forEach((key, value) -> builder.equal(root.get(key), value));
+
+		List<DocumentoAdjunto> documentoAdjuntoList = entityManager.createQuery(query.select(root).where((Predicate[])listaFiltros.toArray())).getResultList();
+
 		return documentoAdjuntoList;
 	}
 
@@ -151,7 +164,7 @@ public class DocumentoAdjuntoService {
 		if(documentoAdjunto.getTramite()!=null
 				&& documentoAdjunto.getTramite().getId()!=null) {
 			// Se crea el archivo para guardarlo
-			tramiteTmp = tramiteMongoRepository.findById(documentoAdjunto.getTramite().getId()).get();
+			tramiteTmp = tramiteJPARepository.findById(documentoAdjunto.getTramite().getId()).get();
 			String nombreArchivoDescarga = crearNombreDescarga(tramiteTmp,fileName);
 			//String nombreArchivoDescarga = "CUT_"+tramiteTmp.getNumeroTramite()+"_"+tramiteTmp.getNumeroDocumento()+"_"+documentoAdjuntoRequest.getFile().getOriginalFilename();
 			documentoAdjunto.setNombreArchivoDescarga(nombreArchivoDescarga);
@@ -177,7 +190,7 @@ public class DocumentoAdjuntoService {
 		//Seteamos tamanio de archivo
 		documentoAdjunto.setSize(documentoAdjuntoRequest.getFile().getSize());
 		//Guardamos en BD
-		documentoAdjuntoMongoRepository.save(documentoAdjunto);
+		documentoAdjuntoJPARepository.save(documentoAdjunto);
 
 		DocumentoAdjuntoResponse response = mapper.map(documentoAdjunto, DocumentoAdjuntoResponse.class);
 		response.setUploadFileResponse(createUploadFileResponse(documentoAdjuntoRequest.getFile(), documentoAdjunto));
@@ -239,7 +252,7 @@ public class DocumentoAdjuntoService {
 	}
 
 	public DocumentoAdjunto obtenerDocumentoAdjunto(String documentoAdjuntoId) throws Exception {
-		return documentoAdjuntoMongoRepository.findById(documentoAdjuntoId).get();
+		return documentoAdjuntoJPARepository.findById(documentoAdjuntoId).get();
 	}
 
 	private UploadFileResponse createUploadFileResponse(Resource file, DocumentoAdjunto documentoAdjunto)
@@ -330,7 +343,7 @@ public class DocumentoAdjuntoService {
 		if(documentoAdjunto.getTramite()!=null
 				&& documentoAdjunto.getTramite().getId()!=null) {
 			// Se crea el archivo para guardarlo
-			tramiteTmp = tramiteMongoRepository.findById(documentoAdjunto.getTramite().getId()).get();
+			tramiteTmp = tramiteJPARepository.findById(documentoAdjunto.getTramite().getId()).get();
 
 			// Seteamos la ruta
 			/*
@@ -356,7 +369,7 @@ public class DocumentoAdjuntoService {
 		documentoAdjunto.setNombreArchivoServer(fileNameInServer);
 
 		//Guardamos en BD
-		documentoAdjuntoMongoRepository.save(documentoAdjunto);
+		documentoAdjuntoJPARepository.save(documentoAdjunto);
 
 		//Marcar el tramite derivacion adjunto como que tiene adjunto
 		actualizarAdjuntosPorTramiteDerivacion(documentoAdjunto.getTramiteDerivacionId());
@@ -438,7 +451,7 @@ public class DocumentoAdjuntoService {
 	public void eliminarDocumentoAdjunto(String documentoAdjuntoId) throws Exception {
 
 		String usuarioId = securityHelper.obtenerUserIdSession();
-		DocumentoAdjunto documentoAdjunto = documentoAdjuntoMongoRepository.findById(documentoAdjuntoId).get();
+		DocumentoAdjunto documentoAdjunto = documentoAdjuntoJPARepository.findById(documentoAdjuntoId).get();
 		String tramiteDerivacionId = documentoAdjunto.getTramiteDerivacionId();
 		if(!documentoAdjunto.getCreatedByUser().equals(usuarioId)){
 			List<Mensaje> mensajeList = new ArrayList<>();
@@ -446,7 +459,7 @@ public class DocumentoAdjuntoService {
 			throw new ServiceException(mensajeList);
 		}
 
-		documentoAdjuntoMongoRepository.deleteById(documentoAdjuntoId);
+		documentoAdjuntoJPARepository.deleteById(documentoAdjuntoId);
 
 		actualizarAdjuntosPorTramiteDerivacion(tramiteDerivacionId);
 	}
@@ -468,14 +481,14 @@ public class DocumentoAdjuntoService {
 
 	public void actualizarDocumentoAdjunto(DocumentoAdjuntoBodyRequest documentoAdjuntoRequest) throws Exception {
 
-		DocumentoAdjunto documentoAdjunto = documentoAdjuntoMongoRepository.findById(documentoAdjuntoRequest.getId()).get();
+		DocumentoAdjunto documentoAdjunto = documentoAdjuntoJPARepository.findById(documentoAdjuntoRequest.getId()).get();
 		Tramite tramite = tramiteService.findById(documentoAdjuntoRequest.getTramiteId());
 		String nombreArchivoDescarga = crearNombreDescarga(tramite,documentoAdjunto.getNombreArchivo());
 
 		documentoAdjunto.setNombreArchivoDescarga(nombreArchivoDescarga);
 		documentoAdjunto.setTramite(tramite);
 
-		documentoAdjuntoMongoRepository.save(documentoAdjunto);
+		documentoAdjuntoJPARepository.save(documentoAdjunto);
 
 	}
 
@@ -520,7 +533,7 @@ public class DocumentoAdjuntoService {
 				documentoAdjunto.setTramite(tramite);
 				documentoAdjunto.setSize(Files.size(path));
 				documentoAdjunto.setUsuarioCreacionAdjunto(usuarioCreacionAdjunto);
-				documentoAdjuntoMongoRepository.save(documentoAdjunto);
+				documentoAdjuntoJPARepository.save(documentoAdjunto);
 				log.info("Se registra el archivo "+nombreArchivoServer+", " + nombreArchivo + " para tramite "+tramite.getNumeroTramite());
 			}
 		}

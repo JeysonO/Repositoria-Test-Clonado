@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pe.com.amsac.tramite.api.request.body.bean.FormaRecepcionBodyRequest;
 import pe.com.amsac.tramite.bs.domain.FormaRecepcion;
-import pe.com.amsac.tramite.bs.repository.FormaRecepcionMongoRepository;
+import pe.com.amsac.tramite.bs.repository.FormaRecepcionJPARepository;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ import java.util.List;
 public class FormaRecepcionService {
 
 	@Autowired
-	private FormaRecepcionMongoRepository formaRecepcionMongoRepository;
+	private FormaRecepcionJPARepository formaRecepcionJPARepository;
 
 	@Autowired
 	private Mapper mapper;
@@ -22,17 +22,17 @@ public class FormaRecepcionService {
 
 		FormaRecepcion formaRecepcion = mapper.map(formaRecepcionBodyRequest,FormaRecepcion.class);
 		formaRecepcion.setEstado("A");
-		formaRecepcionMongoRepository.save(formaRecepcion);
+		formaRecepcionJPARepository.save(formaRecepcion);
 		return formaRecepcion;
 
 	}
 
 	public List<FormaRecepcion> findByAllFormaRecepcion() throws Exception{
-		return formaRecepcionMongoRepository.findByEstado("A");
+		return formaRecepcionJPARepository.findByEstado("A");
 	}
 
 	public List<FormaRecepcion> findByFormaRecepcion(String formaRecepcion) throws Exception{
-		return formaRecepcionMongoRepository.findByFormaRecepcion(formaRecepcion);
+		return formaRecepcionJPARepository.findByFormaRecepcion(formaRecepcion);
 	}
 	
 }

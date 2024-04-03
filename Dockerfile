@@ -3,8 +3,8 @@
 #FROM openjdk:8u131-jre-alpine
 FROM openjdk:11
 MAINTAINER ealvino (edgard.alvino@gmail.com)
-EXPOSE 8100
-COPY ./target/amsac-tramite-api-1.0.jar /app/application.jar
+EXPOSE 8200
+COPY ./target/amsac-tramite-service-1.0.jar /app/application.jar
 RUN mkdir -p tramite/logs
 RUN mkdir -p tramite/resource/reporte
 RUN mkdir -p tramite/file

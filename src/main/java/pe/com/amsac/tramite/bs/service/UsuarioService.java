@@ -20,7 +20,7 @@ import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.api.response.bean.Mensaje;
 import pe.com.amsac.tramite.bs.domain.Persona;
 import pe.com.amsac.tramite.bs.domain.Usuario;
-import pe.com.amsac.tramite.bs.repository.UsuarioMongoRepository;
+import pe.com.amsac.tramite.bs.repository.UsuarioJPARepository;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,7 +32,7 @@ import java.util.List;
 public class UsuarioService {
 
 	@Autowired
-	private UsuarioMongoRepository usuarioMongoRepository;
+	private UsuarioJPARepository usuarioJPARepository;
 
 	@Autowired
 	private Mapper mapper;
@@ -64,7 +64,7 @@ public class UsuarioService {
 		createUserOnKeycloak(usuarioCreateBodyRequest);
 
 		Usuario usuario = mapper.map(usuarioCreateBodyRequest,Usuario.class);
-		usuarioMongoRepository.save(usuario);
+		usuarioJPARepository.save(usuario);
 		return usuario;
 
 	}
@@ -76,12 +76,12 @@ public class UsuarioService {
 		- Que no exista otro usuario con el mismo username en la base de datos
 		*/
 		List<Mensaje> mensajes = new ArrayList<>();
-		if(!CollectionUtils.isEmpty(usuarioMongoRepository.findByEmail(usuarioCreateBodyRequest.getEmail()))){
+		if(!CollectionUtils.isEmpty(usuarioJPARepository.findByEmail(usuarioCreateBodyRequest.getEmail()))){
 			mensajes.add(new Mensaje("E001","ERROR","Ya existe otro usuario con el mismo email"));
 		}
 
 		if(!StringUtils.isBlank(usuarioCreateBodyRequest.getUsuario())
-			&& !CollectionUtils.isEmpty(usuarioMongoRepository.findByUsuario(usuarioCreateBodyRequest.getUsuario()))){
+			&& !CollectionUtils.isEmpty(usuarioJPARepository.findByUsuario(usuarioCreateBodyRequest.getUsuario()))){
 			mensajes.add(new Mensaje("E001","ERROR","Ya existe otro usuario con el mismo username"));
 		}
 
@@ -107,7 +107,7 @@ public class UsuarioService {
 
 	public String generateUsername(String nombre, String apellidoPaterno, String apellidoMaterno, int contadorComodin){
 		String username = nombre.substring(0,1).concat(apellidoPaterno).concat(StringUtils.isBlank(apellidoMaterno)?"":apellidoMaterno.substring(0,1)).concat(contadorComodin==0?"":String.valueOf(contadorComodin)).toLowerCase();
-		if(usuarioMongoRepository.findByUsuario(username)!=null)
+		if(usuarioJPARepository.findByUsuario(username)!=null)
 			username = generateUsername(nombre,apellidoPaterno,apellidoMaterno,++contadorComodin);
 		return username;
 	}

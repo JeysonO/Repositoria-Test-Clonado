@@ -1,87 +1,126 @@
 package pe.com.amsac.tramite.bs.domain;
 
 import lombok.Data;
-import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedBy;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import org.springframework.data.mongodb.core.mapping.DBRef;
-import org.springframework.data.mongodb.core.mapping.Document;
+import org.hibernate.annotations.GenericGenerator;
 import pe.com.amsac.tramite.api.util.BaseAuditableEntity;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 
-import static javax.persistence.TemporalType.TIMESTAMP;
-
 @Data
-@Document(collection = "tramite")
-@EntityListeners(AuditingEntityListener.class)
+//@Document(collection = "tramite")
+//@EntityListeners(AuditingEntityListener.class)
+@Entity
+@Table(name = "tramite")
 @AttributeOverrides(value = {
-		@AttributeOverride(name = "createdDate", column = @Column(name = "createdDate", updatable = false)),
-		@AttributeOverride(name = "createdByUser", column = @Column(name = "createdByUser", updatable = false)),
-		@AttributeOverride(name = "lastModifiedDate", column = @Column(name = "lastModifiedDate", nullable = false)),
-		@AttributeOverride(name = "lastModifiedByUser", column = @Column(name = "lastModifiedByUser", nullable = false))})
+		@AttributeOverride(name = "createdDate", column = @Column(name = "created_date", updatable = false)),
+		@AttributeOverride(name = "createdByUser", column = @Column(name = "created_by_user", updatable = false)),
+		@AttributeOverride(name = "lastModifiedDate", column = @Column(name = "last_modified_date", nullable = false)),
+		@AttributeOverride(name = "lastModifiedByUser", column = @Column(name = "last_modified_by_user", nullable = false))})
 public class Tramite extends BaseAuditableEntity<String> {
 
 	private static final long serialVersionUID = 7857201376677339392L;
 
 	@Id
+	@Column(name = "id_tramite")
+	@GeneratedValue(generator = "uuid-hibernate-generator")
+	@GenericGenerator(name = "uuid-hibernate-generator", strategy = "org.hibernate.id.UUIDGenerator")
 	private String id;
 
 	//Datos de configuracion del tramite
+	@Column(name = "numero_tramite")
 	private int numeroTramite;
+
+	@Column(name = "mensaje_tramite")
 	private String mensajeTramite;
+
+	@Column(name = "aviso_confidencial")
 	private String avisoConfidencial;
+
+	@Column(name = "codigo_etica")
 	private String codigoEtica;
 
-	@DBRef(db = "amsac-seguridad")
+	//@DBRef(db = "amsac-seguridad")
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "id_dependencia_destino", referencedColumnName = "id_dependencia")
 	private Dependencia dependenciaDestino;
 
 	//Datos del documento
+	@Column(name = "fecha_documento")
 	private Date fechaDocumento;
+
+	@Column(name = "origen_documento")
 	private String origenDocumento; //INTERNO, EXTERNO
+
+	@Column(name = "numero_documento")
 	private String numeroDocumento;
+
+	@Column(name = "siglas")
 	private String siglas;
+
+	@Column(name = "folio")
 	private String folio;
+
+	@Column(name = "asunto")
 	private String asunto;
+
+	@Column(name = "atencion")
 	private String atencion;
+
+	@Column(name = "desea_factura")
 	private String deseaFactura;
+
+	@Column(name = "nombre_proyecto")
 	private String nombreProyecto;
+
+	@Column(name = "contrato_orden")
 	private String contratoOrden;
 
 	//Origen del documento
+	@Column(name = "origen")
 	private String origen; //INTERNO, EXTERNO
+
+	@Column(name = "tipo_origen")
 	private String tipoOrigen; //si es interno entonces va DOCUMENTO_PERSONAL.
 
+	@Column(name = "estado")
 	private String estado;
 
+	@Column(name = "id_tramite")
 	private String idTramiteRelacionado;
 
+	@Column(name = "razon_social")
 	private String razonSocial;
 
-	@DBRef
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "id_tipo_documento", referencedColumnName = "id_tipo_documento")
 	private TipoDocumento tipoDocumento;
 
+	@Transient
 	private EntidadInterna entidadInterna;
 
+	@Transient
 	private EntidadExterna entidadExterna;
 
-	@DBRef
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "id_forma_recepcion", referencedColumnName = "id_forma_recepcion")
 	private FormaRecepcion formaRecepcion;
 
-	@DBRef
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "id_tramite_prioridad", referencedColumnName = "id_tramite_prioridad")
 	private TramitePrioridad tramitePrioridad;
 
-	@DBRef(db = "amsac-seguridad")
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "id_dependencia_creacion", referencedColumnName = "id_dependencia")
 	private Dependencia dependenciaUsuarioCreacion;
 
-	@DBRef(db = "amsac-seguridad")
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "id_cargo_creacion", referencedColumnName = "id_cargo")
 	private Cargo cargoUsuarioCreacion;
 
-	@DBRef
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "id_tramite_relacionado", referencedColumnName = "id_tramite")
 	private Tramite tramiteRelacionado;
 
 	@Override

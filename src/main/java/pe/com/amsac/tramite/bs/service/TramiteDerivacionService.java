@@ -2,7 +2,6 @@ package pe.com.amsac.tramite.bs.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -10,14 +9,7 @@ import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.env.Environment;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -27,35 +19,26 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
-import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
-import pe.com.amsac.tramite.api.request.bean.AtenderDerivacionLoteRequest;
 import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
-import pe.com.amsac.tramite.api.request.body.bean.*;
 import pe.com.amsac.tramite.api.request.bean.TramiteDerivacionRequest;
+import pe.com.amsac.tramite.api.request.body.bean.*;
 import pe.com.amsac.tramite.api.response.bean.*;
-import pe.com.amsac.tramite.api.util.CustomMultipartFile;
 import pe.com.amsac.tramite.bs.domain.*;
-import pe.com.amsac.tramite.bs.repository.TramiteDerivacionMongoRepository;
-import pe.com.amsac.tramite.bs.repository.TramiteMongoRepository;
+import pe.com.amsac.tramite.bs.repository.TramiteDerivacionJPARepository;
+import pe.com.amsac.tramite.bs.repository.TramiteJPARepository;
 import pe.com.amsac.tramite.bs.util.EstadoTramiteConstant;
 import pe.com.amsac.tramite.bs.util.EstadoTramiteDerivacionConstant;
 import pe.com.amsac.tramite.bs.util.TipoAdjuntoConstant;
 
-import java.awt.print.Book;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -65,13 +48,15 @@ import static java.time.temporal.ChronoUnit.DAYS;
 public class TramiteDerivacionService {
 
 	@Autowired
-	private TramiteDerivacionMongoRepository tramiteDerivacionMongoRepository;
+	private TramiteDerivacionJPARepository tramiteDerivacionJPARepository;
 
 	@Autowired
-	private TramiteMongoRepository tramiteMongoRepository;
+	private TramiteJPARepository tramiteMongoRepository;
 
+	/*
 	@Autowired
 	private MongoTemplate mongoTemplate;
+	*/
 
 	@Autowired
 	private Mapper mapper;
@@ -95,22 +80,17 @@ public class TramiteDerivacionService {
 	private Environment env;
 
 	public List<TramiteDerivacion> obtenerTramiteDerivacionByTramiteId(String tramiteId) throws Exception {
-		//Obtener Usuario
 		/*
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		if (authentication == null || !authentication.isAuthenticated()) {
-			return null;
-		}
-		DatosToken datosToken = (DatosToken)authentication.getPrincipal();
-
-		String idUser =  datosToken.getIdUser();
-		*/
-		//String idUser =  securityHelper.obtenerUserIdSession();
-
 		Query query = new Query();
 		Criteria criteria = Criteria.where("tramite.id").is(tramiteId);
 		query.addCriteria(criteria);
 		List<TramiteDerivacion> tramitePendienteList = mongoTemplate.find(query, TramiteDerivacion.class);
+		*/
+
+		Map<String, Object> param = new HashMap<>();
+		param.put("tramiteId", tramiteId);
+
+		List<TramiteDerivacion> tramitePendienteList = tramiteDerivacionJPARepository.findByParams(param,null,null,0,0);
 
 		//Por cada usuario origen y fin, obtener la dependencia y cargo
 		RestTemplate restTemplate = new RestTemplate();
@@ -224,7 +204,7 @@ public class TramiteDerivacionService {
 			*/
 
 			if(actualizarTramiteDerivacion){
-				tramiteDerivacionMongoRepository.save(tramiteDerivacion);
+				tramiteDerivacionJPARepository.save(tramiteDerivacion);
 			}
 
 		}
@@ -275,11 +255,13 @@ public class TramiteDerivacionService {
 	}
 
 	public TramiteDerivacion obtenerTramiteDerivacionById(String id) throws Exception {
-		TramiteDerivacion obtenerTramiteDerivacionById = tramiteDerivacionMongoRepository.findById(id).get();
+		TramiteDerivacion obtenerTramiteDerivacionById = tramiteDerivacionJPARepository.findById(id).get();
 		return obtenerTramiteDerivacionById;
 	}
 
 	public List<TramiteDerivacion> buscarTramiteDerivacionParams(TramiteDerivacionRequest tramiteDerivacionRequest) throws Exception {
+
+		/*
 		Query andQuery = new Query();
 		Criteria andCriteria = new Criteria();
 		Criteria orCriteria = new Criteria();
@@ -311,26 +293,7 @@ public class TramiteDerivacionService {
 			}
 			//orQuery.addCriteria(orCriteria.orOperator(orExpression.toArray(new Criteria[orExpression.size()])));
 		}
-		/*
-		if(parameters.containsKey("fechaDerivacionDesde") && parameters.containsKey("fechaDerivacionHasta")){
-			listCriteria.add(Criteria.where("fechaInicio").gte(((Date)parameters.get("fechaDerivacionDesde"))).lte(((Date)parameters.get("fechaDerivacionHasta"))));
-			parameters.remove("fechaDerivacionDesde");
-			parameters.remove("fechaDerivacionHasta");
-		}
-		*/
-		/*
-		if(parameters.containsKey("fechaDerivacionDesde"))
-			listCriteria.add(Criteria.where("fechaInicio").gte((Date)parameters.get("fechaDerivacionDesde")));
 
-		if(parameters.containsKey("fechaDerivacionHasta")){
-			Date fechaHasta = (Date)parameters.get("fechaDerivacionHasta");
-			String fechaHastaCadena = new SimpleDateFormat("dd/MM/yyyy").format(fechaHasta);
-			fechaHastaCadena = fechaHastaCadena + " " + "23:59:59";
-			fechaHasta = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").parse(fechaHastaCadena);
-			//listCriteria.add(Criteria.where("fechaInicio").lte((Date)parameters.get("fechaDerivacionHasta")));
-			listCriteria.add(Criteria.where("fechaInicio").lte(fechaHasta));
-		}
-		*/
 		if(parameters.containsKey("usuarioInicio")){
 			listCriteria.add(Criteria.where("usuarioInicio.id").is(parameters.get("usuarioInicio")));
 			parameters.remove("usuarioInicio");
@@ -396,6 +359,19 @@ public class TramiteDerivacionService {
 		));
 
 		List<TramiteDerivacion> tramiteDerivacionList = mongoTemplate.find(andQuery, TramiteDerivacion.class);
+		*/
+
+		Map<String, Object> parameters = mapper.map(tramiteDerivacionRequest,Map.class);
+		if(parameters.get("numeroTramite").equals(0)){
+			parameters.remove("numeroTramite");
+		}
+		parameters.values().removeIf(Objects::isNull);
+		if(parameters.containsKey("estadoFin") && parameters.get("estadoFin").toString().equals("PENDIENTE")){
+			parameters.put("estado","P");
+			parameters.remove("estadoFin");
+		}
+
+		List<TramiteDerivacion> tramiteDerivacionList = tramiteDerivacionJPARepository.findByParams(parameters,"fechaInicio",null,tramiteDerivacionRequest.getPageNumber(),tramiteDerivacionRequest.getPageSize());
 
 		//Por cada usuario origen y fin, obtener la dependencia y cargo
 		RestTemplate restTemplate = new RestTemplate();
@@ -416,23 +392,7 @@ public class TramiteDerivacionService {
 		Map<String, Map> usuarioInicioMap = new HashMap<>();
 		Map<String, Map> usuarioFinMap = new HashMap<>();
 		Map<String, Object> paramTmp = new HashMap<>();
-		/*
-		if(!CollectionUtils.isEmpty(tramiteDerivacionList)){
-			tramite = tramiteDerivacionList.get(0).getTramite();
-			uriBusqueda = uri + tramite.getCreatedByUser();
-			response = restTemplate.exchange(uriBusqueda, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
-			LinkedHashMap<Object, Object> usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
-			usuarioCreacion = ((LinkedHashMap)response.getBody().getData()).get("nombre").toString() + " " + ((LinkedHashMap)response.getBody().getData()).get("apePaterno").toString() + ((((LinkedHashMap)response.getBody().getData()).get("apeMaterno")!=null)?" "+((LinkedHashMap)response.getBody().getData()).get("apeMaterno").toString():"");
-			emailUsuarioCreacion = usuario.get("email").toString();
-			if(usuario.get("tipoUsuario").equals("EXTERNO")){//tramite.getOrigenDocumento().equals("EXTERNO")){
-				LinkedHashMap<String, String> persona = (LinkedHashMap<String, String>) usuario.get("persona");
-				Persona personaDto = mapper.map(persona,Persona.class);
-				dependenciaEmpresa = personaDto.getRazonSocialNombre();
-			}else{
-				dependenciaEmpresa = tramite.getDependenciaUsuarioCreacion().getNombre();; // ((LinkedHashMap)response.getBody().getData()).get("dependenciaNombre").toString();
-			}
-		}
-		*/
+
 
 		boolean actualizarTramiteDerivacion = false;
 		for(TramiteDerivacion tramiteDerivacion : tramiteDerivacionList){
@@ -604,7 +564,7 @@ public class TramiteDerivacionService {
 			*/
 
 			if(actualizarTramiteDerivacion){
-				tramiteDerivacionMongoRepository.save(tramiteDerivacion);
+				tramiteDerivacionJPARepository.save(tramiteDerivacion);
 			}
 
 			//Se calcula los dias qeu no ha sido atendido el tramite
@@ -702,12 +662,12 @@ public class TramiteDerivacionService {
 		String dependenciaIdUserSession = securityHelper.obtenerDependenciaIdUserSession();
 		String cargoIdUserSession = securityHelper.obtenerCargoIdUserSession();
 
-		TramiteDerivacion subsanarTramiteActual = tramiteDerivacionMongoRepository.findById(subsanartramiteDerivacionBodyrequest.getId()).get();
+		TramiteDerivacion subsanarTramiteActual = tramiteDerivacionJPARepository.findById(subsanartramiteDerivacionBodyrequest.getId()).get();
 		subsanarTramiteActual.setComentarioFin(subsanartramiteDerivacionBodyrequest.getComentarioInicial());
 		subsanarTramiteActual.setEstadoFin(EstadoTramiteConstant.SUBSANACION);
 		subsanarTramiteActual.setFechaFin(new Date());
 		subsanarTramiteActual.setEstado("A");
-		tramiteDerivacionMongoRepository.save(subsanarTramiteActual);
+		tramiteDerivacionJPARepository.save(subsanarTramiteActual);
 
 		int sec = obtenerSecuencia(subsanarTramiteActual.getTramite().getId());
 
@@ -783,7 +743,7 @@ public class TramiteDerivacionService {
 			derivacionTramiteActual.setForma("COPIA");
 			//tramiteService.actualizarEstadoTramite(derivacionTramiteActual.getTramite().getId(),EstadoTramiteConstant.ATENDIDO);
 		}else{
-			derivacionTramiteActual = tramiteDerivacionMongoRepository.findById(derivartramiteBodyrequest.getId()).get();
+			derivacionTramiteActual = tramiteDerivacionJPARepository.findById(derivartramiteBodyrequest.getId()).get();
 			//Si el estado ACtual ya es atendido, entonces ya no actualizo nada
 			if(derivacionTramiteActual.getEstadoFin() == null || (derivacionTramiteActual.getEstadoFin()!=null && !derivacionTramiteActual.getEstadoFin().equals(EstadoTramiteConstant.ATENDIDO))){
 				ZoneId defaultZoneId = ZoneId.systemDefault();
@@ -793,7 +753,7 @@ public class TramiteDerivacionService {
 				derivacionTramiteActual.setComentarioFin(derivartramiteBodyrequest.getComentarioFin());
 				//derivacionTramiteActual.setFechaMaximaAtencion(Date.from(derivartramiteBodyrequest.getFechaMaximaAtencion().atStartOfDay(defaultZoneId).toInstant()));
 				derivacionTramiteActual.setEstado("A");
-				tramiteDerivacionMongoRepository.save(derivacionTramiteActual);
+				tramiteDerivacionJPARepository.save(derivacionTramiteActual);
 
 				//Actualizamos el estado a nivel de tramite
 				tramiteService.actualizarEstadoTramite(derivacionTramiteActual.getTramite().getId(),EstadoTramiteConstant.DERIVADO);
@@ -861,12 +821,12 @@ public class TramiteDerivacionService {
 	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
 	public TramiteDerivacion registrarRecepcionTramiteDerivacion(String id) throws Exception {
 
-		TramiteDerivacion recepcionTramiteActual = tramiteDerivacionMongoRepository.findById(id).get();
+		TramiteDerivacion recepcionTramiteActual = tramiteDerivacionJPARepository.findById(id).get();
 		recepcionTramiteActual.setEstadoFin(EstadoTramiteConstant.RECEPCIONADO);
 		recepcionTramiteActual.setFechaFin(new Date());
 		recepcionTramiteActual.setComentarioFin("Se recepciona tramite");
 		recepcionTramiteActual.setEstado("A");
-		tramiteDerivacionMongoRepository.save(recepcionTramiteActual);
+		tramiteDerivacionJPARepository.save(recepcionTramiteActual);
 
 		TramiteDerivacion nuevoRecepcionTramite = recepcionTramiteActual;
 
@@ -933,12 +893,12 @@ public class TramiteDerivacionService {
 		String dependenciaIdUserSession = securityHelper.obtenerDependenciaIdUserSession();
 		String cargoIdUserSession = securityHelper.obtenerCargoIdUserSession();
 
-		TramiteDerivacion atenderTramiteDerivacion = tramiteDerivacionMongoRepository.findById(atenciontramiteDerivacionBodyrequest.getId()).get();
+		TramiteDerivacion atenderTramiteDerivacion = tramiteDerivacionJPARepository.findById(atenciontramiteDerivacionBodyrequest.getId()).get();
 		atenderTramiteDerivacion.setEstadoFin(atenciontramiteDerivacionBodyrequest.getEstadoFin());
 		atenderTramiteDerivacion.setFechaFin(new Date());
 		atenderTramiteDerivacion.setComentarioFin(atenciontramiteDerivacionBodyrequest.getComentarioFin());
 		atenderTramiteDerivacion.setEstado("A");
-		tramiteDerivacionMongoRepository.save(atenderTramiteDerivacion);
+		tramiteDerivacionJPARepository.save(atenderTramiteDerivacion);
 
 		String idTramite = atenderTramiteDerivacion.getTramite().getId();
 
@@ -994,6 +954,7 @@ public class TramiteDerivacionService {
 
 	public int obtenerSecuencia(String id){
 		int secuencia = 1;
+		/*
 		Query query = new Query();
 		Criteria criteria = Criteria.where("tramite.id").is(id);
 		query.addCriteria(criteria);
@@ -1001,9 +962,19 @@ public class TramiteDerivacionService {
 				Sort.Order.desc("secuencia")
 		));
 		List<TramiteDerivacion> tramiteList = mongoTemplate.find(query, TramiteDerivacion.class);
-
-		if(!CollectionUtils.isEmpty(tramiteList))
+		if(!CollectionUtils.isEmpty(tramiteList)){
 			secuencia = tramiteList.get(0).getSecuencia() + 1;
+		}
+		*/
+
+		List<TramiteDerivacion> tramiteList = tramiteDerivacionJPARepository.obtenerTramiteDerivacionByTramiteId(id);
+
+		if(!CollectionUtils.isEmpty(tramiteList)){
+			Collections.sort(tramiteList, (a, b) -> {
+				return Integer.valueOf(b.getSecuencia()).compareTo(Integer.valueOf(a.getSecuencia()));
+			});
+			secuencia = tramiteList.get(0).getSecuencia() + 1;
+		}
 
 		return secuencia;
 	}
@@ -1210,11 +1181,18 @@ public class TramiteDerivacionService {
 
 	public void alertaTramiteFueraPlazoAtencion () throws Exception {
 		//Obtener Lista de Tramites Derivacion, condiciones: estado->P y fechaMaxima>=Hoy
+		/*
 		Date todaysDate = new Date();
 		Query query = new Query();
 		Criteria criteria = Criteria.where("fechaMaximaAtencion").gte(todaysDate).and("estado").is("P");
 		query.addCriteria(criteria);
 		List<TramiteDerivacion> tramitePendienteList = mongoTemplate.find(query, TramiteDerivacion.class);
+		*/
+		Map<String, Object> param = new HashMap<>();
+		param.put("fueraPlazofechaMaximaAtencion", new Date());
+		param.put("estado", "P");
+		List<TramiteDerivacion> tramitePendienteList = tramiteDerivacionJPARepository.findByParams(param,null,null,0,0);
+
 		//Obtener correo de cada usuarioFin de la lista de Tramite Derivacion Pendiente
 		Map<String, Boolean> mapaUsuarios = new HashMap<>();
 		String usuarioId = null;
@@ -1294,12 +1272,12 @@ public class TramiteDerivacionService {
 		String dependenciaIdUserSession = securityHelper.obtenerDependenciaIdUserSession();
 		String cargoIdUserSession = securityHelper.obtenerCargoIdUserSession();
 
-		TramiteDerivacion subsanarTramiteActual = tramiteDerivacionMongoRepository.findById(rechazarTramiteDerivacionBodyRequest.getId()).get();
+		TramiteDerivacion subsanarTramiteActual = tramiteDerivacionJPARepository.findById(rechazarTramiteDerivacionBodyRequest.getId()).get();
 		subsanarTramiteActual.setComentarioFin(rechazarTramiteDerivacionBodyRequest.getComentarioInicial());
 		subsanarTramiteActual.setEstadoFin(EstadoTramiteConstant.RECHAZADO);
 		subsanarTramiteActual.setFechaFin(new Date());
 		subsanarTramiteActual.setEstado("A");
-		tramiteDerivacionMongoRepository.save(subsanarTramiteActual);
+		tramiteDerivacionJPARepository.save(subsanarTramiteActual);
 
 		int sec = obtenerSecuencia(subsanarTramiteActual.getTramite().getId());
 
@@ -1354,7 +1332,7 @@ public class TramiteDerivacionService {
 	}
 
 	public List<TramiteDerivacionReporteResponse> obtenerTramiteByTramiteId(String tramiteId){
-		List<TramiteDerivacion> tramiteDerivacion = tramiteDerivacionMongoRepository.findByTramiteId(tramiteId);
+		List<TramiteDerivacion> tramiteDerivacion = tramiteDerivacionJPARepository.obtenerTramiteDerivacionByTramiteId(tramiteId);
 		List<TramiteDerivacionReporteResponse> tramiteReporteResponseList = new ArrayList<>();
 		LocalDate fechaMaxima = null;
 		for(TramiteDerivacion temp : tramiteDerivacion){
@@ -1465,7 +1443,7 @@ public class TramiteDerivacionService {
 			registroTramiteDerivacion.setCargoUsuarioFin(null);
 		}
 
-		tramiteDerivacionMongoRepository.save(registroTramiteDerivacion);
+		tramiteDerivacionJPARepository.save(registroTramiteDerivacion);
 
 		try{
 			ejecutarAccionesDeAcuerdoAConfiguracion(registroTramiteDerivacion);
@@ -1610,7 +1588,7 @@ public class TramiteDerivacionService {
 		int sec = obtenerSecuencia(tramiteDerivacionBodyRequest.getTramiteId());
 		registroTramiteDerivacion.setSecuencia(sec);
 
-		tramiteDerivacionMongoRepository.save(registroTramiteDerivacion);
+		tramiteDerivacionJPARepository.save(registroTramiteDerivacion);
 
 
 		/*
@@ -1626,6 +1604,8 @@ public class TramiteDerivacionService {
 	}
 
 	public int totalRegistros(TramiteDerivacionRequest tramiteDerivacionRequest) throws Exception {
+
+		/*
 		Query andQuery = new Query();
 		Criteria andCriteria = new Criteria();
 
@@ -1641,22 +1621,6 @@ public class TramiteDerivacionService {
 			parameters.remove("numeroTramite");
 		}
 
-		/*
-		List<Criteria> listCriteria =  new ArrayList<>();
-		if(parameters.containsKey("tramiteId")){
-			listCriteria.add(Criteria.where("tramite.id").is(parameters.get("tramiteId")));
-			parameters.remove("tramiteId");
-		}
-		if(parameters.containsKey("numeroTramite")){
-			listCriteria.add(Criteria.where("tramite.numeroTramite").is(parameters.get("numeroTramite")));
-			parameters.remove("numeroTramite");
-		}
-		if(parameters.containsKey("asunto")){
-			//listCriteria.add(Criteria.where("tramite.asunto").is(parameters.get("numeroTramite")));
-			listCriteria.add(Criteria.where("tramite.asunto").regex(".*"+parameters.get("asunto")+".*"));
-			parameters.remove("numeroTramite");
-		}
-		*/
 		List<Criteria> listCriteria =  new ArrayList<>();
 		List<Criteria> listOrCriteria =  new ArrayList<>();
 
@@ -1676,26 +1640,6 @@ public class TramiteDerivacionService {
 			}
 			//orQuery.addCriteria(orCriteria.orOperator(orExpression.toArray(new Criteria[orExpression.size()])));
 		}
-		/*
-		if(parameters.containsKey("fechaDerivacionDesde") && parameters.containsKey("fechaDerivacionHasta")){
-			listCriteria.add(Criteria.where("fechaInicio").gte((Date)parameters.get("fechaDerivacionDesde")).lte((Date)parameters.get("fechaDerivacionHasta")));
-			parameters.remove("fechaDerivacionDesde");
-			parameters.remove("fechaDerivacionHasta");
-		}
-		*/
-		/*
-		if(parameters.containsKey("fechaDerivacionDesde"))
-			listCriteria.add(Criteria.where("fechaInicio").gte((Date)parameters.get("fechaDerivacionDesde")));
-
-		if(parameters.containsKey("fechaDerivacionHasta")){
-			Date fechaHasta = (Date)parameters.get("fechaDerivacionHasta");
-			String fechaHastaCadena = new SimpleDateFormat("dd/MM/yyyy").format(fechaHasta);
-			fechaHastaCadena = fechaHastaCadena + " " + "23:59:59";
-			fechaHasta = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").parse(fechaHastaCadena);
-			//listCriteria.add(Criteria.where("fechaInicio").lte((Date)parameters.get("fechaDerivacionHasta")));
-			listCriteria.add(Criteria.where("fechaInicio").lte(fechaHasta));
-		}
-		*/
 
 		if(parameters.containsKey("usuarioInicio")){
 			listCriteria.add(Criteria.where("usuarioInicio.id").is(parameters.get("usuarioInicio")));
@@ -1754,10 +1698,25 @@ public class TramiteDerivacionService {
 		andQuery.addCriteria(criteriaGlobal);
 
 		long cantidadRegistro = mongoTemplate.count(andQuery, TramiteDerivacion.class);
+		*/
 
-		return (int)cantidadRegistro;
+		Map<String, Object> parameters = mapper.map(tramiteDerivacionRequest,Map.class);
+		if(parameters.get("numeroTramite").equals(0)){
+			parameters.remove("numeroTramite");
+		}
+		parameters.values().removeIf(Objects::isNull);
+		if(parameters.containsKey("estadoFin") && parameters.get("estadoFin").toString().equals("PENDIENTE")){
+			parameters.put("estado","P");
+			parameters.remove("estadoFin");
+		}
+
+		List<TramiteDerivacion> tramiteDerivacionList = tramiteDerivacionJPARepository.findByParams(parameters,"fechaInicio",null,tramiteDerivacionRequest.getPageNumber(),tramiteDerivacionRequest.getPageSize());
+
+
+		return CollectionUtils.isEmpty(tramiteDerivacionList)?0:tramiteDerivacionList.size();
 	}
 
+	/*
 	private List<String> obtenerTramitesId(TramiteDerivacionRequest tramiteDerivacionRequest) throws ParseException {
 
 		List<String> idTramites = new ArrayList<>();
@@ -1780,13 +1739,6 @@ public class TramiteDerivacionService {
 			listCriteria.add(Criteria.where("origenDocumento").is(tramiteDerivacionRequest.getOrigenDocumento()));
 		}
 		//Si esta marcado origenDocumento INTERNO
-		/*
-		if(!StringUtils.isBlank(tramiteDerivacionRequest.getOrigenDocumento())
-				&& tramiteDerivacionRequest.getOrigenDocumento().equals("INTERNO")
-				&& !StringUtils.isBlank(tramiteDerivacionRequest.getRazonSocial())){
-			listCriteria.add(Criteria.where("entidadExterna.razonSocial").is(tramiteDerivacionRequest.getRazonSocial()));
-		}
-		*/
 		if(!StringUtils.isBlank(tramiteDerivacionRequest.getRazonSocial())){
 			listCriteria.add(Criteria.where("razonSocial").regex(".*"+tramiteDerivacionRequest.getRazonSocial()+".*","i"));
 		}
@@ -1848,23 +1800,16 @@ public class TramiteDerivacionService {
 				tramiteList.stream().forEach(x -> idTramites.add(x.getId()));
 			}
 
-			/*
-			andExpression.add(new Criteria().andOperator(listCriteria.toArray(new Criteria[listCriteria.size()])));
-
-			andQuery.addCriteria(andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()])));
-
-			List<Tramite> tramiteList = mongoTemplate.find(andQuery, Tramite.class);
-			if(!CollectionUtils.isEmpty(tramiteList)){
-				tramiteList.stream().forEach(x -> idTramites.add(x.getId()));
-			}
-			*/
 		}
 
 		return idTramites;
 	}
+	*/
 
 
 	public Map buscarTramiteDerivacionParamsDashboard(TramiteDerivacionRequest tramiteDerivacionRequest) throws Exception {
+
+		/*
 		Query andQuery = new Query();
 		Criteria andCriteria = new Criteria();
 		Criteria orCriteria = new Criteria();
@@ -1896,26 +1841,7 @@ public class TramiteDerivacionService {
 			}
 			//orQuery.addCriteria(orCriteria.orOperator(orExpression.toArray(new Criteria[orExpression.size()])));
 		}
-		/*
-		if(parameters.containsKey("fechaDerivacionDesde") && parameters.containsKey("fechaDerivacionHasta")){
-			listCriteria.add(Criteria.where("fechaInicio").gte((Date)parameters.get("fechaDerivacionDesde")).lte((Date)parameters.get("fechaDerivacionHasta")));
-			parameters.remove("fechaDerivacionDesde");
-			parameters.remove("fechaDerivacionHasta");
-		}
-		*/
-		/*
-		if(parameters.containsKey("fechaDerivacionDesde"))
-			listCriteria.add(Criteria.where("fechaInicio").gte((Date)parameters.get("fechaDerivacionDesde")));
 
-		if(parameters.containsKey("fechaDerivacionHasta")){
-			Date fechaHasta = (Date)parameters.get("fechaDerivacionHasta");
-			String fechaHastaCadena = new SimpleDateFormat("dd/MM/yyyy").format(fechaHasta);
-			fechaHastaCadena = fechaHastaCadena + " " + "23:59:59";
-			fechaHasta = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").parse(fechaHastaCadena);
-			//listCriteria.add(Criteria.where("fechaInicio").lte((Date)parameters.get("fechaDerivacionHasta")));
-			listCriteria.add(Criteria.where("fechaInicio").lte(fechaHasta));
-		}
-		*/
 
 		if(parameters.containsKey("usuarioInicio")){
 			listCriteria.add(Criteria.where("usuarioInicio.id").is(parameters.get("usuarioInicio")));
@@ -1947,13 +1873,6 @@ public class TramiteDerivacionService {
 			andExpression.add(new Criteria().andOperator(listCriteria.toArray(new Criteria[listCriteria.size()])));
 		}
 
-		//Agregamos la paginacion
-		/*
-		if(tramiteDerivacionRequest.getPageNumber()>=0 && tramiteDerivacionRequest.getPageSize()>0){
-			Pageable pageable = PageRequest.of(tramiteDerivacionRequest.getPageNumber(), tramiteDerivacionRequest.getPageSize());
-			andQuery.with(pageable);
-		}
-		*/
 
 		//Retiramos las keys de paginacion
 		parameters.remove("pageNumber");
@@ -1980,6 +1899,20 @@ public class TramiteDerivacionService {
 		andQuery.addCriteria(criteriaGlobal);
 
 		List<TramiteDerivacion> tramiteDerivacionList = mongoTemplate.find(andQuery, TramiteDerivacion.class);
+		*/
+
+		Map<String, Object> parameters = mapper.map(tramiteDerivacionRequest,Map.class);
+		if(parameters.get("numeroTramite").equals(0)){
+			parameters.remove("numeroTramite");
+		}
+		parameters.values().removeIf(Objects::isNull);
+		if(parameters.containsKey("estadoFin") && parameters.get("estadoFin").toString().equals("PENDIENTE")){
+			parameters.put("estado","P");
+			parameters.remove("estadoFin");
+		}
+
+		List<TramiteDerivacion> tramiteDerivacionList = tramiteDerivacionJPARepository.findByParams(parameters,"fechaInicio",null,tramiteDerivacionRequest.getPageNumber(),tramiteDerivacionRequest.getPageSize());
+
 
 		//Cargamos la lista de usuario
 		LinkedHashMap<String,Integer> listaUsuarios = new LinkedHashMap();
@@ -2040,7 +1973,7 @@ public class TramiteDerivacionService {
 
 	public void notificar(TramiteDerivacionNotificacionBodyRequest tramiteDerivacionNotificacionBodyRequest) throws Exception {
 		//Obtenemos el trmaite derivacion que vamos a notificar
-		TramiteDerivacion tramiteDerivacion = tramiteDerivacionMongoRepository.findById(tramiteDerivacionNotificacionBodyRequest.getTramiteDerivacionId()).get();
+		TramiteDerivacion tramiteDerivacion = tramiteDerivacionJPARepository.findById(tramiteDerivacionNotificacionBodyRequest.getTramiteDerivacionId()).get();
 
 		String tramiteId = tramiteDerivacion.getTramite().getId();
 
@@ -2052,7 +1985,7 @@ public class TramiteDerivacionService {
 		tramiteDerivacion.setFechaFin(new Date());
 		tramiteDerivacion.setEstado(EstadoTramiteDerivacionConstant.ATENDIDO);
 		tramiteDerivacion.setComentarioFin(tramiteDerivacionNotificacionBodyRequest.getMensaje());
-		tramiteDerivacionMongoRepository.save(tramiteDerivacion);
+		tramiteDerivacionJPARepository.save(tramiteDerivacion);
 
 		//Colocamos el adjunto como un nuevo adjunto al tramite
 		Resource documentoAdjuntoNotificacionResource = null;
@@ -2151,7 +2084,7 @@ public class TramiteDerivacionService {
 
 	public void cancelar(TramiteDerivacionNotificacionBodyRequest tramiteDerivacionNotificacionBodyRequest) throws Exception {
 		//Obtenemos el trmaite derivacion que vamos a notificar
-		TramiteDerivacion tramiteDerivacion = tramiteDerivacionMongoRepository.findById(tramiteDerivacionNotificacionBodyRequest.getTramiteDerivacionId()).get();
+		TramiteDerivacion tramiteDerivacion = tramiteDerivacionJPARepository.findById(tramiteDerivacionNotificacionBodyRequest.getTramiteDerivacionId()).get();
 
 		String tramiteId = tramiteDerivacion.getTramite().getId();
 
@@ -2160,7 +2093,7 @@ public class TramiteDerivacionService {
 		tramiteDerivacion.setFechaFin(new Date());
 		tramiteDerivacion.setEstado(EstadoTramiteDerivacionConstant.ATENDIDO);
 		tramiteDerivacion.setComentarioFin(tramiteDerivacionNotificacionBodyRequest.getMensaje());
-		tramiteDerivacionMongoRepository.save(tramiteDerivacion);
+		tramiteDerivacionJPARepository.save(tramiteDerivacion);
 
 		//Colocamos el adjunto como un nuevo adjunto al tramite
 		DocumentoAdjuntoBodyRequest documentoAdjuntoBodyRequest = new DocumentoAdjuntoBodyRequest();
@@ -2191,7 +2124,7 @@ public class TramiteDerivacionService {
 	}
 
 	public void save(TramiteDerivacion tramiteDerivacion){
-		tramiteDerivacionMongoRepository.save(tramiteDerivacion);
+		tramiteDerivacionJPARepository.save(tramiteDerivacion);
 	}
 
 
@@ -2210,6 +2143,7 @@ public class TramiteDerivacionService {
 		return usuarioResponseList;
 	}
 
+	/*
 	public Map atenderDerivacionLote(AtenderDerivacionLoteRequest atenderDerivacionLoteRequest) throws Exception {
 		Map<String, Object> param = new HashMap<>();
 		String cadenaResultado = "";
@@ -2281,7 +2215,7 @@ public class TramiteDerivacionService {
 		param.put("derivacionesIdCerrados", derivacionesIdCerrados.substring(0,derivacionesIdCerrados.length()-1));
 		return param;
 	}
-
+	*/
 
 	public TramiteDerivacion registrarTramiteDerivacionBatch(TramiteDerivacionBodyRequest tramiteDerivacionBodyRequest, Tramite tramite) throws Exception {
 		//Se comenta esta parte, al parecer no es necesario
@@ -2372,7 +2306,7 @@ public class TramiteDerivacionService {
 			registroTramiteDerivacion.setCargoUsuarioFin(null);
 		}
 
-		tramiteDerivacionMongoRepository.save(registroTramiteDerivacion);
+		tramiteDerivacionJPARepository.save(registroTramiteDerivacion);
 
 		return registroTramiteDerivacion;
 

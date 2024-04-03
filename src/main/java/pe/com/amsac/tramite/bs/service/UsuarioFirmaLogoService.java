@@ -12,12 +12,10 @@ import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.config.exceptions.ResourceNotFoundException;
 import pe.com.amsac.tramite.api.file.bean.FileStorageException;
 import pe.com.amsac.tramite.api.file.bean.FileStorageService;
-import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
 import pe.com.amsac.tramite.api.request.body.bean.UsuarioFirmaLogoBodyRequest;
-import pe.com.amsac.tramite.bs.domain.DocumentoAdjunto;
 import pe.com.amsac.tramite.bs.domain.UsuarioFirma;
 import pe.com.amsac.tramite.bs.domain.UsuarioFirmaLogo;
-import pe.com.amsac.tramite.bs.repository.UsuarioFirmaLogoMongoRepository;
+import pe.com.amsac.tramite.bs.repository.UsuarioFirmaLogoJPARepository;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -39,7 +37,7 @@ import java.util.UUID;
 public class UsuarioFirmaLogoService {
 
 	@Autowired
-	private UsuarioFirmaLogoMongoRepository usuarioFirmaLogoMongoRepository;
+	private UsuarioFirmaLogoJPARepository usuarioFirmaLogoJPARepository;
 
 	@Autowired
 	private SecurityHelper securityHelper;
@@ -55,7 +53,7 @@ public class UsuarioFirmaLogoService {
 
 	public List<UsuarioFirmaLogo> obtenerUsuarioFirmaLogoByUsuarioFirmaId(String usuarioFirmaId) throws Exception {
 
-		return usuarioFirmaLogoMongoRepository.obtenerUsuarioFirmaLogoByUsuarioFirmaId(usuarioFirmaId);
+		return usuarioFirmaLogoJPARepository.obtenerUsuarioFirmaLogoByUsuarioFirmaId(usuarioFirmaId);
 
 	}
 
@@ -79,19 +77,19 @@ public class UsuarioFirmaLogoService {
 		storeFile(file, rutaArchivo, fileNameInServer);
 
 		usuarioFirmaLogo.setNombreArchivo(fileNameInServer);
-		usuarioFirmaLogoMongoRepository.save(usuarioFirmaLogo);
+		usuarioFirmaLogoJPARepository.save(usuarioFirmaLogo);
 
 		return usuarioFirmaLogo;
 	}
 
 	public UsuarioFirmaLogo obtenerUsuarioFirmaLogoById(String usuarioFirmaLogoId) throws Exception {
 
-		return usuarioFirmaLogoMongoRepository.findById(usuarioFirmaLogoId).get();
+		return usuarioFirmaLogoJPARepository.findById(usuarioFirmaLogoId).get();
 
 	}
 
 	public void eliminarUsuarioFirmaLogoById(String usuarioFirmaLogoId){
-		usuarioFirmaLogoMongoRepository.deleteById(usuarioFirmaLogoId);
+		usuarioFirmaLogoJPARepository.deleteById(usuarioFirmaLogoId);
 	}
 
 	private String obtenerDimensionImagen(Resource resource) throws IOException {
@@ -189,12 +187,12 @@ public class UsuarioFirmaLogoService {
 
 		UsuarioFirma usuarioFirma =  usuarioFirmaService.obtenerUsuarioFirmaByUsuarioId(usuarioId);
 
-		return usuarioFirmaLogoMongoRepository.obtenerUsuarioFirmaLogoByUsuarioFirmaId(usuarioFirma.getId());
+		return usuarioFirmaLogoJPARepository.obtenerUsuarioFirmaLogoByUsuarioFirmaId(usuarioFirma.getId());
 
 	}
 
 	public InputStreamResource obtenerUsuarioImagenLogoBlob(String usuarioFirmaLogoId) throws Exception {
-		UsuarioFirmaLogo usuarioFirmaLogo = usuarioFirmaLogoMongoRepository.findById(usuarioFirmaLogoId).get();
+		UsuarioFirmaLogo usuarioFirmaLogo = usuarioFirmaLogoJPARepository.findById(usuarioFirmaLogoId).get();
 		String usuarioFirmaId = usuarioFirmaLogo.getUsuarioFirma().getId();
 
 		String rutaArchivo = environment.getProperty("app.ruta.logo-firma") + usuarioFirmaId;
@@ -205,10 +203,10 @@ public class UsuarioFirmaLogoService {
 
 	public UsuarioFirmaLogo actualizarUsuarioFirmaLogo(UsuarioFirmaLogoBodyRequest usuarioFirmaLogoBodyRequest) throws Exception {
 
-		UsuarioFirmaLogo usuarioFirmaLogo = usuarioFirmaLogoMongoRepository.findById(usuarioFirmaLogoBodyRequest.getId()).get();
+		UsuarioFirmaLogo usuarioFirmaLogo = usuarioFirmaLogoJPARepository.findById(usuarioFirmaLogoBodyRequest.getId()).get();
 		usuarioFirmaLogo.setEsFavorito(usuarioFirmaLogoBodyRequest.isEsFavorito());
 
-		usuarioFirmaLogoMongoRepository.save(usuarioFirmaLogo);
+		usuarioFirmaLogoJPARepository.save(usuarioFirmaLogo);
 
 		return usuarioFirmaLogo;
 	}

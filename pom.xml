@@ -9,9 +9,9 @@
 		<relativePath/>
 	</parent>
 	<groupId>pe.com.amsac.tramite</groupId>
-	<artifactId>amsac-tramite-api</artifactId>
-	<version>1.0</version>
-	<name>amsac-tramite-api</name>
+	<artifactId>amsac-tramite-service</artifactId>
+	<version>2.0</version>
+	<name>amsac-tramite-service</name>
 	<description>Microservicio de tramite documentario</description>
     
     <properties>
@@ -23,7 +23,7 @@
 		<javax.el.version>2.2.4</javax.el.version>
 		<spring-cloud.version>Hoxton.RELEASE</spring-cloud.version>
 		<swagger.version>2.8.0</swagger.version>
-		<java.version>1.8</java.version>
+		<java.version>11</java.version>
 	</properties>
 	 
 	<dependencyManagement>
@@ -100,16 +100,18 @@
             <artifactId>spring-boot-starter-hateoas</artifactId>
         </dependency>
 		-->
-		<!-- jpa, crud repository
+		<!-- jpa, crud repository -->
 		<dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
-        -->
+
+		<!--
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-mongodb</artifactId>
 		</dependency>
+		-->
         <!--
 		<dependency>
 			<groupId>mysql</groupId>
@@ -234,13 +236,13 @@
 			<artifactId>hibernate-core</artifactId>
 			<version>${hibernate.version}</version>
 		</dependency>
-		<!--
+		<!--  -->
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-entitymanager</artifactId>
 			<version>${hibernate.version}</version>
 		</dependency>
-		-->
+
 		<!--
 		<dependency>
 			<groupId>mysql</groupId>
@@ -248,13 +250,19 @@
 			<version>${mysql.version}</version>
 		</dependency>
 		-->
-		<!--
+		<dependency>
+			<groupId>com.microsoft.sqlserver</groupId>
+			<artifactId>mssql-jdbc</artifactId>
+			<version>9.2.1.jre8</version>
+		</dependency>
+
+		<!-- -->
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-validator</artifactId>
 			<version>${hibernate.validator.version}</version>
 		</dependency>
-		-->
+
 		<dependency>
 			<groupId>javax.el</groupId>
 			<artifactId>javax.el-api</artifactId>
@@ -284,14 +292,14 @@
 			<groupId>org.mongodb</groupId>
 			<artifactId>mongo-java-driver</artifactId>
 		</dependency>
-
+		-->
 
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-aspects</artifactId>
             <version>3.1.2.RELEASE</version>
         </dependency>
-        -->
+
 
 		<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
 		<dependency>

@@ -5,13 +5,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pe.com.amsac.tramite.api.request.body.bean.AlertaBodyRequest;
 import pe.com.amsac.tramite.bs.domain.Alerta;
-import pe.com.amsac.tramite.bs.repository.AlertaMongoRepository;
+import pe.com.amsac.tramite.bs.repository.AlertaJPARepository;
 
 @Service
 public class AlertaService {
 
 	@Autowired
-	private AlertaMongoRepository alertaMongoRepository;
+	private AlertaJPARepository alertaJPARepository;
 
 	@Autowired
 	private Mapper mapper;
@@ -20,7 +20,7 @@ public class AlertaService {
 
 		Alerta alerta = mapper.map(alertaBodyRequest,Alerta.class);
 		alerta.setEstado("A");
-		alertaMongoRepository.save(alerta);
+		alertaJPARepository.save(alerta);
 		return alerta;
 
 	}

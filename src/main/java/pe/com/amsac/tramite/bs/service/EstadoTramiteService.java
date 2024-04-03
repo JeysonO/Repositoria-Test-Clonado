@@ -5,13 +5,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pe.com.amsac.tramite.api.request.body.bean.EstadoTramiteBodyRequest;
 import pe.com.amsac.tramite.bs.domain.EstadoTramite;
-import pe.com.amsac.tramite.bs.repository.EstadoTramiteMongoRepository;
+import pe.com.amsac.tramite.bs.repository.EstadoTramiteJPARepository;
 
 @Service
 public class EstadoTramiteService {
 
 	@Autowired
-	private EstadoTramiteMongoRepository estadoTramiteMongoRepository;
+	private EstadoTramiteJPARepository estadoTramiteJPARepository;
 
 	@Autowired
 	private Mapper mapper;
@@ -20,7 +20,7 @@ public class EstadoTramiteService {
 
 		EstadoTramite estadoTramite = mapper.map(estadoTramiteBodyRequest,EstadoTramite.class);
 		estadoTramite.setEstado("A");
-		estadoTramiteMongoRepository.save(estadoTramite);
+		estadoTramiteJPARepository.save(estadoTramite);
 		return estadoTramite;
 
 	}

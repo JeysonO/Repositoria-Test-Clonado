@@ -11,9 +11,37 @@ spring:
 #    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
 
   #MongoDB settings
-  data:
-    mongodb:
-      uri: "mongodb://${app.connectionMongo.user}:${app.connectionMongo.password}@${app.connectionMongo.host}:${app.connectionMongo.port}/amsac-tramite"
+  datasource:
+    url: jdbc:sqlserver://${app.connectionSqlServer.host}:${app.connectionSqlServer.port};encrypt=true;trustServerCertificate=true;databaseName=amsac_tramite
+    username: ${app.connectionSqlServer.user}
+    password: ${app.connectionSqlServer.password}
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+
+    hikari:
+      poolName: SpringBootJPAHikariTDD
+      minimumIdle: 10
+      maximumPoolSize: 30
+      #idleTimeout: 120000
+      idleTimeout: 30000
+      connectionTimeout: 5000
+      leakDetectionThreshold: 2100
+      auto-commit: false
+      maxLifetime: 40000
+
+    jpa:
+      properties:
+        hibernate:
+          format_sql: true
+          dialect: org.hibernate.dialect.SQLServer2008Dialect
+          connection:
+            provider_disables_autocommit: true
+
+
+      hibernate:
+        ddl-auto: none
+      database-platform: org.hibernate.dialect.SQLServer2008Dialect
+      show-sql: false
+      generate-ddl: false
 
   servlet:
     multipart:
@@ -37,11 +65,11 @@ spring:
 
 server:
   port:
-    8100
+    8300
     #8280
-  #servlet:
+  servlet:
     #context-path: /entity-vuce-middleware
-    #context-path: /amsac-tramite
+    context-path: /amsac-tramite-especificacion
 
 ##Properties
 app:
@@ -69,6 +97,16 @@ app:
     #host: 190.119.248.141
     port: 57017
     #port: 55881
+
+  connectionSqlServer:
+    user: sa
+    password: Amsac..2024
+    #password: D@n1ella
+    #host: localhost
+    #host: 198.150.0.182
+    host: sqlserverservice
+    port: 1433
+    #port: 55881
     
   ruta:
     adjuntos: tramite
@@ -77,7 +115,8 @@ app:
   url:
     #seguridad: http://localhost:8480/amsac-seguridad
     #seguridad: http://amsac-security-api:8100/amsac-seguridad
-    seguridad: https://gatewayapp.amsac.pe/amsac-seguridad
+    #seguridad: https://gatewayapp.amsac.pe/amsac-seguridad
+    seguridad: http://amsac-tramite-service:8200/auth/amsac-seguridad
     #mail: http://localhost:8200
     #mail: http://amsac-mail-api:8100
     mail: https://gatewayapp.amsac.pe/amsac-mail
@@ -85,7 +124,7 @@ app:
     #linkTramite: https://std.amsac.pe/admin/login https://std.amsac.pe/admin/tramites-pendientes
     linkTramite: https://std.amsac.pe/admin/tramites-pendientes/
     scheduler: https://std.amsac.pe/admin/login
-    enviarAcuseTramite: http://amsac-tramite-api:8100/tramites/enviar-acuse-tramite/%s
+    enviarAcuseTramite: http://amsac-tramite-service:8200/tramites/enviar-acuse-tramite/%s
 
   field:
     asuntoDerivacion: "STD AMSAC - Expediente Asignado"

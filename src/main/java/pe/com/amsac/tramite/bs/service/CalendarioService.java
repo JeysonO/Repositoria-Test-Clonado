@@ -3,7 +3,7 @@ package pe.com.amsac.tramite.bs.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pe.com.amsac.tramite.bs.domain.*;
-import pe.com.amsac.tramite.bs.repository.CalendarioMongoRepository;
+import pe.com.amsac.tramite.bs.repository.CalendarioJPARepository;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -14,11 +14,11 @@ import java.util.stream.Collectors;
 public class CalendarioService {
 
 	@Autowired
-	private CalendarioMongoRepository calendarioMongoRepository;
+	private CalendarioJPARepository calendarioJPARepository;
 
 	public boolean esFeriado(Integer fechaEnNumero) throws Exception {
 		//Se usa fecha en numero por practicidad
-		List<Calendario> listaFechaFeriado = calendarioMongoRepository.findByFechaNumber(fechaEnNumero);
+		List<Calendario> listaFechaFeriado = calendarioJPARepository.findByFechaNumber(fechaEnNumero);
 		Predicate<Calendario> predicate = x -> x.getFeriado().equals("S");
 
 		return listaFechaFeriado.stream().filter(predicate).collect(Collectors.toList()).size()>0?true:false ;

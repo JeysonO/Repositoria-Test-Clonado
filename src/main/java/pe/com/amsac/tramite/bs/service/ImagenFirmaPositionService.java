@@ -2,10 +2,8 @@ package pe.com.amsac.tramite.bs.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pe.com.amsac.tramite.bs.domain.Configuracion;
-import pe.com.amsac.tramite.bs.domain.ImagenFirmaDigital;
 import pe.com.amsac.tramite.bs.domain.ImagenFirmaPosition;
-import pe.com.amsac.tramite.bs.repository.ImagenFirmaPositionMongoRepository;
+import pe.com.amsac.tramite.bs.repository.ImagenFirmaPositionJPARepository;
 
 import java.util.List;
 
@@ -13,28 +11,28 @@ import java.util.List;
 public class ImagenFirmaPositionService {
 
 	@Autowired
-	private ImagenFirmaPositionMongoRepository imagenFirmaPositionMongoRepository;
+	private ImagenFirmaPositionJPARepository imagenFirmaPositionJPARepository;
 
 	public ImagenFirmaPosition obtenerImagenFirmaPositionById(String imagenFirmaPositionId) throws Exception {
 
-		return imagenFirmaPositionMongoRepository.findById(imagenFirmaPositionId).get();
+		return imagenFirmaPositionJPARepository.findById(imagenFirmaPositionId).get();
 	}
 
 	public List<ImagenFirmaPosition> obtenerImagenFirmaPositionActivos() throws Exception {
 
-		return imagenFirmaPositionMongoRepository.findByEstado("A");
+		return imagenFirmaPositionJPARepository.findByEstado("A");
 
 	}
 
 	public List<ImagenFirmaPosition> obtenerImagenFirmaPositionActivosAndOrientacion(String orientacion) throws Exception {
 
-		return imagenFirmaPositionMongoRepository.findByOrientacionAndEstado(orientacion, "A");
+		return imagenFirmaPositionJPARepository.findByOrientacionAndEstado(orientacion, "A");
 
 	}
 
 	public List<ImagenFirmaPosition> obtenerImagenFirmaPositionByPositionAndOrientacion(String position, String orientacion) throws Exception {
 
-		return imagenFirmaPositionMongoRepository.findByPositionAndOrientacionAndEstado(position, orientacion, "A");
+		return imagenFirmaPositionJPARepository.findByPositionAndOrientacionAndEstado(position, orientacion, "A");
 
 	}
 

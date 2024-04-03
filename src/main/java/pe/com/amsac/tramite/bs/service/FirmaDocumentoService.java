@@ -13,7 +13,6 @@ import org.springframework.http.*;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -29,7 +28,7 @@ import pe.com.amsac.tramite.api.request.body.bean.FirmaDocumentoTramiteHibridoBo
 import pe.com.amsac.tramite.api.response.bean.*;
 import pe.com.amsac.tramite.api.util.CustomMultipartFile;
 import pe.com.amsac.tramite.bs.domain.*;
-import pe.com.amsac.tramite.bs.repository.FirmaDocumentoRepository;
+import pe.com.amsac.tramite.bs.repository.FirmaDocumentoJPARepository;
 import pe.com.amsac.tramite.bs.util.EstadoFirmaDocumentoConstant;
 import pe.com.amsac.tramite.bs.util.TipoDocumentoFirmaConstant;
 
@@ -43,7 +42,7 @@ import java.util.List;
 public class FirmaDocumentoService {
 
 	@Autowired
-	private FirmaDocumentoRepository firmaDocumentoRepository;
+	private FirmaDocumentoJPARepository firmaDocumentoJPARepository;
 
 	@Autowired
 	private DocumentoAdjuntoService documentoAdjuntoService;
@@ -146,7 +145,7 @@ public class FirmaDocumentoService {
 				.idDocumentoAdjuntoOrigen(firmaDocumentoTramiteBodyRequest.getDocumentoAdjuntoId())
 				.tramiteDerivacionId(firmaDocumentoTramiteBodyRequest.getTramiteDerivacionId())
 				.build();
-		firmaDocumentoRepository.save(firmaDocumento);
+		firmaDocumentoJPARepository.save(firmaDocumento);
 
 		String idTransaccionFirma = firmaDocumento.getId();
 
@@ -214,7 +213,7 @@ public class FirmaDocumentoService {
 
 		//Actulizamos con el id que retorna el firmador
 		firmaDocumento.setIdTransaccionFirma(responseEntity.getBody());
-		firmaDocumentoRepository.save(firmaDocumento);
+		firmaDocumentoJPARepository.save(firmaDocumento);
 
 	}
 
@@ -278,7 +277,7 @@ public class FirmaDocumentoService {
 				.fechaRegistro(new Date())
 				.email(firmaDocumentoTramiteExternoBodyRequest.getEmail())
 				.build();
-		firmaDocumentoRepository.save(firmaDocumento);
+		firmaDocumentoJPARepository.save(firmaDocumento);
 
 		String idTransaccionFirma = firmaDocumento.getId();
 
@@ -349,7 +348,7 @@ public class FirmaDocumentoService {
 		log.info("Se actualiza el registro de firma documento");
 		//Actulizamos con el id que retorna el firmador
 		firmaDocumento.setIdTransaccionFirma(responseEntity.getBody());
-		firmaDocumentoRepository.save(firmaDocumento);
+		firmaDocumentoJPARepository.save(firmaDocumento);
 
 
 	}
@@ -430,7 +429,7 @@ public class FirmaDocumentoService {
 
 	public void recepcionarFileDocumento(String nombreArchivo, byte[] archivoFirmado) throws Exception {
 
-		FirmaDocumento firmaDocumento = firmaDocumentoRepository.findById(nombreArchivo).get();
+		FirmaDocumento firmaDocumento = firmaDocumentoJPARepository.findById(nombreArchivo).get();
 		if(firmaDocumento.getTipoDocumento().equals(TipoDocumentoFirmaConstant.DOCUMENTO_TRAMITE)){
 			procesarDocumentoTramite(nombreArchivo,archivoFirmado);
 		}else{
@@ -439,15 +438,15 @@ public class FirmaDocumentoService {
 
 	}
 	public void recepcionarLogDocumento(String nombreArchivo, String archivoLog){
-		FirmaDocumento firmaDocumento = firmaDocumentoRepository.findById(nombreArchivo).get();
+		FirmaDocumento firmaDocumento = firmaDocumentoJPARepository.findById(nombreArchivo).get();
 		createSecurityContextHolder(firmaDocumento.getCreatedByUser());
 		firmaDocumento.setLogFirmador(archivoLog);
-		firmaDocumentoRepository.save(firmaDocumento);
+		firmaDocumentoJPARepository.save(firmaDocumento);
 	}
 
 	private void procesarDocumentoTramite(String nombreArchivo, byte[] archivoFirmado) throws Exception {
 
-		FirmaDocumento firmaDocumento = firmaDocumentoRepository.findById(nombreArchivo).get();
+		FirmaDocumento firmaDocumento = firmaDocumentoJPARepository.findById(nombreArchivo).get();
 		createSecurityContextHolder(firmaDocumento.getCreatedByUser());
 
 		CustomMultipartFile file = new CustomMultipartFile(archivoFirmado,firmaDocumento.getNombreOriginalDocumento(),firmaDocumento.getContentType());
@@ -467,7 +466,7 @@ public class FirmaDocumentoService {
 		//Actualizamos el estado en firma documento
 		firmaDocumento.setEstado(EstadoFirmaDocumentoConstant.FIRMADO);
 		firmaDocumento.setFechaFirmaDocumento(new Date());
-		firmaDocumentoRepository.save(firmaDocumento);
+		firmaDocumentoJPARepository.save(firmaDocumento);
 
 		//TODO: Esto es temporla para pruebas
 		//FileUtils.writeByteArrayToFile(new File("/Users/ealvino/Downloads/"+nombreArchivo+".pdf"), archivoFirmado);
@@ -476,11 +475,11 @@ public class FirmaDocumentoService {
 	private void procesarDocumentoExterno(String nombreArchivo, byte[] archivoFirmado) throws Exception {
 
 		FileUtils.writeByteArrayToFile(new File( environment.getProperty("app.ruta.documento-firma-externo")+nombreArchivo+".pdf"), archivoFirmado);
-		FirmaDocumento firmaDocumento = firmaDocumentoRepository.findById(nombreArchivo).get();
+		FirmaDocumento firmaDocumento = firmaDocumentoJPARepository.findById(nombreArchivo).get();
 		createSecurityContextHolder(firmaDocumento.getCreatedByUser());
 		firmaDocumento.setEstado(EstadoFirmaDocumentoConstant.FIRMADO);
 		firmaDocumento.setFechaFirmaDocumento(new Date());
-		firmaDocumentoRepository.save(firmaDocumento);
+		firmaDocumentoJPARepository.save(firmaDocumento);
 
 		//Envio de correo con el documento firmado
 		Resource resource = obtenerDocumentoExternoFirmado(nombreArchivo);
@@ -616,7 +615,7 @@ public class FirmaDocumentoService {
 				.fechaRegistro(new Date())
 				.tramiteDerivacionId(firmaDocumentoTramiteHibridoBodyRequest.getTramiteDerivacionId())
 				.build();
-		firmaDocumentoRepository.save(firmaDocumento);
+		firmaDocumentoJPARepository.save(firmaDocumento);
 
 		String idTransaccionFirma = firmaDocumento.getId();
 
@@ -685,7 +684,7 @@ public class FirmaDocumentoService {
 
 		//Actulizamos con el id que retorna el firmador
 		firmaDocumento.setIdTransaccionFirma(responseEntity.getBody());
-		firmaDocumentoRepository.save(firmaDocumento);
+		firmaDocumentoJPARepository.save(firmaDocumento);
 
 
 	}

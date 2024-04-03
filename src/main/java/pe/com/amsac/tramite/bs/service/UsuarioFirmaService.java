@@ -1,16 +1,10 @@
 package pe.com.amsac.tramite.bs.service;
 
-import org.apache.commons.lang3.StringUtils;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.env.Environment;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -22,12 +16,14 @@ import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.request.bean.UsuarioFirmaRequest;
 import pe.com.amsac.tramite.api.request.body.bean.UsuarioFirmaBodyRequest;
-import pe.com.amsac.tramite.api.response.bean.*;
-import pe.com.amsac.tramite.bs.domain.*;
-import pe.com.amsac.tramite.bs.repository.UsuarioFirmaMongoRepository;
+import pe.com.amsac.tramite.api.response.bean.CommonResponse;
+import pe.com.amsac.tramite.api.response.bean.Mensaje;
+import pe.com.amsac.tramite.api.response.bean.UsuarioDTOResponse;
+import pe.com.amsac.tramite.bs.domain.UsuarioFirma;
+import pe.com.amsac.tramite.bs.domain.UsuarioFirmaLogo;
+import pe.com.amsac.tramite.bs.repository.UsuarioFirmaJPARepository;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -38,7 +34,7 @@ public class UsuarioFirmaService {
 	private Mapper mapper;
 
 	@Autowired
-	private UsuarioFirmaMongoRepository usuarioFirmaMongoRepository;
+	private UsuarioFirmaJPARepository usuarioFirmaJPARepository;
 
 	@Autowired
 	private SecurityHelper securityHelper;
@@ -49,12 +45,14 @@ public class UsuarioFirmaService {
 	@Autowired
 	private Environment env;
 
+	/*
 	@Autowired
 	private MongoTemplate mongoTemplate;
+	*/
 
 	public UsuarioFirma obtenerUsuarioFirmaByUsuarioId(String usuarioId) throws Exception {
 
-		List<UsuarioFirma> usuarioFirmaList = usuarioFirmaMongoRepository.obtenerUsuarioFirmaByUsuarioId(usuarioId);
+		List<UsuarioFirma> usuarioFirmaList = usuarioFirmaJPARepository.obtenerUsuarioFirmaByUsuarioId(usuarioId);
 
 		if(CollectionUtils.isEmpty(usuarioFirmaList)){
 			List<Mensaje> mensajes = new ArrayList<>();
@@ -75,13 +73,14 @@ public class UsuarioFirmaService {
 		}
 
 		UsuarioFirma usuarioFirma = mapper.map(usuarioFirmaBodyrequest,UsuarioFirma.class);
-		usuarioFirmaMongoRepository.save(usuarioFirma);
+		usuarioFirmaJPARepository.save(usuarioFirma);
 		return usuarioFirma;
 
 	}
 
 	public List<UsuarioFirma> obtenerUsuarioFirma(UsuarioFirmaRequest usuarioFirmaRequest) throws Exception {
 
+		/*
 		Query andQuery = new Query();
 		List<Criteria> orExpression =  new ArrayList<>();
 		Criteria orCriteria = new Criteria();
@@ -124,6 +123,9 @@ public class UsuarioFirmaService {
 		usuarioFirmaList = mongoTemplate.find(andQuery, UsuarioFirma.class);
 
 		return usuarioFirmaList; //usuarioFirmaMongoRepository.findByEstado("A");
+		*/
+
+		return usuarioFirmaJPARepository.obtenerUsuarioFirmaByNombreUsuario(usuarioFirmaRequest.getNombre(), PageRequest.of(usuarioFirmaRequest.getPageNumber(), usuarioFirmaRequest.getPageSize()));
 
 	}
 
@@ -137,14 +139,14 @@ public class UsuarioFirmaService {
 			}
 		}
 
-		usuarioFirmaMongoRepository.deleteById(usuarioFirmaId);
+		usuarioFirmaJPARepository.deleteById(usuarioFirmaId);
 
 	}
 
 	public List<Mensaje> validarDatosUsuarioFirma(UsuarioFirmaBodyRequest usuarioFirmaBodyrequest){
 
 		List<Mensaje> mensajes = new ArrayList<>();
-		if(!CollectionUtils.isEmpty(usuarioFirmaMongoRepository.obtenerUsuarioFirmaByUsuarioId(usuarioFirmaBodyrequest.getUsuarioId()))){
+		if(!CollectionUtils.isEmpty(usuarioFirmaJPARepository.obtenerUsuarioFirmaByUsuarioId(usuarioFirmaBodyrequest.getUsuarioId()))){
 			mensajes.add(new Mensaje("E001","ERROR","Ya existe otro registro de firma para el usuario ingresado"));
 		}
 
@@ -156,7 +158,7 @@ public class UsuarioFirmaService {
 
 		String usuarioId = securityHelper.obtenerUserIdSession();
 
-		List<UsuarioFirma> usuarioFirmaList = usuarioFirmaMongoRepository.obtenerUsuarioFirmaByUsuarioId(usuarioId);
+		List<UsuarioFirma> usuarioFirmaList = usuarioFirmaJPARepository.obtenerUsuarioFirmaByUsuarioId(usuarioId);
 
 		if(CollectionUtils.isEmpty(usuarioFirmaList)){
 			List<Mensaje> mensajes = new ArrayList<>();
@@ -189,6 +191,7 @@ public class UsuarioFirmaService {
 
 	public int totalRegistros(UsuarioFirmaRequest usuarioFirmaRequest) throws Exception {
 
+		/*
 		Query andQuery = new Query();
 		List<Criteria> andExpression =  new ArrayList<>();
 		List<Criteria> listOrCriteria =  new ArrayList<>();
@@ -226,16 +229,21 @@ public class UsuarioFirmaService {
 		long cantidadRegistro = mongoTemplate.count(andQuery, UsuarioFirma.class);
 
 		return (int)cantidadRegistro;
+		*/
+
+		List<UsuarioFirma> usuarioFirmaList = usuarioFirmaJPARepository.obtenerUsuarioFirmaByNombreUsuario(usuarioFirmaRequest.getNombre(), PageRequest.of(usuarioFirmaRequest.getPageNumber(), usuarioFirmaRequest.getPageSize()));
+
+		return CollectionUtils.isEmpty(usuarioFirmaList)?0:usuarioFirmaList.size();
 
 	}
 
 	public UsuarioFirma actualizarUsuarioFirma(UsuarioFirmaBodyRequest usuarioFirmaBodyrequest) throws Exception {
 
-		UsuarioFirma usuarioFirma = usuarioFirmaMongoRepository.findById(usuarioFirmaBodyrequest.getId()).get();
+		UsuarioFirma usuarioFirma = usuarioFirmaJPARepository.findById(usuarioFirmaBodyrequest.getId()).get();
 		usuarioFirma.setPasswordServicioFirma(usuarioFirmaBodyrequest.getPasswordServicioFirma());
 		usuarioFirma.setUsernameServicioFirma(usuarioFirmaBodyrequest.getUsernameServicioFirma());
 		usuarioFirma.setSiglaFirma(usuarioFirmaBodyrequest.getSiglaFirma());
-		usuarioFirmaMongoRepository.save(usuarioFirma);
+		usuarioFirmaJPARepository.save(usuarioFirma);
 		return usuarioFirma;
 
 	}
