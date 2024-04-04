@@ -61,8 +61,8 @@ public class TramiteService {
 	@Autowired
 	private TramiteJPARepository tramiteJPARepository;
 
-	@Autowired
-	private TramiteMigracionJPARepository tramiteMigracionJPARepository;
+	//@Autowired
+	//private TramiteMigracionJPARepository tramiteMigracionJPARepository;
 
 	@Autowired
 	private TramiteDerivacionService tramiteDerivacionService;
