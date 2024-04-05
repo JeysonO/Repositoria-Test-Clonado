@@ -13,7 +13,7 @@ public interface TipoDocumentoJPARepository extends JpaRepository<TipoDocumento,
     @Query(value = "select td.* \n" +
             "from tipo_documento td \n" +
             "where td.tipo_ambito in (?1) \n" +
-            "and tdd.estado='A'",
+            "and td.estado='A'",
             nativeQuery = true )
     List<TipoDocumento> obtenerTipoDocumentoByAmbito(List<String> ambitos);
 
