@@ -1,6 +1,8 @@
 package pe.com.amsac.tramite.bs.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -72,7 +74,9 @@ public class TipoDocumentoService {
 		return mongoTemplate.find(query, TipoDocumento.class);
 		*/
 
-		List<String> ambitos = Arrays.asList("A",tipoDocumentoRequest.getTipoAmbito());
+		List<String> ambitos = Arrays.asList("A");
+		if(!StringUtils.isBlank(tipoDocumentoRequest.getTipoAmbito()))
+			ambitos.add(tipoDocumentoRequest.getTipoAmbito());
 
 		return tipoDocumentoJPARepository.obtenerTipoDocumentoByAmbito(ambitos);
 	}
