@@ -120,7 +120,7 @@ public class DocumentoAdjuntoService {
 
 		boolean tienetramiteId = false;
 		String tramiteId = documentoAdjuntoRequest.getTramiteId();
-		if(StringUtils.isBlank(documentoAdjuntoRequest.getTramiteId())){
+		if(!StringUtils.isBlank(documentoAdjuntoRequest.getTramiteId())){
 			tienetramiteId = true;
 			documentoAdjuntoRequest.setTramiteId(null);
 		}
