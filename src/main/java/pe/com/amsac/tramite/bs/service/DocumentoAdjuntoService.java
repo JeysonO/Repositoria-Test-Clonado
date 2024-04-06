@@ -117,6 +117,14 @@ public class DocumentoAdjuntoService {
 		andQuery.addCriteria(andCriteria.andOperator(andExpression.toArray(new Criteria[andExpression.size()])));
 		List<DocumentoAdjunto> documentoAdjuntoList = mongoTemplate.find(andQuery, DocumentoAdjunto.class);
 		*/
+
+		boolean tienetramiteId = false;
+		String tramiteId = documentoAdjuntoRequest.getTramiteId();
+		if(StringUtils.isBlank(documentoAdjuntoRequest.getTramiteId())){
+			tienetramiteId = true;
+			documentoAdjuntoRequest.setTramiteId(null);
+		}
+
 		Map<String, Object> parameters = mapper.map(documentoAdjuntoRequest, Map.class);
 		parameters.values().removeIf(Objects::isNull);
 
@@ -127,6 +135,9 @@ public class DocumentoAdjuntoService {
 		List<Predicate> listaFiltros = new ArrayList<>();
 		//parameters.forEach((key, value) -> builder.equal(root.get(key), value));
 		parameters.forEach((key, value) -> listaFiltros.add(builder.equal(root.get(key), value)));
+
+		if(tienetramiteId)
+			listaFiltros.add(builder.equal(root.get("tramite").get("id"), tramiteId));
 
 		List<DocumentoAdjunto> documentoAdjuntoList = entityManager.createQuery(query.select(root).where(listaFiltros.toArray(new Predicate[listaFiltros.size()]))).getResultList();
 
