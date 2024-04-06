@@ -11,6 +11,7 @@ import pe.com.amsac.tramite.api.request.body.bean.TipoDocumentoBodyRequest;
 import pe.com.amsac.tramite.bs.domain.TipoDocumento;
 import pe.com.amsac.tramite.bs.repository.TipoDocumentoJPARepository;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -74,7 +75,8 @@ public class TipoDocumentoService {
 		return mongoTemplate.find(query, TipoDocumento.class);
 		*/
 
-		List<String> ambitos = Arrays.asList("A");
+		List<String> ambitos = new ArrayList<>();
+		ambitos.add("A");
 		if(!StringUtils.isBlank(tipoDocumentoRequest.getTipoAmbito()))
 			ambitos.add(tipoDocumentoRequest.getTipoAmbito());
 
