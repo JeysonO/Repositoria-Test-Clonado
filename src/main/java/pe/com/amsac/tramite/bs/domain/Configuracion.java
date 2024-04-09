@@ -23,7 +23,7 @@ public class Configuracion extends BaseEntity {
 	@Column(name = "hora_maxima_recepcion_tramite")
 	private String horaMaximaRecepcionTramite;
 
-	@Column(name = "hora_envio_correo_tramite")
+	@Column(name = "hora_envio_correo_acuse")
 	private String horaEnvioCorreoAcuseTramite;
 
 	@Column(name = "billling_username")
