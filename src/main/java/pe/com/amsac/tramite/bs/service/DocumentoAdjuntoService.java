@@ -264,7 +264,10 @@ public class DocumentoAdjuntoService {
 	}
 
 	public DocumentoAdjunto obtenerDocumentoAdjunto(String documentoAdjuntoId) throws Exception {
-		return documentoAdjuntoJPARepository.findById(documentoAdjuntoId).get();
+
+		//return documentoAdjuntoJPARepository.findById(documentoAdjuntoId).get();
+
+		return documentoAdjuntoJPARepository.obtenerDocumentoAdjuntoById(documentoAdjuntoId).get();
 	}
 
 	private UploadFileResponse createUploadFileResponse(Resource file, DocumentoAdjunto documentoAdjunto)
