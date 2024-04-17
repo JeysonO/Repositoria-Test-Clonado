@@ -38,5 +38,7 @@ public class TramiteDerivacionRequest extends BaseRequest {
 	//Con este atributo vemos si es un tramite generado por un usuario externo o por un usuario interno
 	private String origenDocumento;
 
+	private String cargoIdInicioOFin;
+
 
 }

@@ -25,5 +25,6 @@ public class TramiteRequest extends BaseRequest {
 	private String asunto;
 	private String razonSocial;
 	private String soloOriginal;
+	private String cargoUsuarioCreacion;
 
 }

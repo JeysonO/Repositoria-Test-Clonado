@@ -145,13 +145,13 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
             whereClause = (!"".equals(whereClause) ? whereClause + " "
                     + JpaConstant.CONDITION_AND + " " : "");
             whereClause = whereClause
-                    + "ci.id = :cargoIdUsuarioInicio";
+                    + " ci.id = :cargoIdUsuarioInicio ";
         }
         if (parameters.get("cargoIdUsuarioFin") != null) {
             whereClause = (!"".equals(whereClause) ? whereClause + " "
                     + JpaConstant.CONDITION_AND + " " : "");
             whereClause = whereClause
-                    + "cf.id = :cargoIdUsuarioFin";
+                    + " cf.id = :cargoIdUsuarioFin ";
         }
 
         if (parameters.get("fueraPlazofechaMaximaAtencion") != null) {
@@ -160,6 +160,12 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
             whereClause = whereClause + " td.fechaMaximaAtencion < :fueraPlazofechaMaximaAtencion ";
         }
 
+        if (parameters.get("cargoIdInicioOFin") != null) {
+            whereClause = (!"".equals(whereClause) ? whereClause + " "
+                    + JpaConstant.CONDITION_AND + " " : "");
+            whereClause = whereClause
+                    + " (ci.id = :cargoIdInicioOFin or cf.id = :cargoIdInicioOFin )";
+        }
 
         return whereClause;
     }
