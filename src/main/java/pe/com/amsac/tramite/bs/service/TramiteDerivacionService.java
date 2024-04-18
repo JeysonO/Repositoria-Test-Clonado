@@ -1326,10 +1326,14 @@ public class TramiteDerivacionService {
 		tramiteService.actualizarEstadoTramite(subsanarTramiteActual.getTramite().getId(),subsanarTramiteActual.getEstadoFin());
 
 		//Enviar correo para subsanacion
-		TramiteDerivacionNotificacionBodyRequest tramiteDerivacionNotificacionBodyRequest = new TramiteDerivacionNotificacionBodyRequest();
-		tramiteDerivacionNotificacionBodyRequest.setEmail();
-		tramiteDerivacionNotificacionBodyRequest.setMensaje();
-		notificarRechazoUsuarioInterno(nuevoDerivacionTramite);
+		Usuario userInicio = mapper.map(obtenerUsuarioById(tramiteDerivacionAnterior.getUsuarioInicio().getId()),Usuario.class);
+
+		TramiteDerivacionNotificacionBodyRequest tramiteDerivacionNotificacionBodyRequest = TramiteDerivacionNotificacionBodyRequest
+				.builder()
+				.email(userInicio.getEmail())
+				.mensaje(rechazarTramiteDerivacionBodyRequest.getComentarioInicial())
+				.build();
+		notificarRechazoUsuarioInterno(tramiteDerivacionNotificacionBodyRequest);
 
 		return nuevoDerivacionTramite;
 	}
@@ -2328,7 +2332,7 @@ public class TramiteDerivacionService {
 		tramiteDerivacion.setComentarioFin(tramiteDerivacionNotificacionBodyRequest.getMensaje());
 		tramiteDerivacionJPARepository.save(tramiteDerivacion);
 
-		StringBuffer cuerpo = obtenerPlantillaHtml("plantillaNotificacion.html");
+		StringBuffer cuerpo = obtenerPlantillaHtml("plantillaRechazo.html");
 		Map<String, Object> param = new HashMap<>();
 		param.put("correo", tramiteDerivacionNotificacionBodyRequest.getEmail());
 		param.put("asunto", "RECHAZO TRAMITE DOCUMENTARIO AMSAC - Nro. Tramite: "+tramiteDerivacion.getTramite().getNumeroTramite());
