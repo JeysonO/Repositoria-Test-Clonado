@@ -23,6 +23,7 @@ import pe.com.amsac.tramite.api.util.EstadoRespuestaConstant;
 import pe.com.amsac.tramite.bs.domain.Tramite;
 import pe.com.amsac.tramite.bs.domain.TramiteDerivacion;
 import pe.com.amsac.tramite.bs.service.TramiteDerivacionService;
+import pe.com.amsac.tramite.bs.util.FormaDerivacionConstant;
 
 import javax.validation.Valid;
 import java.time.LocalDate;
@@ -126,6 +127,7 @@ public class TramiteDerivacionController {
 			List<TramiteDerivacionResponse> obtenerTramiteDerivacionList =  new ArrayList<>();
 			TramiteDerivacionResponse tramiteDerivacionResponse = null;
 			LocalDate fechaMaxima = null;
+			boolean marcadoUltimoDerivado = false;
 			for (TramiteDerivacion temp : listaTramiteDerivacion) {
 				if (temp.getFechaMaximaAtencion()!=null){
 					fechaMaxima =temp.getFechaMaximaAtencion().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
@@ -134,6 +136,12 @@ public class TramiteDerivacionController {
 				tramiteDerivacionResponse = mapper.map(temp, TramiteDerivacionResponse.class);
 				if(fechaMaxima!=null)
 					tramiteDerivacionResponse.setFechaMaximaAtencion(fechaMaxima);
+
+				//Marcamos como ultimo derivado
+				if(!marcadoUltimoDerivado && tramiteDerivacionResponse.getForma().equals(FormaDerivacionConstant.ORIGINAL)){
+					tramiteDerivacionResponse.setUltimoOriginalDerivado("S");
+					marcadoUltimoDerivado = true;
+				}
 
 				obtenerTramiteDerivacionList.add(tramiteDerivacionResponse);
 			}

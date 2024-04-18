@@ -53,6 +53,9 @@ public class DocumentoAdjunto extends BaseAuditableEntity<String> {
 	@Column(name = "id_tramite_derivacion")
 	private String tramiteDerivacionId;
 
+	@Column(name = "seccion_adjunto")
+	private String seccionAdjunto;
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "id_tramite", referencedColumnName = "id_tramite")
 	private Tramite tramite;

@@ -1326,7 +1326,10 @@ public class TramiteDerivacionService {
 		tramiteService.actualizarEstadoTramite(subsanarTramiteActual.getTramite().getId(),subsanarTramiteActual.getEstadoFin());
 
 		//Enviar correo para subsanacion
-		//envioCorreoSubsanacion(nuevoDerivacionTramite);
+		TramiteDerivacionNotificacionBodyRequest tramiteDerivacionNotificacionBodyRequest = new TramiteDerivacionNotificacionBodyRequest();
+		tramiteDerivacionNotificacionBodyRequest.setEmail();
+		tramiteDerivacionNotificacionBodyRequest.setMensaje();
+		notificarRechazoUsuarioInterno(nuevoDerivacionTramite);
 
 		return nuevoDerivacionTramite;
 	}
@@ -2309,6 +2312,33 @@ public class TramiteDerivacionService {
 		tramiteDerivacionJPARepository.save(registroTramiteDerivacion);
 
 		return registroTramiteDerivacion;
+
+	}
+
+	public void notificarRechazoUsuarioInterno(TramiteDerivacionNotificacionBodyRequest tramiteDerivacionNotificacionBodyRequest) throws Exception {
+		//Obtenemos el trmaite derivacion que vamos a notificar
+		TramiteDerivacion tramiteDerivacion = tramiteDerivacionJPARepository.findById(tramiteDerivacionNotificacionBodyRequest.getTramiteDerivacionId()).get();
+
+		String tramiteId = tramiteDerivacion.getTramite().getId();
+
+		//Marcamos con estado fin notificado
+		tramiteDerivacion.setEstadoFin(EstadoTramiteConstant.RECHAZADO);
+		tramiteDerivacion.setFechaFin(new Date());
+		tramiteDerivacion.setEstado(EstadoTramiteDerivacionConstant.ATENDIDO);
+		tramiteDerivacion.setComentarioFin(tramiteDerivacionNotificacionBodyRequest.getMensaje());
+		tramiteDerivacionJPARepository.save(tramiteDerivacion);
+
+		StringBuffer cuerpo = obtenerPlantillaHtml("plantillaNotificacion.html");
+		Map<String, Object> param = new HashMap<>();
+		param.put("correo", tramiteDerivacionNotificacionBodyRequest.getEmail());
+		param.put("asunto", "RECHAZO TRAMITE DOCUMENTARIO AMSAC - Nro. Tramite: "+tramiteDerivacion.getTramite().getNumeroTramite());
+		param.put("cuerpo",  String.format(cuerpo.toString(),tramiteDerivacionNotificacionBodyRequest.getMensaje()));
+
+		//Enviamos el correo
+		enviarCorreo(param);
+
+		//Actualizamos estado del tramite
+		tramiteService.actualizarEstadoTramite(tramiteId,EstadoTramiteConstant.RECHAZADO);
 
 	}
 

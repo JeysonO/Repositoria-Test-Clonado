@@ -14,6 +14,7 @@ public class DocumentoAdjuntoResponse {
 	private String tipoAdjunto;
 	private String tramiteId;
 	private String estado;
+	private String seccionAdjunto;
 	//private String usuarioCreacionAdjuntoNombre;
 	private String createdByUser;
 	private UsuarioDTOResponse usuarioCreacionAdjunto;

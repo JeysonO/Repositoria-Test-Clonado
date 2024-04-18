@@ -67,6 +67,7 @@ public class DocumentoAdjuntoController {
 			@RequestParam(value = "descripcion", required = false) String descripcion,
 			@RequestParam(value = "tipoAdjunto", required = false) String tipoAdjunto,
 			@RequestParam(value = "tramiteDerivacionId", required = false) String tramiteDerivacionId,
+			@RequestParam(value = "seccionAdjunto", required = false) String seccionAdjunto,
 			@RequestParam(value = "file", required = true) MultipartFile file,
 			//Se agregan los parametros para firmar
 			@RequestParam(value = "textoFirma", required = false) String textoFirma,
@@ -87,6 +88,7 @@ public class DocumentoAdjuntoController {
 			documentoAdjuntoRequest.setFile(file);
 			documentoAdjuntoRequest.setTipoAdjunto(tipoAdjunto);
 			documentoAdjuntoRequest.setTramiteDerivacionId(tramiteDerivacionId);
+			documentoAdjuntoRequest.setSeccionAdjunto(seccionAdjunto);
 			if(StringUtils.isBlank(textoFirma)){
 				DocumentoAdjuntoResponse documentoAdjuntoResponse = documentoAdjuntoService.registrarDocumentoAdjunto(documentoAdjuntoRequest);
 				commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(documentoAdjuntoResponse).build();

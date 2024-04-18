@@ -11,5 +11,6 @@ public class DocumentoAdjuntoRequest {
 	private String tipoAdjunto;
 	private String tramiteDerivacionId;
 	private String estado;
+	private String seccionTramite;
 
 }

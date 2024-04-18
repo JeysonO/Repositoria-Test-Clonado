@@ -72,6 +72,8 @@ public class TramiteDerivacionResponse {
 
 	private String estadoTramite;
 
+	private String ultimoOriginalDerivado;
+
 	@Mapping("tramite.id")
 	public String getTramiteId(){return tramiteId;}
 
