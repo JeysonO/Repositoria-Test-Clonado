@@ -28,6 +28,7 @@ import pe.com.amsac.tramite.bs.repository.TramiteDerivacionJPARepository;
 import pe.com.amsac.tramite.bs.repository.TramiteJPARepository;
 import pe.com.amsac.tramite.bs.util.EstadoTramiteConstant;
 import pe.com.amsac.tramite.bs.util.EstadoTramiteDerivacionConstant;
+import pe.com.amsac.tramite.bs.util.FormaDerivacionConstant;
 import pe.com.amsac.tramite.bs.util.TipoAdjuntoConstant;
 
 import java.io.BufferedReader;
@@ -1276,7 +1277,7 @@ public class TramiteDerivacionService {
 		subsanarTramiteActual.setComentarioFin(rechazarTramiteDerivacionBodyRequest.getComentarioInicial());
 		subsanarTramiteActual.setEstadoFin(EstadoTramiteConstant.RECHAZADO);
 		subsanarTramiteActual.setFechaFin(new Date());
-		subsanarTramiteActual.setEstado("A");
+		subsanarTramiteActual.setEstado(EstadoTramiteDerivacionConstant.ATENDIDO);
 		tramiteDerivacionJPARepository.save(subsanarTramiteActual);
 
 		int sec = obtenerSecuencia(subsanarTramiteActual.getTramite().getId());
@@ -1315,7 +1316,7 @@ public class TramiteDerivacionService {
 		subsanarTramiteBodyRequest.setComentarioInicio(subsanarTramiteActual.getComentarioFin());
 		subsanarTramiteBodyRequest.setEstadoInicio(subsanarTramiteActual.getEstadoFin());
 		subsanarTramiteBodyRequest.setFechaInicio(new Date());
-		subsanarTramiteBodyRequest.setForma("ORIGINAL");
+		subsanarTramiteBodyRequest.setForma(FormaDerivacionConstant.ORIGINAL);
 		subsanarTramiteBodyRequest.setId(null);
 		subsanarTramiteBodyRequest.setEstadoFin(null);
 		subsanarTramiteBodyRequest.setFechaFin(null);
@@ -1328,12 +1329,14 @@ public class TramiteDerivacionService {
 		//Enviar correo para subsanacion
 		Usuario userInicio = mapper.map(obtenerUsuarioById(tramiteDerivacionAnterior.getUsuarioInicio().getId()),Usuario.class);
 
-		TramiteDerivacionNotificacionBodyRequest tramiteDerivacionNotificacionBodyRequest = TramiteDerivacionNotificacionBodyRequest
-				.builder()
-				.email(userInicio.getEmail())
-				.mensaje(rechazarTramiteDerivacionBodyRequest.getComentarioInicial())
-				.build();
-		notificarRechazoUsuarioInterno(tramiteDerivacionNotificacionBodyRequest);
+		StringBuffer cuerpo = obtenerPlantillaHtml("plantillaRechazo.html");
+		Map<String, Object> param = new HashMap<>();
+		param.put("correo", userInicio.getEmail());
+		param.put("asunto", "RECHAZO TRAMITE DOCUMENTARIO AMSAC - Nro. Tramite: "+subsanarTramiteActual.getTramite().getNumeroTramite());
+		param.put("cuerpo",  String.format(cuerpo.toString(),rechazarTramiteDerivacionBodyRequest.getComentarioInicial()));
+
+		//Enviamos el correo
+		enviarCorreo(param);
 
 		return nuevoDerivacionTramite;
 	}
@@ -2316,33 +2319,6 @@ public class TramiteDerivacionService {
 		tramiteDerivacionJPARepository.save(registroTramiteDerivacion);
 
 		return registroTramiteDerivacion;
-
-	}
-
-	public void notificarRechazoUsuarioInterno(TramiteDerivacionNotificacionBodyRequest tramiteDerivacionNotificacionBodyRequest) throws Exception {
-		//Obtenemos el trmaite derivacion que vamos a notificar
-		TramiteDerivacion tramiteDerivacion = tramiteDerivacionJPARepository.findById(tramiteDerivacionNotificacionBodyRequest.getTramiteDerivacionId()).get();
-
-		String tramiteId = tramiteDerivacion.getTramite().getId();
-
-		//Marcamos con estado fin notificado
-		tramiteDerivacion.setEstadoFin(EstadoTramiteConstant.RECHAZADO);
-		tramiteDerivacion.setFechaFin(new Date());
-		tramiteDerivacion.setEstado(EstadoTramiteDerivacionConstant.ATENDIDO);
-		tramiteDerivacion.setComentarioFin(tramiteDerivacionNotificacionBodyRequest.getMensaje());
-		tramiteDerivacionJPARepository.save(tramiteDerivacion);
-
-		StringBuffer cuerpo = obtenerPlantillaHtml("plantillaRechazo.html");
-		Map<String, Object> param = new HashMap<>();
-		param.put("correo", tramiteDerivacionNotificacionBodyRequest.getEmail());
-		param.put("asunto", "RECHAZO TRAMITE DOCUMENTARIO AMSAC - Nro. Tramite: "+tramiteDerivacion.getTramite().getNumeroTramite());
-		param.put("cuerpo",  String.format(cuerpo.toString(),tramiteDerivacionNotificacionBodyRequest.getMensaje()));
-
-		//Enviamos el correo
-		enviarCorreo(param);
-
-		//Actualizamos estado del tramite
-		tramiteService.actualizarEstadoTramite(tramiteId,EstadoTramiteConstant.RECHAZADO);
 
 	}
 
