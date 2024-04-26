@@ -37,6 +37,7 @@ import pe.com.amsac.tramite.bs.repository.TramiteJPARepository;
 import pe.com.amsac.tramite.bs.repository.TramiteMigracionJPARepository;
 import pe.com.amsac.tramite.bs.repository.UsuarioJPARepository;
 import pe.com.amsac.tramite.bs.util.EstadoTramiteConstant;
+import pe.com.amsac.tramite.bs.util.SeccionAdjuntoConstant;
 import pe.com.amsac.tramite.bs.util.TipoAdjuntoConstant;
 import pe.com.amsac.tramite.bs.util.Util;
 
@@ -849,6 +850,7 @@ public class TramiteService {
 		documentoAdjuntoRequest.setTramiteId(param.get("tramiteId").toString());
 		documentoAdjuntoRequest.setDescripcion("ACUSE de RECIBO");
 		documentoAdjuntoRequest.setFile(file);
+		documentoAdjuntoRequest.setSeccionAdjunto(SeccionAdjuntoConstant.PRINCIPAL);
 		documentoAdjuntoRequest.setTipoAdjunto(TipoAdjuntoConstant.ACUSE_RECIBO_TRAMITE_AMSAC);
 
 		return documentoAdjuntoService.registrarDocumentoAdjunto(documentoAdjuntoRequest);

@@ -1333,7 +1333,7 @@ public class TramiteDerivacionService {
 		Map<String, Object> param = new HashMap<>();
 		param.put("correo", userInicio.getEmail());
 		param.put("asunto", "RECHAZO TRAMITE DOCUMENTARIO AMSAC - Nro. Tramite: "+subsanarTramiteActual.getTramite().getNumeroTramite());
-		param.put("cuerpo",  String.format(cuerpo.toString(),rechazarTramiteDerivacionBodyRequest.getComentarioInicial()));
+		param.put("cuerpo",  String.format(cuerpo.toString(),subsanarTramiteActual.getTramite().getNumeroTramite(),subsanarTramiteActual.getTramite().getNumeroTramite(),rechazarTramiteDerivacionBodyRequest.getComentarioInicial()));
 
 		//Enviamos el correo
 		enviarCorreo(param);
@@ -2024,7 +2024,7 @@ public class TramiteDerivacionService {
 		param.put("asunto", "NOTIFICACION TRAMITE DOCUMENTARIO AMSAC - Nro. Tramite: "+tramiteDerivacion.getTramite().getNumeroTramite());
 		if(tramiteDerivacionNotificacionBodyRequest.isEsRechazo())
 			param.put("asunto", "RECHAZO TRAMITE DOCUMENTARIO AMSAC - Nro. Tramite: "+tramiteDerivacion.getTramite().getNumeroTramite());
-		param.put("cuerpo",  String.format(cuerpo.toString(),tramiteDerivacionNotificacionBodyRequest.getMensaje()));
+		param.put("cuerpo",  String.format(cuerpo.toString(),tramiteDerivacion.getTramite().getNumeroTramite(),tramiteDerivacion.getTramite().getNumeroTramite(),tramiteDerivacionNotificacionBodyRequest.getMensaje()));
 		if(documentoAdjuntoNotificacionResource!=null)
 			param.put("file", documentoAdjuntoNotificacionResource);
 
@@ -2122,7 +2122,7 @@ public class TramiteDerivacionService {
 		Map<String, Object> param = new HashMap<>();
 		param.put("correo", tramiteDerivacionNotificacionBodyRequest.getEmail());
 		param.put("asunto", "CANCELACION TRAMITE DOCUMENTARIO AMSAC - Nro. Tramite: "+tramiteDerivacion.getTramite().getNumeroTramite());
-		param.put("cuerpo",  String.format(cuerpo.toString(),tramiteDerivacionNotificacionBodyRequest.getMensaje()));
+		param.put("cuerpo",  String.format(cuerpo.toString(),tramiteDerivacion.getTramite().getNumeroTramite(),tramiteDerivacion.getTramite().getNumeroTramite(),tramiteDerivacionNotificacionBodyRequest.getMensaje()));
 		param.put("file", documentoAdjuntoNotificacionResource);
 
 		//Enviamos el correo
