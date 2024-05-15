@@ -32,14 +32,8 @@ import pe.com.amsac.tramite.api.response.bean.*;
 import pe.com.amsac.tramite.api.util.CustomMultipartFile;
 import pe.com.amsac.tramite.api.util.InternalErrorException;
 import pe.com.amsac.tramite.bs.domain.*;
-import pe.com.amsac.tramite.bs.repository.TipoDocumentoJPARepository;
-import pe.com.amsac.tramite.bs.repository.TramiteJPARepository;
-import pe.com.amsac.tramite.bs.repository.TramiteMigracionJPARepository;
-import pe.com.amsac.tramite.bs.repository.UsuarioJPARepository;
-import pe.com.amsac.tramite.bs.util.EstadoTramiteConstant;
-import pe.com.amsac.tramite.bs.util.SeccionAdjuntoConstant;
-import pe.com.amsac.tramite.bs.util.TipoAdjuntoConstant;
-import pe.com.amsac.tramite.bs.util.Util;
+import pe.com.amsac.tramite.bs.repository.*;
+import pe.com.amsac.tramite.bs.util.*;
 
 import java.io.File;
 import java.io.InputStream;
@@ -53,6 +47,7 @@ import java.time.ZoneId;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -73,6 +68,12 @@ public class TramiteService {
 
 	@Autowired
 	private TipoDocumentoJPARepository tipoDocumentoJPARepository;
+
+	@Autowired
+	private TramiteEntidadExternaJPARepository tramiteEntidadExternaJPARepository;
+
+	@Autowired
+	private TramiteEntidadInternaJPARepository tramiteEntidadInternaJPARepository;
 
 	/*
 	@Autowired
@@ -222,6 +223,20 @@ public class TramiteService {
 
 		List<Tramite> tramiteList = tramiteJPARepository.findByParams(parameters,"numeroTramite",null,tramiteRequest.getPageNumber(),tramiteRequest.getPageSize());
 
+		Optional.ofNullable(tramiteList)
+				.map(Collection::stream)
+				.orElseGet(Stream::empty).forEach( x -> {
+					x.setEntidadExterna(obtenerTramiteEntidadExternaByTramiteId(x.getId()));
+					x.setEntidadInterna(obtenerTramiteEntidadInternaByTramiteId(x.getId()));
+				});
+
+		/*
+		tramiteList.stream().forEach( x -> {
+			x.setEntidadExterna(obtenerTramiteEntidadExternaByTramiteId(x.getId()));
+			x.setEntidadInterna(obtenerTramiteEntidadInternaByTramiteId(x.getId()));
+		});
+		*/
+
 		return tramiteList;
 	}
 
@@ -294,7 +309,8 @@ public class TramiteService {
 
 		//tramite.setEstado("A");
 		tramite.setEstado(EstadoTramiteConstant.REGISTRADO);
-		if(tramiteBodyRequest.getOrigenDocumento().equals("EXTERNO")){
+		//Origen Documento es el atributo que me indica si el documento ha sido registrado por un usuario externo o uno interno
+		if(tramiteBodyRequest.getOrigenDocumento().equals(OrigenDocumentoConstant.EXTERNO)){
 			tramite.setEntidadInterna(null);
 			tramite.setEntidadExterna(null);
 			tramite.setTramitePrioridad(null);
@@ -311,7 +327,8 @@ public class TramiteService {
 			}catch (Exception ex){
 				log.error("ERROR AL OBTENER RAZON SOCIAL",ex);
 			}
-		}else{
+		}
+		if(tramiteBodyRequest.getOrigenDocumento().equals(OrigenDocumentoConstant.INTERNO)){
 			if(tramiteBodyRequest.getOrigen().equals("INTERNO")){
 				tramite.setEntidadExterna(null);
 				tramite.setFormaRecepcion(null);
@@ -335,6 +352,38 @@ public class TramiteService {
 				tramite.setCargoUsuarioCreacion(cargo);
 			}
 		}
+		if(tramiteBodyRequest.getOrigenDocumento().equals(OrigenDocumentoConstant.INTEROPERABILIDAD)){
+
+			/*
+			tramite.setEntidadInterna(null);
+			tramite.setEntidadExterna(null);
+			tramite.setTramitePrioridad(null);
+			tramite.setDependenciaUsuarioCreacion(null);
+			tramite.setCargoUsuarioCreacion(null);
+			tramite.setFormaRecepcion(formaRecepcionService.findByFormaRecepcion("DIGITAL").get(0));
+			*/
+
+			tramite.setEntidadExterna(null);
+			tramite.setRazonSocial(tramiteBodyRequest.getRazonSocial());
+			tramite.setDependenciaDestino(null);
+
+			//Obtenemos la dependencia que llega en el header para registrar el tramite
+			String dependenciaIdUserSession = securityHelper.obtenerDependenciaIdUserSession();
+			if(!StringUtils.isBlank(dependenciaIdUserSession)){
+				Dependencia dependencia = new Dependencia();
+				dependencia.setId(dependenciaIdUserSession);
+				tramite.setDependenciaUsuarioCreacion(dependencia);
+			}
+			//Obtenemos el cargo que llega en el header para registrar el tramite
+			String cargoIdUserSession = securityHelper.obtenerCargoIdUserSession();
+			if(!StringUtils.isBlank(cargoIdUserSession)){
+				Cargo cargo = new Cargo();
+				cargo.setId(cargoIdUserSession);
+				tramite.setCargoUsuarioCreacion(cargo);
+			}
+
+		}
+
 
 		//Si es modificacion
 		if(!StringUtils.isBlank(tramite.getId())){
@@ -345,12 +394,26 @@ public class TramiteService {
 		}
 
 		tramiteJPARepository.save(tramite);
-		if(tramiteBodyRequest.getOrigenDocumento().equals("EXTERNO")){
+		if(tramiteBodyRequest.getOrigenDocumento().equals(OrigenDocumentoConstant.EXTERNO)){
 			registrarDerivacion(tramite);
 			Map param = generarReporteAcuseTramite(tramite);
 			DocumentoAdjuntoResponse documentoAdjuntoResponse = registrarAcuseComoDocumentoDelTramite(param);
 			param.put("documentoAdjuntoId",documentoAdjuntoResponse.getId());
 			enviarAcuseTramite(param);
+		}
+		/*
+		if(tramiteBodyRequest.getOrigenDocumento().equals(OrigenDocumentoConstant.INTEROPERABILIDAD)){
+			Map param = generarReporteAcuseTramite(tramite);
+			DocumentoAdjuntoResponse documentoAdjuntoResponse = registrarAcuseComoDocumentoDelTramite(param);
+			param.put("documentoAdjuntoId",documentoAdjuntoResponse.getId());
+		}
+		*/
+		//Guardamos datos de la entidad interna
+		if(tramite.getEntidadExterna()!=null){
+			registrarTramiteEntidadExterna(tramite);
+		}
+		if(tramite.getEntidadInterna()!=null){
+			registrarTramiteEntidadInterna(tramite);
 		}
 
 		return tramite;
@@ -1490,6 +1553,42 @@ public class TramiteService {
 		calendar.setTime(fechaHoraAnterior); // Configuramos la fecha que se recibe
 		calendar.add(Calendar.HOUR, 5);
 		return calendar.getTime();
+	}
+
+	private void registrarTramiteEntidadExterna(Tramite tramite){
+
+		//eliminamos la relacion de entidad externa
+		tramiteEntidadExternaJPARepository.eliminarEntidadExternaByTramiteId(tramite.getId());
+
+		//registramos entidad externa del tramite
+		EntidadExterna entidadExterna = tramite.getEntidadExterna();
+		entidadExterna.setTramiteId(tramite.getId());
+		tramiteEntidadExternaJPARepository.save(entidadExterna);
+
+	}
+
+	private void registrarTramiteEntidadInterna(Tramite tramite){
+
+		//eliminamos la relacion de entidad externa
+		tramiteEntidadInternaJPARepository.eliminarEntidadInternaByTramiteId(tramite.getId());
+
+		//registramos entidad externa del tramite
+		EntidadInterna entidadInterna = tramite.getEntidadInterna();
+		entidadInterna.setTramiteId(tramite.getId());
+		tramiteEntidadInternaJPARepository.save(entidadInterna);
+
+	}
+
+	private EntidadExterna obtenerTramiteEntidadExternaByTramiteId(String tramiteId){
+
+		return tramiteEntidadExternaJPARepository.findByTramiteId(tramiteId).orElse(null);
+
+	}
+
+	private EntidadInterna obtenerTramiteEntidadInternaByTramiteId(String tramiteId){
+
+		return tramiteEntidadInternaJPARepository.findByTramiteId(tramiteId).orElse(null);
+
 	}
 
 

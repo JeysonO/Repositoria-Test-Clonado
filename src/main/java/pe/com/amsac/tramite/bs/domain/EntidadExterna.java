@@ -42,6 +42,9 @@ public class EntidadExterna extends BaseEntity {
     @Column(name = "direccion")
     private String direccion;
 
+    @Column(name = "tramite_id")
+    private String tramiteId;
+
     @Override
     public Serializable getEntityId() {
         return getId();
