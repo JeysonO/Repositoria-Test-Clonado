@@ -11,7 +11,7 @@ import java.util.Optional;
 public interface TramiteEntidadInternaJPARepository extends JpaRepository<EntidadInterna, String> {
 
     @Modifying
-    @Query(value = "delete from tramite_entidad_interna where tramite_id=?1 ",
+    @Query(value = "delete from tramite_entidad_interna where id_tramite=?1 ",
             nativeQuery = true )
     void eliminarEntidadInternaByTramiteId(String tramiteId);
 

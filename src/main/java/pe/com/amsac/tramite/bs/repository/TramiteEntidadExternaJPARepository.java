@@ -15,7 +15,7 @@ import java.util.Optional;
 public interface TramiteEntidadExternaJPARepository extends JpaRepository<EntidadExterna, String> {
 
     @Modifying
-    @Query(value = "delete from tramite_entidad_externa where tramite_id=?1 ",
+    @Query(value = "delete from tramite_entidad_externa where id_tramite=?1 ",
             nativeQuery = true )
     void eliminarEntidadExternaByTramiteId(String tramiteId);
 
