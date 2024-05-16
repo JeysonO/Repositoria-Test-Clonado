@@ -53,6 +53,7 @@ public class TramiteResponse {
 	private String celular;
 	private String email;
 	private String direccion;
+	private String unidadOrganicaRemitente;
 
 	//Otros datos
 	private String formaRecepcionNombre;
@@ -114,6 +115,9 @@ public class TramiteResponse {
 
 	@Mapping("entidadExterna.direccion")
 	public String getDireccion(){return direccion;}
+
+	@Mapping("entidadExterna.unidadOrganicaRemitente")
+	public String getUnidadOrganicaRemitente(){return unidadOrganicaRemitente;}
 
 	//Otros datos de tramite
 	@Mapping("formaRecepcion.id")

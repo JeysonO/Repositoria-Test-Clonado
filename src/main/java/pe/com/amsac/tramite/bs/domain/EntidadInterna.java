@@ -30,7 +30,7 @@ public class EntidadInterna extends BaseEntity {
     @JoinColumn(name = "id_usuario", referencedColumnName = "id_usuario")
     private Usuario usuario;
 
-    @Column(name = "tramite_id")
+    @Column(name = "id_tramite")
     private String tramiteId;
 
     @Override

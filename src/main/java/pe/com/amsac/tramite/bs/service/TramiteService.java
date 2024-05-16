@@ -363,7 +363,7 @@ public class TramiteService {
 			tramite.setFormaRecepcion(formaRecepcionService.findByFormaRecepcion("DIGITAL").get(0));
 			*/
 
-			tramite.setEntidadExterna(null);
+			tramite.setEntidadInterna(null);
 			tramite.setRazonSocial(tramiteBodyRequest.getRazonSocial());
 			tramite.setDependenciaDestino(null);
 

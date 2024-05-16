@@ -53,6 +53,7 @@ public class TramiteBodyRequest {
 	private String celular;
 	private String email;
 	private String direccion;
+	private String unidadOrganicaRemitente;
 
 	//Id tramite referencia
 	private String idTramiteRelacionado;
@@ -99,6 +100,9 @@ public class TramiteBodyRequest {
 
 	@Mapping("entidadExterna.direccion")
 	public String getDireccion(){return direccion;}
+
+	@Mapping("entidadExterna.unidadOrganicaRemitente")
+	public String getUnidadOrganicaRemitente(){return unidadOrganicaRemitente;}
 
 	//Otros datos de tramite
 	@Mapping("formaRecepcion.id")
