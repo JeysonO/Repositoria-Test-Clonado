@@ -93,6 +93,9 @@ public class Tramite extends BaseAuditableEntity<String> {
 	@Column(name = "razon_social")
 	private String razonSocial;
 
+	@Column(name = "cuo")
+	private String cuo;
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "id_tipo_documento", referencedColumnName = "id_tipo_documento")
 	private TipoDocumento tipoDocumento;

@@ -63,6 +63,8 @@ public class TramiteBodyRequest {
 
 	private boolean validarTramiteRelacionado;
 
+	private String cuo;
+
 	@Mapping("dependenciaDestino.id")
 	public String getDependenciaDestinoId(){return dependenciaDestinoId;}
 
