@@ -115,8 +115,8 @@ app:
   url:
     #seguridad: http://localhost:8480/amsac-seguridad
     #seguridad: http://amsac-security-api:8100/amsac-seguridad
-    #seguridad: https://gatewayapp.amsac.pe/auth
-    seguridad: http://amsac-security-service:8200/auth/amsac-seguridad
+    seguridad: https://gatewayapp.amsac.pe/auth/amsac-seguridad
+    #seguridad: http://amsac-security-service:8200/auth/amsac-seguridad
     ##seguridad: http://localhost:8200/auth/amsac-seguridad
     #mail: http://localhost:8200
     #mail: http://amsac-mail-api:8100
