@@ -122,10 +122,12 @@ public class DocumentoAdjuntoService {
 		String tramiteId = documentoAdjuntoRequest.getTramiteId();
 		if(!StringUtils.isBlank(documentoAdjuntoRequest.getTramiteId())){
 			tienetramiteId = true;
-			documentoAdjuntoRequest.setTramiteId(null);
+			//documentoAdjuntoRequest.setTramiteId(null);
 		}
 
 		Map<String, Object> parameters = mapper.map(documentoAdjuntoRequest, Map.class);
+		if(tienetramiteId)
+			parameters.put("tramiteId",null);
 		parameters.values().removeIf(Objects::isNull);
 
 		CriteriaBuilder builder = entityManager.getCriteriaBuilder();
@@ -296,9 +298,11 @@ public class DocumentoAdjuntoService {
 		parameters.put("tramiteId",documentoAdjuntoBodyRequest.getTramiteId());
 		DocumentoAdjuntoRequest documentoAdjuntoRequest = mapper.map(parameters,DocumentoAdjuntoRequest.class);
 		List<Mensaje> mensajes = new ArrayList<>();
-		if(!obtenerDocumentoAdjuntoList(documentoAdjuntoRequest).isEmpty()){
-			List<DocumentoAdjuntoResponse> adjuntos = obtenerDocumentoAdjuntoList(documentoAdjuntoRequest);
-			if(!CollectionUtils.isEmpty(Arrays.asList(adjuntos))){
+		List<DocumentoAdjuntoResponse> adjuntos = obtenerDocumentoAdjuntoList(documentoAdjuntoRequest);
+		if(!adjuntos.isEmpty()){
+		//if(!obtenerDocumentoAdjuntoList(documentoAdjuntoRequest).isEmpty()){
+			//List<DocumentoAdjuntoResponse> adjuntos = obtenerDocumentoAdjuntoList(documentoAdjuntoRequest);
+			//if(!CollectionUtils.isEmpty(Arrays.asList(adjuntos))){
 				for (DocumentoAdjuntoResponse tmp : adjuntos) {
 					String[] textoSeparado = tmp.getUploadFileResponse().getSize().split("\\s");
 					String unidad = textoSeparado[1];
@@ -308,7 +312,7 @@ public class DocumentoAdjuntoService {
 					else
 						suma = suma + tamaño;
 				}
-			}
+			//}
 			double tamañoFileActual = documentoAdjuntoBodyRequest.getFile().getSize()/1048576;
 			suma = suma + tamañoFileActual;
 			String regEx="[^0-9]+";
