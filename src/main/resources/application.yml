@@ -103,8 +103,8 @@ app:
     password: Amsac..2024
     #password: D@n1ella
     #host: localhost
-    #host: 198.150.0.182
-    host: sqlserverservice
+    host: 198.150.0.182
+    #host: sqlserverservice
     port: 1433
     #port: 55881
     
@@ -116,8 +116,8 @@ app:
     #seguridad: http://localhost:8480/amsac-seguridad
     #seguridad: http://amsac-security-api:8100/amsac-seguridad
     ##seguridad: https://gatewayapp.amsac.pe/auth/amsac-seguridad
-    seguridad: http://amsac-security-service:8200/auth/amsac-seguridad
-    ##seguridad: http://localhost:8200/auth/amsac-seguridad
+    #seguridad: http://amsac-security-service:8200/auth/amsac-seguridad
+    seguridad: http://localhost:8200/auth/amsac-seguridad
     #mail: http://localhost:8200
     #mail: http://amsac-mail-api:8100
     mail: https://gatewayapp.amsac.pe/amsac-mail
