@@ -30,6 +30,7 @@ import pe.com.amsac.tramite.bs.domain.TramiteDerivacion;
 import pe.com.amsac.tramite.bs.domain.Usuario;
 import pe.com.amsac.tramite.bs.repository.DocumentoAdjuntoJPARepository;
 import pe.com.amsac.tramite.bs.repository.TramiteJPARepository;
+import pe.com.amsac.tramite.bs.util.TipoAdjuntoConstant;
 
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -598,6 +599,28 @@ public class DocumentoAdjuntoService {
 			throw new Exception("NO EXISTE RUTA: "+directorioOrigen.getAbsolutePath());
 		}
 	}
+
+	public Map downloadAcuseTramite(String tramiteId) throws Exception {
+		DocumentoAdjunto documentoAdjunto = obtenerDocumentoAdjuntoAcuse(tramiteId);
+		Resource fileResource = obtenerArchivo(documentoAdjunto);
+		Map<String, Object> param = new HashMap<>();
+		param.put("file", fileResource);
+		param.put("nombre", documentoAdjunto.getNombreArchivoDescarga());
+		Tramite tramite = documentoAdjunto.getTramite();
+		if(StringUtils.isBlank(documentoAdjunto.getNombreArchivoDescarga()) && tramite!=null){
+			String nombreDescarga = crearNombreDescarga(tramite,fileResource.getFilename());
+			param.put("nombre", nombreDescarga);
+		}
+		return param;
+	}
+
+	public DocumentoAdjunto obtenerDocumentoAdjuntoAcuse(String tramiteId) throws Exception {
+
+		//return documentoAdjuntoJPARepository.findById(documentoAdjuntoId).get();
+
+		return documentoAdjuntoJPARepository.obtenerDocumentoAdjuntoAcuse(tramiteId, TipoAdjuntoConstant.ACUSE_RECIBO_TRAMITE_AMSAC).get();
+	}
+
 
 
 }

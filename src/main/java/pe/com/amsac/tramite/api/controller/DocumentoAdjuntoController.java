@@ -295,4 +295,40 @@ public class DocumentoAdjuntoController {
 
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 	}
+
+	@GetMapping("/downloadAcuseFile/{tramiteId}")
+	public ResponseEntity<Resource> downloadAcuseTramiteFile(@PathVariable String tramiteId, HttpServletRequest request)
+			throws Exception {
+		try {
+
+			//Resource resource = documentoAdjuntoService.obtenerDocumentoAdjunto(documentoAdjuntoRequest);
+			Map<String, Object> param =  documentoAdjuntoService.downloadAcuseTramite(tramiteId);
+			Resource resource = (Resource)param.get("file");
+			String nombreArchivo = param.get("nombre").toString();
+
+			String contentType = null;
+			try {
+				contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
+			} catch (IOException ex) {
+				LOGGER.info("No se puede determinar el MimeType.");
+			}
+
+			if (contentType == null) {
+				contentType = "application/octet-stream";
+			}
+
+			return ResponseEntity.ok().contentType(MediaType.parseMediaType(contentType))
+					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nombreArchivo + "\"")
+					.body(resource);
+
+			/*
+			return ResponseEntity.ok().contentType(MediaType.parseMediaType(contentType))
+					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+					.body(resource);
+			*/
+
+		} catch (Exception e) {
+			throw e;
+		}
+	}
 }

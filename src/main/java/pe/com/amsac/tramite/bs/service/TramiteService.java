@@ -402,13 +402,12 @@ public class TramiteService {
 			param.put("documentoAdjuntoId",documentoAdjuntoResponse.getId());
 			enviarAcuseTramite(param);
 		}
-		/*
+
 		if(tramiteBodyRequest.getOrigenDocumento().equals(OrigenDocumentoConstant.INTEROPERABILIDAD)){
-			Map param = generarReporteAcuseTramite(tramite);
-			DocumentoAdjuntoResponse documentoAdjuntoResponse = registrarAcuseComoDocumentoDelTramite(param);
-			param.put("documentoAdjuntoId",documentoAdjuntoResponse.getId());
+			Map param = generarReporteAcuseTramiteInteroperabilidad(tramite);
+			registrarAcuseComoDocumentoDelTramite(param);
 		}
-		*/
+
 		//Guardamos datos de la entidad interna
 		if(tramite.getEntidadExterna()!=null){
 			registrarTramiteEntidadExterna(tramite);
@@ -1590,6 +1589,89 @@ public class TramiteService {
 
 		return tramiteEntidadInternaJPARepository.findByTramiteId(tramiteId).orElse(null);
 
+	}
+
+	public Map generarReporteAcuseTramiteInteroperabilidad(Tramite tramite) throws Exception {
+
+		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+		InputStream url = classloader.getResourceAsStream("acuseTramiteExternoInteroperabilidad.jrxml");
+
+		JasperReport jasperReport = JasperCompileManager.compileReport(url);
+
+		DateFormat Formato = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+		//String fechaGeneracion = Formato.format(tramite.getCreatedDate());
+		String fechaGeneracion = Formato.format(determinarFechaGeneracion(tramite.getCreatedDate()));
+
+		RestTemplate restTemplate = new RestTemplate();
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
+		HttpEntity entity = new HttpEntity<>(null, headers);
+
+		/*
+		//Mapear Usuario y Persona
+		String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/" + tramite.getCreatedByUser();
+		ResponseEntity<CommonResponse> response = restTemplate.exchange(uri, HttpMethod.GET, entity, new ParameterizedTypeReference<CommonResponse>() {
+		});
+
+		LinkedHashMap<Object, Object> usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
+		LinkedHashMap<String, String> persona = (LinkedHashMap<String, String>) usuario.get("persona");
+
+		Persona person = mapper.map(persona, Persona.class);
+		usuario.replace("persona", person);
+		Usuario user = mapper.map(usuario, Usuario.class);
+		*/
+
+		//Mapear Dependencia Destino
+		String uriD = env.getProperty("app.url.seguridad") + "/dependencias/obtener-dependencia-by-id/" + tramite.getDependenciaDestino().getId();
+		ResponseEntity<CommonResponse> responseD = restTemplate.exchange(uriD, HttpMethod.GET, entity, new ParameterizedTypeReference<CommonResponse>() {
+		});
+
+		LinkedHashMap<Object, Object> dependencia = (LinkedHashMap<Object, Object>) responseD.getBody().getData();
+
+
+		//Obtener Tipo Documento de Tramite
+		TipoDocumento tipoDocumento = tipoDocumentoJPARepository.findById(tramite.getTipoDocumento().getId()).get();
+
+		// Parameters for report
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("numeroTramite", tramite.getNumeroTramite());
+		parameters.put("tipoDocumento", tipoDocumento.getTipoDocumento().toUpperCase());
+		parameters.put("fechaGeneracion", fechaGeneracion);
+		parameters.put("fechaHoraIngreso", fechaGeneracion);
+		parameters.put("estado", "EN CUSTODIA ELECTRÓNICA POR AMSAC");
+		//parameters.put("emisorNombreCompleto", user.getNombreCompleto());
+		parameters.put("emisorRazonSocial", tramite.getEntidadExterna().getRazonSocial());// user.getPersona().getRazonSocialNombre().toUpperCase());
+		parameters.put("emisorRuc", tramite.getEntidadExterna().getRucEntidadRemitente()); // user.getPersona().getNumeroDocumento());
+		parameters.put("asunto", tramite.getAsunto());
+		//TODO: pendiente conocer destino en registro de Trmaite
+		parameters.put("destino", dependencia.get("nombre").toString().toUpperCase());
+
+		List<String> lista = null;
+		JRBeanCollectionDataSource source = new JRBeanCollectionDataSource(lista);
+
+		JasperPrint print = JasperFillManager.fillReport(jasperReport, parameters,source);
+
+		//Directorio donde se guardará una copia fisica
+		String nombreArchivoAcuse = "acuseRecibo-" + new SimpleDateFormat("ddMMyyyyHHmmssSSS").format(new Date()) + ".pdf";
+		//final String reportPdf = env.getProperty("file.base-upload-dir") + File.separator + "acuse" + File.separator + "acuseRecibo.pdf";
+		//final String reportPdf = env.getProperty("file.base-upload-dir") + File.separator + "acuse" + File.separator + nombreArchivoAcuse;
+
+		String rutaAcuse = env.getProperty("file.base-upload-dir") + File.separator + "acuse";
+		fileStorageService.createDirectory(rutaAcuse);
+
+		final String reportPdf = rutaAcuse + File.separator + nombreArchivoAcuse;
+
+		//Guardamos en el directorio
+		JasperExportManager.exportReportToPdfFile(print, reportPdf);
+
+		Map<String, Object> param = new HashMap<>();
+		param.put("ruta",reportPdf);
+		param.put("numeroTramite",tramite.getNumeroTramite());
+		//param.put("correo",user.getEmail());
+		param.put("tramiteId",tramite.getId());
+		param.put("nombreArchivo",nombreArchivoAcuse);
+
+		return param;
 	}
 
 

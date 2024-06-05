@@ -11,4 +11,7 @@ public interface DocumentoAdjuntoJPARepository extends JpaRepository<DocumentoAd
     @Query(value = "select da from DocumentoAdjunto da left join fetch da.tramite t where da.id = ?1")
     Optional<DocumentoAdjunto> obtenerDocumentoAdjuntoById (String documentoAdjuntoId);
 
+    @Query(value = "select da from DocumentoAdjunto da left join fetch da.tramite t where t.id = ?1 and da.tipoAdjunto = ?2 ")
+    Optional<DocumentoAdjunto> obtenerDocumentoAdjuntoAcuse (String tramiteId, String tipoAdjunto);
+
 }
