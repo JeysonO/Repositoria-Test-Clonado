@@ -1622,11 +1622,13 @@ public class TramiteService {
 		*/
 
 		//Mapear Dependencia Destino
+		/*
 		String uriD = env.getProperty("app.url.seguridad") + "/dependencias/obtener-dependencia-by-id/" + tramite.getDependenciaDestino().getId();
 		ResponseEntity<CommonResponse> responseD = restTemplate.exchange(uriD, HttpMethod.GET, entity, new ParameterizedTypeReference<CommonResponse>() {
 		});
 
 		LinkedHashMap<Object, Object> dependencia = (LinkedHashMap<Object, Object>) responseD.getBody().getData();
+		*/
 
 
 		//Obtener Tipo Documento de Tramite
@@ -1644,7 +1646,7 @@ public class TramiteService {
 		parameters.put("emisorRuc", tramite.getEntidadExterna().getRucEntidadRemitente()); // user.getPersona().getNumeroDocumento());
 		parameters.put("asunto", tramite.getAsunto());
 		//TODO: pendiente conocer destino en registro de Trmaite
-		parameters.put("destino", dependencia.get("nombre").toString().toUpperCase());
+		//parameters.put("destino", dependencia.get("nombre").toString().toUpperCase());
 
 		List<String> lista = null;
 		JRBeanCollectionDataSource source = new JRBeanCollectionDataSource(lista);

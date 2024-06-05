@@ -29,7 +29,9 @@
     <parameter name="emisorRazonSocial" class="java.lang.String"/>
     <parameter name="emisorRuc" class="java.lang.String"/>
     <parameter name="asunto" class="java.lang.String"/>
+    <!--
     <parameter name="destino" class="java.lang.String"/>
+    -->
 
     <title>
         <band height="800" splitType="Stretch">
@@ -162,12 +164,14 @@
                 <textElement textAlignment="Left" verticalAlignment="Middle"/>
                 <textFieldExpression><![CDATA["Dirigido:"]]></textFieldExpression>
             </textField>
+            <!--
             <textField>
                 <reportElement style="Detail" mode="Opaque" x="0" y="437" width="520" height="11"/>
                 <box leftPadding="13"/>
                 <textElement textAlignment="Left" verticalAlignment="Middle"/>
                 <textFieldExpression><![CDATA[$P{destino}]]></textFieldExpression>
             </textField>
+            -->
             <!--
             <staticText>
                 <reportElement style="RowTitle" mode="Opaque" x="0" y="450" width="520" height="19"/>
