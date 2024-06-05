@@ -185,11 +185,13 @@
                 <imageExpression><![CDATA["C:/Users/sayhu/Downloads/huellas.jpg"]]></imageExpression>
             </image>
             -->
+            <!--
             <staticText>
                 <reportElement style="Detail" mode="Opaque" x="51" y="469" width="469" height="46"/>
                 <textElement textAlignment="Left" verticalAlignment="Middle"/>
                 <text><![CDATA[asfas]]></text>
             </staticText>
+            -->
             <staticText>
                 <reportElement style="RowTitle" mode="Opaque" x="0" y="515" width="520" height="19"/>
                 <box leftPadding="13"/>
