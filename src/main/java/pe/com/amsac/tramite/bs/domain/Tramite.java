@@ -126,6 +126,22 @@ public class Tramite extends BaseAuditableEntity<String> {
 	@JoinColumn(name = "id_tramite_relacionado", referencedColumnName = "id_tramite")
 	private Tramite tramiteRelacionado;
 
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "id_entidad_pide", referencedColumnName = "id_entidad_pide")
+	private EntidadPide entidadPide;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "id_dependencia_remitente", referencedColumnName = "id_dependencia")
+	private Dependencia dependenciaRemitente;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "id_usuario_remitente", referencedColumnName = "id_usuario")
+	private Usuario usuarioRemitente;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "id_cargo_remitente", referencedColumnName = "id_cargo")
+	private Cargo cargoRemitente;
+
 	@Override
 	public Serializable getEntityId() {
 		return getId();

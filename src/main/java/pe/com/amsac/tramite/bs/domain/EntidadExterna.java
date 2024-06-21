@@ -51,6 +51,12 @@ public class EntidadExterna extends BaseEntity {
     @Column(name = "ruc_remitente")
     private String rucEntidadRemitente;
 
+    @Column(name = "uo_destino")
+    private String unidadOrganicaDestino;
+
+    @Column(name = "ruc_destino")
+    private String rucEntidadDestino;
+
     @Override
     public Serializable getEntityId() {
         return getId();

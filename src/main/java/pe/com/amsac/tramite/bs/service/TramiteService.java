@@ -34,7 +34,12 @@ import pe.com.amsac.tramite.api.util.InternalErrorException;
 import pe.com.amsac.tramite.bs.domain.*;
 import pe.com.amsac.tramite.bs.repository.*;
 import pe.com.amsac.tramite.bs.util.*;
+import pe.com.amsac.tramite.pide.soap.endpoint.SOAPConnector;
+import pe.com.amsac.tramite.pide.soap.tramite.request.*;
 
+import javax.xml.bind.JAXBElement;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -42,6 +47,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
@@ -75,10 +81,8 @@ public class TramiteService {
 	@Autowired
 	private TramiteEntidadInternaJPARepository tramiteEntidadInternaJPARepository;
 
-	/*
 	@Autowired
-	private MongoTemplate mongoTemplate;
-	*/
+	private SOAPConnector soapConnector;
 
 	@Autowired
 	private Mapper mapper;
@@ -1675,6 +1679,111 @@ public class TramiteService {
 
 		return param;
 	}
+
+
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
+	public Tramite registrarTramitePide(TramitePideBodyRequest tramitePideBodyRequest) throws Exception {
+
+		Date fechaDocumento = null;
+		if(tramitePideBodyRequest.getFechaDocumento()!=null){
+			ZoneId defaultZoneId = ZoneId.systemDefault();
+			LocalDate localDate = tramitePideBodyRequest.getFechaDocumento();
+			tramitePideBodyRequest.setFechaDocumento(null);
+			fechaDocumento =Date.from(localDate.atStartOfDay(defaultZoneId).toInstant());
+		}
+
+		//Mapeamos hacia el objeto Tramite
+		Tramite tramite = mapper.map(tramitePideBodyRequest,Tramite.class);
+
+		//Completamos datos
+		if(fechaDocumento!=null)
+			tramite.setFechaDocumento(fechaDocumento);
+
+		tramite.setTramiteRelacionado(null);
+		if(StringUtils.isBlank(tramite.getId()))
+			tramite.setNumeroTramite(obtenerNumeroTramite());
+
+		tramite.setEntidadInterna(null);
+		tramite.setDependenciaDestino(null);
+		tramite.setRazonSocial(tramitePideBodyRequest.getNombreEntidadDestino());
+		tramite.setEstado(EstadoTramiteConstant.REGISTRADO);
+		//Obtenemos la dependencia que llega en el header para registrar el tramite
+		String dependenciaIdUserSession = securityHelper.obtenerDependenciaIdUserSession();
+		if(!StringUtils.isBlank(dependenciaIdUserSession)){
+			Dependencia dependencia = new Dependencia();
+			dependencia.setId(dependenciaIdUserSession);
+			tramite.setDependenciaUsuarioCreacion(dependencia);
+		}
+		//Obtenemos el cargo que llega en el header para registrar el tramite
+		String cargoIdUserSession = securityHelper.obtenerCargoIdUserSession();
+		if(!StringUtils.isBlank(cargoIdUserSession)){
+			Cargo cargo = new Cargo();
+			cargo.setId(cargoIdUserSession);
+			tramite.setCargoUsuarioCreacion(cargo);
+		}
+
+		//Si es modificacion
+		if(!StringUtils.isBlank(tramite.getId())){
+			Tramite tramiteTemporal = tramiteJPARepository.findById(tramite.getId()).get();
+			tramite.setCreatedByUser(tramiteTemporal.getCreatedByUser());
+			tramite.setCreatedDate(tramiteTemporal.getCreatedDate());
+			tramite.setNumeroTramite(tramiteTemporal.getNumeroTramite());
+		}
+
+		tramiteJPARepository.save(tramite);
+
+		//Guardamos datos de la entidad interna
+		if(tramite.getEntidadExterna()!=null){
+			registrarTramiteEntidadExterna(tramite);
+		}
+
+		//Realizamos el envio a PIDE
+		enviarTramiteAPide(tramite, tramitePideBodyRequest);
+
+		return tramite;
+
+	}
+
+	private void enviarTramiteAPide(Tramite tramite, TramitePideBodyRequest tramitePideBodyRequest) throws DatatypeConfigurationException {
+		//Obtenemos el nummero de cuo
+		String cuo = "00000001";
+
+		//Creamos el body para envio
+		RecepcionTramite recepcionTramite = new RecepcionTramite();
+		recepcionTramite.setVrucentrem("20103030791");
+		recepcionTramite.setVrucentrec(tramitePideBodyRequest.getRucEntidadDestino());
+		recepcionTramite.setVnomentemi("ACTIVOS MINEROS");
+		recepcionTramite.setVuniorgrem(tramitePideBodyRequest.getDependenciaRemitenteNombre());
+		recepcionTramite.setVcuo(cuo);
+		recepcionTramite.setVcuoref("");
+		recepcionTramite.setCcodtipdoc(tramitePideBodyRequest.getTipoDocumentoPideId());
+		recepcionTramite.setVnumdoc(tramitePideBodyRequest.getNumeroDocumento());
+		recepcionTramite.setDfecdoc(DatatypeFactory.newInstance().newXMLGregorianCalendar(tramitePideBodyRequest.getFechaDocumento().toString()));
+		recepcionTramite.setVuniorgdst(tramitePideBodyRequest.getUnidadOrganicaDestino());
+		recepcionTramite.setVnomdst(tramitePideBodyRequest.getNombreDestinatario());
+		recepcionTramite.setVnomcardst(tramitePideBodyRequest.getCargoDestinatario());
+		recepcionTramite.setVasu(tramitePideBodyRequest.getAsunto());
+		recepcionTramite.setSnumanx(0);
+		recepcionTramite.setSnumfol(Integer.valueOf(tramitePideBodyRequest.getNumeroFolios()));
+		recepcionTramite.setBpdfdoc(null);
+		recepcionTramite.setVnomdoc("documento principal");
+		recepcionTramite.setVurldocanx("ruta anexos");
+		recepcionTramite.setCtipdociderem("tipo documento temitente");
+		recepcionTramite.setVnumdociderem("numero doc remitente");
+
+		//llenamos datos
+		RecepcionarTramiteResponse recepcionarTramiteResponse = new RecepcionarTramiteResponse();
+		recepcionarTramiteResponse.setRequest(recepcionTramite);
+
+		//Realizamos el envio del tramite
+		ObjectFactory objectFactory = new ObjectFactory();
+		JAXBElement jaxbTramiteResponse = objectFactory.createRecepcionarTramiteResponse(recepcionarTramiteResponse);
+		JAXBElement jaxbElementResponse = (JAXBElement)soapConnector.callWebService(env.getProperty("app.url.pideServer"), jaxbTramiteResponse);
+		RecepcionarTramiteResponseResponse recepcionarTramiteResponseResponse = (RecepcionarTramiteResponseResponse)jaxbElementResponse.getValue();
+
+
+	}
+
 
 
 }

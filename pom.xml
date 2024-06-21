@@ -308,6 +308,17 @@
 			<version>2.11.0</version>
 		</dependency>
 
+		<!-- Dependencias para ws -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web-services</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>wsdl4j</groupId>
+			<artifactId>wsdl4j</artifactId>
+		</dependency>
+
 
 	</dependencies>
 
@@ -316,6 +327,28 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+
+			<!-- para generar archivo para transmision -->
+			<plugin>
+				<groupId>org.jvnet.jaxb2.maven2</groupId>
+				<artifactId>maven-jaxb2-plugin</artifactId>
+				<version>0.15.3</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<generatePackage>pe.com.amsac.tramite.pide.soap.cuo.request</generatePackage>
+					<generateDirectory>${project.basedir}/src/main/java</generateDirectory>
+					<schemaDirectory>${project.basedir}/src/main/resources/wsdl</schemaDirectory>
+					<schemaIncludes>
+						<include>*.wsdl</include>
+					</schemaIncludes>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

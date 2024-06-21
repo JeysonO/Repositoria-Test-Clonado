@@ -75,6 +75,29 @@ public class TramiteResponse {
 
 	private String cuo;
 
+	//DATOS ADICIONALES PARA INTEROPERABILIDAD
+	private String entidadDestinoId;
+	//private String nombreEntidadDestino; esto seria razonSocial
+	private String rucEntidadDestino;
+	private String unidadOrganicaDestino;
+	//private String nombreDestinatario; es nombre
+	//private String cargoDestinatario; es cargo
+	private String dependenciaRemitenteId;
+	private String usuarioRemitenteId;
+	private String cargoRemitenteId;
+
+	@Mapping("cargoRemitente.id")
+	public String getCargoRemitenteId(){return cargoRemitenteId;}
+
+	@Mapping("usuarioRemitente.id")
+	public String getUsuarioRemitenteId(){return usuarioRemitenteId;}
+
+	@Mapping("dependenciaRemitente.id")
+	public String getDependenciaRemitenteId(){return dependenciaRemitenteId;}
+
+	@Mapping("entidadPide.id")
+	public String getEntidadDestinoId(){return entidadDestinoId;}
+
 	@Mapping("dependenciaDestino.id")
 	public String getDependenciaDestinoId(){return dependenciaDestinoId;}
 
@@ -120,6 +143,12 @@ public class TramiteResponse {
 
 	@Mapping("entidadExterna.unidadOrganicaRemitente")
 	public String getUnidadOrganicaRemitente(){return unidadOrganicaRemitente;}
+
+	@Mapping("entidadExterna.unidadOrganicaDestino")
+	public String getUnidadOrganicaDestino(){return unidadOrganicaDestino;}
+
+	@Mapping("entidadExterna.rucEntidadDestino")
+	public String getRucEntidadDestino(){return rucEntidadDestino;}
 
 	//Otros datos de tramite
 	@Mapping("formaRecepcion.id")

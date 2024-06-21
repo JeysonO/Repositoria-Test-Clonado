@@ -22,6 +22,7 @@ import pe.com.amsac.tramite.api.request.bean.TramiteRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TramiteBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TramiteMigracionBatchBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TramiteMigracionBodyRequest;
+import pe.com.amsac.tramite.api.request.body.bean.TramitePideBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.api.response.bean.Meta;
 import pe.com.amsac.tramite.api.response.bean.TramiteResponse;
@@ -328,6 +329,34 @@ public class TramiteController {
 		Map mapa = tramiteService.ejecutarActividadesComplementariasMigracion(tareasComplementariasMigracionRequest);
 
 		commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(mapa).build();
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+
+	}
+
+	@PostMapping("/tramite-pide")
+	public ResponseEntity<CommonResponse> registrarTramitePide(@Valid @RequestBody TramitePideBodyRequest tramitePideBodyRequest) throws Exception {
+
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.CREATED;
+
+		try {
+
+			ObjectMapper objectMapper = new ObjectMapper();
+			log.info("Body para registrar tramite pide:"+objectMapper.writeValueAsString(tramitePideBodyRequest));
+
+			Tramite tramite = tramiteService.registrarTramitePide(tramitePideBodyRequest);
+
+			TramiteResponse tramiteResponse = mapper.map(tramite, TramiteResponse.class);
+
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(tramiteResponse).build();
+
+
+		} catch (ServiceException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes(),se.getAtributos())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}
 
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 
