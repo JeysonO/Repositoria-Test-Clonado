@@ -150,9 +150,11 @@ public class DocumentoAdjuntoService {
 	public DocumentoAdjuntoResponse registrarDocumentoAdjunto(DocumentoAdjuntoBodyRequest documentoAdjuntoRequest) throws Exception {
 
 		//Validar suma de adjuntos
-		List<Mensaje> mensajesError = validarAdjuntos(documentoAdjuntoRequest);
-		if(!CollectionUtils.isEmpty(mensajesError)){
-			throw new ServiceException(mensajesError);
+		if(!documentoAdjuntoRequest.isOmitirValidacionAdjunto()){
+			List<Mensaje> mensajesError = validarAdjuntos(documentoAdjuntoRequest);
+			if(!CollectionUtils.isEmpty(mensajesError)){
+				throw new ServiceException(mensajesError);
+			}
 		}
 
 		String fileName = fileStorageService.getFileName(documentoAdjuntoRequest.getFile().getOriginalFilename());

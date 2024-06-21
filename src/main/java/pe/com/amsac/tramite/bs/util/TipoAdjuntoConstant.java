@@ -6,4 +6,5 @@ public class TipoAdjuntoConstant {
     public final static String CANCELACION_AMSAC = "CANCELACION_AMSAC";
     public final static String DOCUMENTO_ATENCION_TRAMITE = "DOCUMENTO_ATENCION_TRAMITE";
     public final static String RECHAZO_AMSAC = "RECHAZO_AMSAC";
+    public final static String DOCUMENTO_TRAMITE = "DOCUMENTO_TRAMITE";
 }

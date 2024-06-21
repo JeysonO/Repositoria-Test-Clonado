@@ -42,6 +42,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -1686,11 +1687,12 @@ public class TramiteService {
 	public Tramite registrarTramitePide(TramitePideBodyRequest tramitePideBodyRequest, MultipartFile filePrincipal, List<MultipartFile> fileAnexos) throws Exception {
 
 		Date fechaDocumento = null;
+		LocalDate localDateFechaDocumento = null;
 		if(tramitePideBodyRequest.getFechaDocumento()!=null){
 			ZoneId defaultZoneId = ZoneId.systemDefault();
-			LocalDate localDate = tramitePideBodyRequest.getFechaDocumento();
+			localDateFechaDocumento = tramitePideBodyRequest.getFechaDocumento();
 			tramitePideBodyRequest.setFechaDocumento(null);
-			fechaDocumento =Date.from(localDate.atStartOfDay(defaultZoneId).toInstant());
+			fechaDocumento =Date.from(localDateFechaDocumento.atStartOfDay(defaultZoneId).toInstant());
 		}
 
 		//Mapeamos hacia el objeto Tramite
@@ -1730,22 +1732,50 @@ public class TramiteService {
 			tramite.setCreatedDate(tramiteTemporal.getCreatedDate());
 			tramite.setNumeroTramite(tramiteTemporal.getNumeroTramite());
 		}
+		tramite.setCreatedDate(new Date());
 
 		tramiteJPARepository.save(tramite);
+		tramitePideBodyRequest.setFechaDocumento(localDateFechaDocumento);
 
 		//Guardamos datos de la entidad interna
 		if(tramite.getEntidadExterna()!=null){
 			registrarTramiteEntidadExterna(tramite);
 		}
 
+		//Registramos el documento principal
+		DocumentoAdjuntoBodyRequest documentoAdjuntoRequest = new DocumentoAdjuntoBodyRequest();
+		documentoAdjuntoRequest.setTramiteId(tramite.getId());
+		documentoAdjuntoRequest.setDescripcion("DOCUMENTO PRINCIPAL");
+		documentoAdjuntoRequest.setFile(filePrincipal);
+		documentoAdjuntoRequest.setSeccionAdjunto(SeccionAdjuntoConstant.PRINCIPAL);
+		documentoAdjuntoRequest.setTipoAdjunto(TipoAdjuntoConstant.DOCUMENTO_TRAMITE);
+		documentoAdjuntoRequest.setOmitirValidacionAdjunto(true);
+		documentoAdjuntoService.registrarDocumentoAdjunto(documentoAdjuntoRequest);
+
+		//Registramos los adjuntos
+		fileAnexos.stream().forEach(x -> {
+			DocumentoAdjuntoBodyRequest documentoAdjuntoSecundarioRequest = new DocumentoAdjuntoBodyRequest();
+			documentoAdjuntoSecundarioRequest.setTramiteId(tramite.getId());
+			documentoAdjuntoSecundarioRequest.setDescripcion("DOCUMENTO PRINCIPAL");
+			documentoAdjuntoSecundarioRequest.setFile(x);
+			documentoAdjuntoSecundarioRequest.setSeccionAdjunto(SeccionAdjuntoConstant.SECUNDARIO);
+			documentoAdjuntoSecundarioRequest.setTipoAdjunto(TipoAdjuntoConstant.DOCUMENTO_TRAMITE);
+			documentoAdjuntoSecundarioRequest.setOmitirValidacionAdjunto(true);
+			try {
+				documentoAdjuntoService.registrarDocumentoAdjunto(documentoAdjuntoSecundarioRequest);
+			} catch (Exception e) {
+				log.error("ERROR", e);
+			}
+		});
+
 		//Realizamos el envio a PIDE
-		enviarTramiteAPide(tramite, tramitePideBodyRequest);
+		enviarTramiteAPide(tramite, tramitePideBodyRequest, filePrincipal, fileAnexos);
 
 		return tramite;
 
 	}
 
-	private void enviarTramiteAPide(Tramite tramite, TramitePideBodyRequest tramitePideBodyRequest) throws DatatypeConfigurationException {
+	private void enviarTramiteAPide(Tramite tramite, TramitePideBodyRequest tramitePideBodyRequest, MultipartFile filePrincipal, List<MultipartFile> fileAnexos) throws DatatypeConfigurationException, IOException {
 		//Obtenemos el nummero de cuo
 		String cuo = "0000000060";
 
@@ -1764,15 +1794,16 @@ public class TramiteService {
 		recepcionTramite.setVnomdst(tramitePideBodyRequest.getNombreDestinatario());
 		recepcionTramite.setVnomcardst(tramitePideBodyRequest.getCargoDestinatario());
 		recepcionTramite.setVasu(tramitePideBodyRequest.getAsunto());
-		recepcionTramite.setSnumanx(0);
+		recepcionTramite.setSnumanx(CollectionUtils.isEmpty(fileAnexos)?0:fileAnexos.size());
 		recepcionTramite.setSnumfol(Integer.valueOf(tramitePideBodyRequest.getNumeroFolios()));
-		recepcionTramite.setBpdfdoc(null);
-		recepcionTramite.setVnomdoc("documento principal");
+		recepcionTramite.setBpdfdoc(filePrincipal.getBytes());
+		recepcionTramite.setVnomdoc(getFileName(filePrincipal.getOriginalFilename()));
 		recepcionTramite.setVurldocanx("ruta anexos");
-		recepcionTramite.setCtipdociderem("tipo documento temitente");
-		recepcionTramite.setVnumdociderem("numero doc remitente");
 
+		UsuarioResponse usuario = obtenerUsuarioById(tramitePideBodyRequest.getUsuarioRemitenteId());
 
+		recepcionTramite.setCtipdociderem("1"); //DNI
+		recepcionTramite.setVnumdociderem(usuario.getPersona().getNumeroDocumento());
 
 		//llenamos datos
 		RecepcionarTramiteResponse recepcionarTramiteResponse = new RecepcionarTramiteResponse();
@@ -1783,10 +1814,19 @@ public class TramiteService {
 		JAXBElement jaxbTramiteResponse = objectFactory.createRecepcionarTramiteResponse(recepcionarTramiteResponse);
 		JAXBElement jaxbElementResponse = (JAXBElement)soapConnector.callWebService(env.getProperty("app.url.pideServer"), jaxbTramiteResponse);
 		RecepcionarTramiteResponseResponse recepcionarTramiteResponseResponse = (RecepcionarTramiteResponseResponse)jaxbElementResponse.getValue();
+		log.info("Respuesta Envio: "+recepcionarTramiteResponseResponse.getReturn().getVcodres());
 
 
 	}
 
+	public String getFileName(String fileNameOriginal) {
+		String fileName = org.springframework.util.StringUtils.cleanPath(fileNameOriginal);
+		//Reemplazamos el doble punto por uno solo
+		if (fileName.contains("..")) {
+			fileName = fileName.replace("..",".");
+		}
+		return fileName;
+	}
 
 
 }

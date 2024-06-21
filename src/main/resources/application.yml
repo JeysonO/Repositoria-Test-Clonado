@@ -115,7 +115,8 @@ app:
   url:
     #seguridad: http://localhost:8480/amsac-seguridad
     #seguridad: http://amsac-security-api:8100/amsac-seguridad
-    ##seguridad: https://gatewayapp.amsac.pe/auth/amsac-seguridad
+    #seguridad: https://gatewayapp.amsac.pe/auth/amsac-seguridad
+    #seguridad: https://gatewayapp.amsac.pe/seguridad/auth/amsac-seguridad
     seguridad: http://amsac-security-service:8200/auth/amsac-seguridad
     #seguridad: http://localhost:8200/auth/amsac-seguridad
     #mail: http://localhost:8200
@@ -126,6 +127,7 @@ app:
     linkTramite: https://std.amsac.pe/admin/tramites-pendientes/
     scheduler: https://std.amsac.pe/admin/login
     enviarAcuseTramite: http://amsac-tramite-service:8200/tramites/enviar-acuse-tramite/%s
+    pideServer: http://161.132.150.248/wsiopidetramite/IOTramite
 
   field:
     asuntoDerivacion: "STD AMSAC - Expediente Asignado"
