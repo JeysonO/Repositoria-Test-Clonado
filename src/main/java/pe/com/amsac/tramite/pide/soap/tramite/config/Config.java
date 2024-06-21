@@ -13,7 +13,7 @@ public class Config {
         Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
         // this is the package name specified in the <generatePackage> specified in
         // pom.xml
-        marshaller.setContextPath("pe.com.amsac.pide.soap.request");
+        marshaller.setContextPath("pe.com.amsac.tramite.pide.soap.tramite.request");
         return marshaller;
     }
 
