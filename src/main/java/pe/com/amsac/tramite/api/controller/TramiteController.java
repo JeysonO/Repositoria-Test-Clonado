@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.request.bean.TareasComplementariasMigracionRequest;
@@ -335,9 +336,13 @@ public class TramiteController {
 	}
 
 	@PostMapping("/tramite-pide")
-	public ResponseEntity<CommonResponse> registrarTramitePide(@Valid @RequestBody TramitePideBodyRequest tramitePideBodyRequest) throws Exception {
+	//public ResponseEntity<CommonResponse> registrarTramitePide(@Valid @RequestBody TramitePideBodyRequest tramitePideBodyRequest) throws Exception {
+	public ResponseEntity<CommonResponse> registrarDocumentoAdjunto(
+			@RequestPart(value = "tramite", required = true) TramitePideBodyRequest tramitePideBodyRequest,
+			@RequestParam(value = "filePrincipal", required = true) MultipartFile filePrincipal,
+			@RequestParam(value = "fileAnexos", required = true) List<MultipartFile> fileAnexos) throws Exception{
 
-		CommonResponse commonResponse = null;
+	CommonResponse commonResponse = null;
 
 		HttpStatus httpStatus = HttpStatus.CREATED;
 
@@ -346,7 +351,7 @@ public class TramiteController {
 			ObjectMapper objectMapper = new ObjectMapper();
 			log.info("Body para registrar tramite pide:"+objectMapper.writeValueAsString(tramitePideBodyRequest));
 
-			Tramite tramite = tramiteService.registrarTramitePide(tramitePideBodyRequest);
+			Tramite tramite = tramiteService.registrarTramitePide(tramitePideBodyRequest,filePrincipal,fileAnexos);
 
 			TramiteResponse tramiteResponse = mapper.map(tramite, TramiteResponse.class);
 

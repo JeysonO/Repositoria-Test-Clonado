@@ -23,6 +23,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.annotation.RequestScope;
+import org.springframework.web.multipart.MultipartFile;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.file.bean.FileStorageService;
@@ -1682,7 +1683,7 @@ public class TramiteService {
 
 
 	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
-	public Tramite registrarTramitePide(TramitePideBodyRequest tramitePideBodyRequest) throws Exception {
+	public Tramite registrarTramitePide(TramitePideBodyRequest tramitePideBodyRequest, MultipartFile filePrincipal, List<MultipartFile> fileAnexos) throws Exception {
 
 		Date fechaDocumento = null;
 		if(tramitePideBodyRequest.getFechaDocumento()!=null){
@@ -1746,7 +1747,7 @@ public class TramiteService {
 
 	private void enviarTramiteAPide(Tramite tramite, TramitePideBodyRequest tramitePideBodyRequest) throws DatatypeConfigurationException {
 		//Obtenemos el nummero de cuo
-		String cuo = "00000001";
+		String cuo = "0000000060";
 
 		//Creamos el body para envio
 		RecepcionTramite recepcionTramite = new RecepcionTramite();
@@ -1770,6 +1771,8 @@ public class TramiteService {
 		recepcionTramite.setVurldocanx("ruta anexos");
 		recepcionTramite.setCtipdociderem("tipo documento temitente");
 		recepcionTramite.setVnumdociderem("numero doc remitente");
+
+
 
 		//llenamos datos
 		RecepcionarTramiteResponse recepcionarTramiteResponse = new RecepcionarTramiteResponse();

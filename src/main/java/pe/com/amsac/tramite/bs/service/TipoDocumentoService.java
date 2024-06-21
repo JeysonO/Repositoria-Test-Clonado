@@ -79,6 +79,10 @@ public class TipoDocumentoService {
 		ambitos.add("A");
 		if(!StringUtils.isBlank(tipoDocumentoRequest.getTipoAmbito()))
 			ambitos.add(tipoDocumentoRequest.getTipoAmbito());
+		if(!StringUtils.isBlank(tipoDocumentoRequest.getTipoAmbito()) && tipoDocumentoRequest.getTipoAmbito().equals("P")){
+			ambitos = new ArrayList<>();
+			ambitos.add(tipoDocumentoRequest.getTipoAmbito());
+		}
 
 		return tipoDocumentoJPARepository.obtenerTipoDocumentoByAmbito(ambitos);
 	}
