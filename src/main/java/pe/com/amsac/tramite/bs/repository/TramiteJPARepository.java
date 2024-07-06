@@ -8,8 +8,12 @@ import pe.com.amsac.tramite.api.util.BitallJPARepository;
 import pe.com.amsac.tramite.bs.domain.Tramite;
 import pe.com.amsac.tramite.bs.domain.TramiteDerivacion;
 
+import java.util.List;
+
 public interface TramiteJPARepository extends BitallJPARepository<Tramite, String>, CustomTramiteJPARepository {
 
     @Query(value = "SELECT t FROM Tramite t")
     Page<Tramite> obtenerUltimoRegistroMaxNumeroTramite(Pageable pageable);
+
+    List<Tramite> findByEstado(String estado);
 }

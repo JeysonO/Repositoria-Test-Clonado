@@ -142,6 +142,12 @@ public class Tramite extends BaseAuditableEntity<String> {
 	@JoinColumn(name = "id_cargo_remitente", referencedColumnName = "id_cargo")
 	private Cargo cargoRemitente;
 
+	@Column(name = "intentos_envio")
+	private Integer intentosEnvio;
+
+	@Transient
+	private Long cantidadMaximaIntentos;
+
 	@Override
 	public Serializable getEntityId() {
 		return getId();

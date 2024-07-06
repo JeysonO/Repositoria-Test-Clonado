@@ -2,7 +2,7 @@
 // Este archivo ha sido generado por Eclipse Implementation of JAXB v2.3.7 
 // Visite https://eclipse-ee4j.github.io/jaxb-ri 
 // Todas las modificaciones realizadas en este archivo se perderán si se vuelve a compilar el esquema de origen. 
-// Generado el: 2024.06.21 a las 12:43:28 AM PET 
+// Generado el: 2024.07.05 a las 07:54:46 PM PET 
 //
 
 
@@ -17,7 +17,7 @@ import javax.xml.namespace.QName;
 /**
  * This object contains factory methods for each 
  * Java content interface and Java element interface 
- * generated in the pe.com.amsac.tramite.pide.soap.cuo.request package. 
+ * generated in the pe.com.amsac.tramite.pide.soap.tramite.request package. 
  * <p>An ObjectFactory allows you to programatically 
  * construct new instances of the Java representation 
  * for XML content. The Java representation of XML 
@@ -42,7 +42,7 @@ public class ObjectFactory {
     private final static QName _IOException_QNAME = new QName("http://ws.wsiopidetramite.segdi.gob.pe/", "IOException");
 
     /**
-     * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: pe.com.amsac.tramite.pide.soap.cuo.request
+     * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: pe.com.amsac.tramite.pide.soap.tramite.request
      * 
      */
     public ObjectFactory() {

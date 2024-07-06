@@ -25,6 +25,7 @@ public class TramiteResponse {
 	private Date fechaDocumento;
 	private String tipoDocumentoId;
 	private String origenDocumento; //INTERNO, EXTERNO
+	private String origen; //INTERNO, EXTERNO, PIDE
 	private String numeroDocumento;
 	private String siglas;
 	private String formaRecepcionId;
@@ -36,7 +37,7 @@ public class TramiteResponse {
 	private String contratoOrden;
 
 	//Origen del documento
-	private String origen; //INTERNO, EXTERNO
+	//private String origen; //INTERNO, EXTERNO
 	private String tipoOrigen; //si es interno entonces va DOCUMENTO_PERSONAL.
 
 	//Datos de Entidad Interno
@@ -85,6 +86,11 @@ public class TramiteResponse {
 	private String dependenciaRemitenteId;
 	private String usuarioRemitenteId;
 	private String cargoRemitenteId;
+	private Integer cantidadIntentos;
+	private Integer cantidadMaximaIntentos;
+
+	@Mapping("intentosEnvio")
+	public Integer getCantidadIntentos(){return cantidadIntentos;}
 
 	@Mapping("cargoRemitente.id")
 	public String getCargoRemitenteId(){return cargoRemitenteId;}

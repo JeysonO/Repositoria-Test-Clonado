@@ -12,7 +12,7 @@ public class TramiteRequest extends BaseRequest {
 
 	private String createdByUser;
 	private String estado;
-	//private String id;
+	private String id;
 
 	private int numeroTramite;
 	//private Date fechaDocumentoDesde;
@@ -26,5 +26,6 @@ public class TramiteRequest extends BaseRequest {
 	private String razonSocial;
 	private String soloOriginal;
 	private String cargoUsuarioCreacion;
+	private String origen;
 
 }

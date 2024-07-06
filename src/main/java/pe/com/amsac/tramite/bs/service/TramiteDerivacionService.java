@@ -2012,9 +2012,12 @@ public class TramiteDerivacionService {
 			DocumentoAdjuntoResponse documentoAdjuntoResponse = documentoAdjuntoService.registrarDocumentoAdjunto(documentoAdjuntoBodyRequest);
 
 			//Preparamos el body para el envio de corro de la notificacion
+			/*
 			DocumentoAdjuntoRequest documentoAdjuntoRequest = new DocumentoAdjuntoRequest();
 			documentoAdjuntoRequest.setId(documentoAdjuntoResponse.getId());
-			documentoAdjuntoNotificacionResource = documentoAdjuntoService.obtenerDocumentoAdjunto(documentoAdjuntoRequest);
+			*/
+			//documentoAdjuntoNotificacionResource = documentoAdjuntoService.obtenerDocumentoAdjunto(documentoAdjuntoRequest);
+			documentoAdjuntoNotificacionResource = documentoAdjuntoService.obtenerDocumentoAdjunto(DocumentoAdjuntoRequest.builder().id(documentoAdjuntoResponse.getId()).build());
 		}
 
 
@@ -2114,9 +2117,12 @@ public class TramiteDerivacionService {
 		DocumentoAdjuntoResponse documentoAdjuntoResponse = documentoAdjuntoService.registrarDocumentoAdjunto(documentoAdjuntoBodyRequest);
 
 		//Preparamos el body para el envio de corro de la notificacion
+		/*
 		DocumentoAdjuntoRequest documentoAdjuntoRequest = new DocumentoAdjuntoRequest();
 		documentoAdjuntoRequest.setId(documentoAdjuntoResponse.getId());
-		Resource documentoAdjuntoNotificacionResource = documentoAdjuntoService.obtenerDocumentoAdjunto(documentoAdjuntoRequest);
+		*/
+		//Resource documentoAdjuntoNotificacionResource = documentoAdjuntoService.obtenerDocumentoAdjunto(documentoAdjuntoRequest);
+		Resource documentoAdjuntoNotificacionResource = documentoAdjuntoService.obtenerDocumentoAdjunto(DocumentoAdjuntoRequest.builder().id(documentoAdjuntoResponse.getId()).build());
 
 		StringBuffer cuerpo = obtenerPlantillaHtml("plantillaCancelacion.html");
 		Map<String, Object> param = new HashMap<>();

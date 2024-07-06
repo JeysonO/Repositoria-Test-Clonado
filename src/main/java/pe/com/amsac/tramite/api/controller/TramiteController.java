@@ -21,22 +21,20 @@ import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.request.bean.TareasComplementariasMigracionRequest;
 import pe.com.amsac.tramite.api.request.bean.TramiteRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TramiteBodyRequest;
-import pe.com.amsac.tramite.api.request.body.bean.TramiteMigracionBatchBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TramiteMigracionBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TramitePideBodyRequest;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
+import pe.com.amsac.tramite.api.response.bean.Mensaje;
 import pe.com.amsac.tramite.api.response.bean.Meta;
 import pe.com.amsac.tramite.api.response.bean.TramiteResponse;
 import pe.com.amsac.tramite.api.util.EstadoRespuestaConstant;
 import pe.com.amsac.tramite.bs.domain.Tramite;
-import pe.com.amsac.tramite.bs.domain.TramiteMigracion;
 import pe.com.amsac.tramite.bs.service.TramiteService;
+import pe.com.amsac.tramite.bs.util.EstadoResultadoEnvioPideConstant;
+import pe.com.amsac.tramite.bs.util.EstadoTramiteConstant;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @RestController
@@ -342,20 +340,38 @@ public class TramiteController {
 			@RequestParam(value = "filePrincipal", required = true) MultipartFile filePrincipal,
 			@RequestParam(value = "fileAnexos", required = true) List<MultipartFile> fileAnexos) throws Exception{
 
-	CommonResponse commonResponse = null;
+		CommonResponse commonResponse = null;
 
 		HttpStatus httpStatus = HttpStatus.CREATED;
+		String estadoRespuesta = EstadoRespuestaConstant.RESULTADO_OK;
 
 		try {
 
 			ObjectMapper objectMapper = new ObjectMapper();
 			log.info("Body para registrar tramite pide:"+objectMapper.writeValueAsString(tramitePideBodyRequest));
 
-			Tramite tramite = tramiteService.registrarTramitePide(tramitePideBodyRequest,filePrincipal,fileAnexos);
+			Map resultadoEnvio = tramiteService.registrarTramitePideHandler(tramitePideBodyRequest,filePrincipal,fileAnexos);
+			List<Mensaje> mensajes = null;
+			//TramiteResponse tramiteResponse = mapper.map(tramite, TramiteResponse.class);
+			if(resultadoEnvio.get("resultado").equals(EstadoTramiteConstant.CON_ERROR_PIDE)
+					|| resultadoEnvio.get("resultado").equals(EstadoTramiteConstant.POR_ENVIAR_PIDE)){
+				estadoRespuesta = EstadoRespuestaConstant.RESULTADO_ERROR;
+				httpStatus = HttpStatus.CONFLICT;
+			}
 
-			TramiteResponse tramiteResponse = mapper.map(tramite, TramiteResponse.class);
+			if(resultadoEnvio.get("resultado").equals(EstadoTramiteConstant.POR_ENVIAR_PIDE))
+				httpStatus = HttpStatus.ACCEPTED;
 
-			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(tramiteResponse).build();
+
+			//Agregamos el mensaje de error a la lista de mensajes
+			if(resultadoEnvio.get("mensaje")!=null){
+				mensajes = Arrays.asList(new Mensaje(((Map)resultadoEnvio.get("mensaje")).get("vcodres").toString(), "E",  ((Map)resultadoEnvio.get("mensaje")).get("vdesres").toString()));
+				resultadoEnvio.remove("mensaje");
+			}
+
+			resultadoEnvio.remove("resultado");
+
+			commonResponse = CommonResponse.builder().meta(new Meta(estadoRespuesta, mensajes)).data(resultadoEnvio).build();
 
 
 		} catch (ServiceException se) {

@@ -120,11 +120,14 @@ public class DocumentoAdjuntoController {
 	public ResponseEntity<Resource> downloadFileEscala(@PathVariable String documentoAdjuntoId, HttpServletRequest request)
 			throws Exception {
 		try {
+			/*
 			DocumentoAdjuntoRequest documentoAdjuntoRequest = new DocumentoAdjuntoRequest();
 			documentoAdjuntoRequest.setId(documentoAdjuntoId);
+			*/
 
 			//Resource resource = documentoAdjuntoService.obtenerDocumentoAdjunto(documentoAdjuntoRequest);
-			Map<String, Object> param =  documentoAdjuntoService.obtenerDocumentoAdjuntoDescarga(documentoAdjuntoRequest);
+			//Map<String, Object> param =  documentoAdjuntoService.obtenerDocumentoAdjuntoDescarga(documentoAdjuntoRequest);
+			Map<String, Object> param =  documentoAdjuntoService.obtenerDocumentoAdjuntoDescarga(DocumentoAdjuntoRequest.builder().id(documentoAdjuntoId).build());
 			Resource resource = (Resource)param.get("file");
 			String nombreArchivo = param.get("nombre").toString();
 
@@ -189,10 +192,13 @@ public class DocumentoAdjuntoController {
 	public ResponseEntity<Resource> downloadblobfile(@PathVariable String documentoAdjuntoId)
 			throws Exception {
 		try {
+			/*
 			DocumentoAdjuntoRequest documentoAdjuntoRequest = new DocumentoAdjuntoRequest();
 			documentoAdjuntoRequest.setId(documentoAdjuntoId);
+			*/
 
-			InputStreamResource resource = documentoAdjuntoService.obtenerDocumentoAdjuntoBlob(documentoAdjuntoRequest);
+			//InputStreamResource resource = documentoAdjuntoService.obtenerDocumentoAdjuntoBlob(documentoAdjuntoRequest);
+			InputStreamResource resource = documentoAdjuntoService.obtenerDocumentoAdjuntoBlob(DocumentoAdjuntoRequest.builder().id(documentoAdjuntoId).build());
 
 			/*
 			String contentType = null;

@@ -1,7 +1,11 @@
 package pe.com.amsac.tramite.api.request.bean;
 
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Builder
+//@NoArgsConstructor
 @Data
 public class DocumentoAdjuntoRequest {
 

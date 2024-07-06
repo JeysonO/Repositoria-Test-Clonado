@@ -36,7 +36,7 @@ public class TramitePideBodyRequest {
 	private String cargoDestinatario;
 
 	private String origenDocumento; //INTERNO
-	private String origen; //INTEROPERABILIDAD
+	private String origen; //PIDE
 
 	@Mapping("tipoDocumento.id")
 	public String getTipoDocumentoPideId(){return tipoDocumentoPideId;}

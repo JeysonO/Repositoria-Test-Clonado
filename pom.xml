@@ -342,7 +342,7 @@
 					</execution>
 				</executions>
 				<configuration>
-					<generatePackage>pe.com.amsac.tramite.pide.soap.cuo.request</generatePackage>
+					<generatePackage>pe.com.amsac.tramite.pide.soap.tramite.request</generatePackage>
 					<generateDirectory>${project.basedir}/src/main/java</generateDirectory>
 					<schemaDirectory>${project.basedir}/src/main/resources/wsdl</schemaDirectory>
 					<schemaIncludes>
@@ -350,6 +350,33 @@
 					</schemaIncludes>
 				</configuration>
 			</plugin>
+			<!-- -->
+
+			<!-- tag::wsdl[] -->
+			<!--
+			<plugin>
+				<groupId>com.sun.xml.ws</groupId>
+				<artifactId>jaxws-maven-plugin</artifactId>
+				<version>3.0.0</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>wsimport</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<packageName>pe.com.amsac.tramite.pide.soap.cuo.dto</packageName>
+					<wsdlUrls>
+						<wsdlUrl>http://161.132.150.248/wsiopidetramite/IOTramite?wsdl</wsdlUrl>
+					</wsdlUrls>
+					<sourceDestDir>${sourcesDir}</sourceDestDir>
+					<destDir>${classesDir}</destDir>
+					<extension>true</extension>
+				</configuration>
+			</plugin>
+			-->
+			<!-- end::wsdl[] -->
 		</plugins>
 	</build>
 

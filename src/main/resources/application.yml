@@ -135,6 +135,17 @@ app:
     asuntoAtencionFueraPlazo: "STD AMSAC - Expediente Asignado - N° Trámite: "
     asuntoAcuseRecepcionTramite: "Acuse de Recibo N° Trámite "
 
+  micelaneos:
+    ruc-amsac: 20103030791
+    nombre-amsac: AMSAC SAC
+    cantidad-maxima-intentos: 3
+    ruta-anexos: http://amsac.pe
+
+  credenciales:
+    schedule:
+      username: edgard.alvino@gmail.com
+      password: ealvino
+
 ## File Storage Properties
 file:
   base-upload-dir: tramite/file
@@ -154,4 +165,5 @@ cron:
   #* "0 0 9-17 * * MON-FRI" = on the hour nine-to-five weekdays
   #* "0 0 0 25 12 ?" = every Christmas Day at midnight
   evaluar-vencimiento-tramite-derivacion: 0 0 8 * * *
+  enviar-tramite-pendiente-pide: 0 */2 * * * *
 

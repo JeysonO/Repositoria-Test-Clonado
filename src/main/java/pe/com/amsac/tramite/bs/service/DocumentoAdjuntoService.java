@@ -489,9 +489,10 @@ public class DocumentoAdjuntoService {
 	public void actualizarAdjuntosPorTramiteDerivacion(String tramiteDerivacionId) throws Exception {
 		if(!StringUtils.isBlank(tramiteDerivacionId)){
 			TramiteDerivacion tramiteDerivacion = tramiteDerivacionService.obtenerTramiteDerivacionById(tramiteDerivacionId);
-			DocumentoAdjuntoRequest documentoAdjuntoRequest = new DocumentoAdjuntoRequest();
-			documentoAdjuntoRequest.setTramiteDerivacionId(tramiteDerivacionId);
-			List<DocumentoAdjunto> listaDocumentoEscala = obtenerDocumentoAdjuntoParams(documentoAdjuntoRequest);
+			//DocumentoAdjuntoRequest documentoAdjuntoRequest = new DocumentoAdjuntoRequest();
+			//documentoAdjuntoRequest.setTramiteDerivacionId(tramiteDerivacionId);
+			//List<DocumentoAdjunto> listaDocumentoEscala = obtenerDocumentoAdjuntoParams(documentoAdjuntoRequest);
+			List<DocumentoAdjunto> listaDocumentoEscala = obtenerDocumentoAdjuntoParams(DocumentoAdjuntoRequest.builder().tramiteDerivacionId(tramiteDerivacionId).build());
 			tramiteDerivacion.setConAdjunto(true);
 			if(CollectionUtils.isEmpty(listaDocumentoEscala)){
 				tramiteDerivacion.setConAdjunto(false);
