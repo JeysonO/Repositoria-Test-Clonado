@@ -29,6 +29,7 @@ import pe.com.amsac.tramite.api.response.bean.*;
 import pe.com.amsac.tramite.api.util.CustomMultipartFile;
 import pe.com.amsac.tramite.bs.domain.*;
 import pe.com.amsac.tramite.bs.repository.FirmaDocumentoJPARepository;
+import pe.com.amsac.tramite.bs.util.DescripcionDocumentoAdjuntoConstant;
 import pe.com.amsac.tramite.bs.util.EstadoFirmaDocumentoConstant;
 import pe.com.amsac.tramite.bs.util.TipoDocumentoFirmaConstant;
 
@@ -455,7 +456,7 @@ public class FirmaDocumentoService {
 
 		DocumentoAdjuntoBodyRequest documentoAdjuntoRequest = new DocumentoAdjuntoBodyRequest();
 		documentoAdjuntoRequest.setTramiteId(firmaDocumento.getIdTramite());
-		documentoAdjuntoRequest.setDescripcion("ARCHIVO CON FIRMA DIGITAL");
+		documentoAdjuntoRequest.setDescripcion(DescripcionDocumentoAdjuntoConstant.DOCUMENTO_FIRMADO_DIGITALMENTE);// "ARCHIVO CON FIRMA DIGITAL");
 		documentoAdjuntoRequest.setFile(file);
 		documentoAdjuntoRequest.setTramiteDerivacionId(firmaDocumento.getTramiteDerivacionId());
 		//documentoAdjuntoRequest.setTramiteDerivacionId(documentoAdjuntoOriginal.getTramiteDerivacionId());

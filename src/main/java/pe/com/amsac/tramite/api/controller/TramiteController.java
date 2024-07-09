@@ -20,6 +20,7 @@ import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.request.bean.TareasComplementariasMigracionRequest;
 import pe.com.amsac.tramite.api.request.bean.TramiteRequest;
+import pe.com.amsac.tramite.api.request.body.bean.DatosFirmaDocumentoRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TramiteBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TramiteMigracionBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TramitePideBodyRequest;
@@ -337,6 +338,7 @@ public class TramiteController {
 	//public ResponseEntity<CommonResponse> registrarTramitePide(@Valid @RequestBody TramitePideBodyRequest tramitePideBodyRequest) throws Exception {
 	public ResponseEntity<CommonResponse> registrarDocumentoAdjunto(
 			@RequestPart(value = "tramite", required = true) TramitePideBodyRequest tramitePideBodyRequest,
+			@RequestPart(value = "datosFirmaDocumento", required = false) DatosFirmaDocumentoRequest datosFirmaDocumentoRequest,
 			@RequestParam(value = "filePrincipal", required = true) MultipartFile filePrincipal,
 			@RequestParam(value = "fileAnexos", required = true) List<MultipartFile> fileAnexos) throws Exception{
 
@@ -350,7 +352,7 @@ public class TramiteController {
 			ObjectMapper objectMapper = new ObjectMapper();
 			log.info("Body para registrar tramite pide:"+objectMapper.writeValueAsString(tramitePideBodyRequest));
 
-			Map resultadoEnvio = tramiteService.registrarTramitePideHandler(tramitePideBodyRequest,filePrincipal,fileAnexos);
+			Map resultadoEnvio = tramiteService.registrarTramitePideHandler(tramitePideBodyRequest,filePrincipal,fileAnexos,datosFirmaDocumentoRequest);
 			List<Mensaje> mensajes = null;
 			//TramiteResponse tramiteResponse = mapper.map(tramite, TramiteResponse.class);
 			if(resultadoEnvio.get("resultado").equals(EstadoTramiteConstant.CON_ERROR_PIDE)

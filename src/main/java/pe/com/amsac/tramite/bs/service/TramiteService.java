@@ -42,6 +42,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -116,10 +117,16 @@ public class TramiteService {
 	private ScheduleService scheduleService;
 
 	@Autowired
+	private TipoDocumentoPideJPARepository tipoDocumentoPideJPARepository;
+
+	@Autowired
 	private Util util;
 
 	@Autowired
 	private TramiteEnvioPideJPARepository tramiteEnvioPideJPARepository;
+
+	@Autowired
+	private FirmaDocumentoService firmaDocumentoService;
 
 	Map<String, Object> filtroParam = new HashMap<>();
 
@@ -1698,27 +1705,32 @@ public class TramiteService {
 
 
 	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
-	public Map registrarTramitePideHandler(TramitePideBodyRequest tramitePideBodyRequest, MultipartFile filePrincipal, List<MultipartFile> fileAnexos) throws Exception {
+	public Map registrarTramitePideHandler(TramitePideBodyRequest tramitePideBodyRequest, MultipartFile filePrincipal, List<MultipartFile> fileAnexos, DatosFirmaDocumentoRequest datosFirmaDocumentoRequest) throws Exception {
 
-		Tramite tramitePide =  registrarTramitePide(tramitePideBodyRequest, filePrincipal, fileAnexos);
+		Tramite tramitePide =  registrarTramitePide(tramitePideBodyRequest, filePrincipal, fileAnexos, datosFirmaDocumentoRequest);
 
 		String estadoTramite = tramitePide.getEstado();
 
 		Map resultadEnvio = new HashMap();
 
-		try{
-			//resultadEnvio = enviarTramiteAPide(tramitePide.getId());
-			resultadEnvio = enviarTramiteAPide(tramitePide, tramitePideBodyRequest, filePrincipal, fileAnexos);
-			//Vemos el indicados de resultado, si es ok entonces solocamos el estado enviado pide, sino con error pide.
-			estadoTramite = EstadoTramiteConstant.ENVIADO_PIDE;
-			if(resultadEnvio.get("resultado").equals(EstadoResultadoEnvioPideConstant.ERROR))
-				estadoTramite = EstadoTramiteConstant.CON_ERROR_PIDE;
-
+		//try{
+		//resultadEnvio = enviarTramiteAPide(tramitePide.getId());
+		resultadEnvio = enviarTramiteAPide(tramitePide, tramitePideBodyRequest, filePrincipal, fileAnexos);
+		//Vemos el indicados de resultado, si es ok entonces solocamos el estado enviado pide, sino con error pide.
+		estadoTramite = EstadoTramiteConstant.ENVIADO_PIDE;
+		if(resultadEnvio.get("resultado").equals(EstadoResultadoEnvioPideConstant.ERROR))
+			estadoTramite = EstadoTramiteConstant.CON_ERROR_PIDE;
+		if(resultadEnvio.get("resultado").equals(EstadoResultadoEnvioPideConstant.ERROR_SERVICIO)){
+			estadoTramite = EstadoTramiteConstant.POR_ENVIAR_PIDE;
+			resultadEnvio.put("mensaje", Map.of("vcodres", "001", "vdesres", "Hubo un error en la transmisión, se volverá a intentar de forma automática en unos momentos y se informará por correo de los resultados"));
+		}
+		/*
 		}catch (Exception ex){
 			estadoTramite = EstadoTramiteConstant.POR_ENVIAR_PIDE;
 			resultadEnvio.put("mensaje", Map.of("vcodres", "001", "vdesres", "Hubo un error en la transmisión, se volverá a intentar de forma automática en unos momentos y se informará por correo de los resultados"));
 			log.error("ERROR", ex);
 		}
+		*/
 
 		Tramite tramite = findById(tramitePide.getId());
 		tramite.setEstado(estadoTramite);
@@ -1739,17 +1751,27 @@ public class TramiteService {
 
 		//try {
 			//Obtenemos el nummero de cuo
-		String cuo = "0000000060";
+		String cuo = obtenerCuo();// "0000000060";
+
+		String tipoDocumentoPide = tipoDocumentoPideJPARepository.findByTipoDocumentoPide(tipoDocumentoJPARepository.findById(tramitePideBodyRequest.getTipoDocumentoPideId()).get().getTipoDocumento()).get(0).getId();
+
+		//Obtenemos el archivo de la tabla adjunto porque puede ser que haya sido firmada
+		List<DocumentoAdjunto> documentoAdjuntoList = documentoAdjuntoService.obtenerDocumentoAdjuntoParams(DocumentoAdjuntoRequest.builder().tramiteId(tramite.getId()).build());
+
+		DocumentoAdjunto documentoAdjuntoPrincipal = documentoAdjuntoList.stream().filter(x -> x.getSeccionAdjunto().equals(SeccionAdjuntoConstant.PRINCIPAL) && x.getTipoAdjunto().equals(TipoAdjuntoConstant.DOCUMENTO_TRAMITE)).findFirst().get();
+
+		Resource documentopPrincipalResource = documentoAdjuntoService.obtenerDocumentoAdjunto(DocumentoAdjuntoRequest.builder().id(documentoAdjuntoPrincipal.getId()).build());
+
 
 		//Creamos el body para envio
 		RecepcionTramite recepcionTramite = new RecepcionTramite();
-		recepcionTramite.setVrucentrem("20103030791");
+		recepcionTramite.setVrucentrem (env.getProperty("app.micelaneos.ruc-amsac"));//("20103030791");
 		recepcionTramite.setVrucentrec(tramitePideBodyRequest.getRucEntidadDestino());
-		recepcionTramite.setVnomentemi("ACTIVOS MINEROS");
+		recepcionTramite.setVnomentemi( env.getProperty("app.micelaneos.nombre-amsac"));
 		recepcionTramite.setVuniorgrem(tramitePideBodyRequest.getDependenciaRemitenteNombre());
 		recepcionTramite.setVcuo(cuo);
 		recepcionTramite.setVcuoref("0");
-		recepcionTramite.setCcodtipdoc(tramitePideBodyRequest.getTipoDocumentoPideId());
+		recepcionTramite.setCcodtipdoc(tipoDocumentoPide);//tramitePideBodyRequest.getTipoDocumentoPideId());
 		recepcionTramite.setVnumdoc(tramitePideBodyRequest.getNumeroDocumento());
 		//recepcionTramite.setDfecdoc(DatatypeFactory.newInstance().newXMLGregorianCalendar(Date.from(tramitePideBodyRequest.getFechaDocumento().atStartOfDay(ZoneId.systemDefault()).toInstant()).toString()));
 		recepcionTramite.setDfecdoc(DatatypeFactory.newInstance().newXMLGregorianCalendar(tramitePideBodyRequest.getFechaDocumento().toString()+"T00:00:00"));
@@ -1759,7 +1781,9 @@ public class TramiteService {
 		recepcionTramite.setVasu(tramitePideBodyRequest.getAsunto());
 		recepcionTramite.setSnumanx(CollectionUtils.isEmpty(fileAnexos) ? 0 : fileAnexos.size());
 		recepcionTramite.setSnumfol(Integer.valueOf(tramitePideBodyRequest.getNumeroFolios()));
-		recepcionTramite.setBpdfdoc(filePrincipal.getBytes());
+		//recepcionTramite.setBpdfdoc(filePrincipal.getBytes());
+		//recepcionTramite.setBpdfdoc(Base64.getEncoder().encode(filePrincipal.getBytes()));
+		recepcionTramite.setBpdfdoc(Base64.getEncoder().encode(documentopPrincipalResource.getInputStream().readAllBytes()));
 		recepcionTramite.setVnomdoc(getFileName(filePrincipal.getOriginalFilename()));
 		recepcionTramite.setVurldocanx("ruta anexos");
 
@@ -1779,27 +1803,37 @@ public class TramiteService {
 		recepcionarTramiteResponse.setRequest(recepcionTramite);
 
 		//Realizamos el envio del tramite
+		String respuestaPide = null;
+		String estadoSeguimientoEnvio = EstadoTramiteConstant.ENVIADO_PIDE;
 		ObjectFactory objectFactory = new ObjectFactory();
 		JAXBElement jaxbTramiteResponse = objectFactory.createRecepcionarTramiteResponse(recepcionarTramiteResponse);
 		Date fechaEnvio = new Date();
-		JAXBElement jaxbElementResponse = (JAXBElement) soapConnector.callWebService(env.getProperty("app.url.pideServer"), jaxbTramiteResponse);
-		//RecepcionarTramiteResponseResponse recepcionarTramiteResponseResponse = soapConnector.callWebService(recepcionarTramiteResponse);
-		Date fechaRespuesta = new Date();
-		RecepcionarTramiteResponseResponse recepcionarTramiteResponseResponse = (RecepcionarTramiteResponseResponse) jaxbElementResponse.getValue();
-		log.info("Respuesta Envio: " + recepcionarTramiteResponseResponse.getReturn().getVcodres());
+		try{
+			JAXBElement jaxbElementResponse = (JAXBElement) soapConnector.callWebService(env.getProperty("app.url.pideServer"), jaxbTramiteResponse);
+			//RecepcionarTramiteResponseResponse recepcionarTramiteResponseResponse = soapConnector.callWebService(recepcionarTramiteResponse);
 
-		String estadoSeguimientoEnvio = EstadoTramiteConstant.ENVIADO_PIDE;
-		resultadoEnvio.put("mensaje", new ObjectMapper()
-				.convertValue(recepcionarTramiteResponseResponse.getReturn(), new TypeReference<Map<String, Object>>() {})); //recepcionarTramiteResponseResponse.getReturn());
-		if(!recepcionarTramiteResponseResponse.getReturn().getVcodres().equals("0000")){
-			resultadoEnvio.put("resultado",EstadoResultadoEnvioPideConstant.ERROR);
-			estadoSeguimientoEnvio = EstadoTramiteConstant.CON_ERROR_PIDE;
+			RecepcionarTramiteResponseResponse recepcionarTramiteResponseResponse = (RecepcionarTramiteResponseResponse) jaxbElementResponse.getValue();
+			log.info("Respuesta Envio: " + recepcionarTramiteResponseResponse.getReturn().getVcodres());
+			resultadoEnvio.put("mensaje", new ObjectMapper()
+					.convertValue(recepcionarTramiteResponseResponse.getReturn(), new TypeReference<Map<String, Object>>() {})); //recepcionarTramiteResponseResponse.getReturn());
+			if(!recepcionarTramiteResponseResponse.getReturn().getVcodres().equals("0000")){
+				resultadoEnvio.put("resultado",EstadoResultadoEnvioPideConstant.ERROR);
+				estadoSeguimientoEnvio = EstadoTramiteConstant.CON_ERROR_PIDE;
+			}
+			respuestaPide = new ObjectMapper().writeValueAsString(recepcionarTramiteResponseResponse.getReturn());
+
+		}catch(Exception ex){
+			resultadoEnvio.put("resultado",EstadoResultadoEnvioPideConstant.ERROR_SERVICIO);
+			estadoSeguimientoEnvio = EstadoTramiteConstant.POR_ENVIAR_PIDE;
+			respuestaPide = ex.getMessage();
+			log.error("ERROR",ex);
 		}
+		Date fechaRespuesta = new Date();
 
 		//Registrammos en una tabla, el envio y la respuesta obtenida del envio, asi como la fecha y hora.
 		TramiteEnvioPide tramiteEnvioPide = new TramiteEnvioPide();
 		tramiteEnvioPide.setRequest(new ObjectMapper().writeValueAsString(recepcionTramite));
-		tramiteEnvioPide.setResponse(new ObjectMapper().writeValueAsString(recepcionarTramiteResponseResponse.getReturn()));
+		tramiteEnvioPide.setResponse(respuestaPide);
 		tramiteEnvioPide.setTramite(tramite);
 		tramiteEnvioPide.setEstado(estadoSeguimientoEnvio);
 		tramiteEnvioPide.setSecuencia(tramiteEnvioPideJPARepository.obtenerSecuencia(tramite.getId()).intValue());
@@ -1818,7 +1852,7 @@ public class TramiteService {
 	}
 
 
-	private Tramite registrarTramitePide(TramitePideBodyRequest tramitePideBodyRequest, MultipartFile filePrincipal, List<MultipartFile> fileAnexos) throws Exception {
+	private Tramite registrarTramitePide(TramitePideBodyRequest tramitePideBodyRequest, MultipartFile filePrincipal, List<MultipartFile> fileAnexos, DatosFirmaDocumentoRequest datosFirmaDocumentoRequest) throws Exception {
 		Date fechaDocumento = null;
 		LocalDate localDateFechaDocumento = null;
 		if(tramitePideBodyRequest.getFechaDocumento()!=null){
@@ -1875,15 +1909,51 @@ public class TramiteService {
 			registrarTramiteEntidadExterna(tramite);
 		}
 
-		//Registramos el documento principal
-		DocumentoAdjuntoBodyRequest documentoAdjuntoRequest = new DocumentoAdjuntoBodyRequest();
-		documentoAdjuntoRequest.setTramiteId(tramite.getId());
-		documentoAdjuntoRequest.setDescripcion("DOCUMENTO PRINCIPAL");
-		documentoAdjuntoRequest.setFile(filePrincipal);
-		documentoAdjuntoRequest.setSeccionAdjunto(SeccionAdjuntoConstant.PRINCIPAL);
-		documentoAdjuntoRequest.setTipoAdjunto(TipoAdjuntoConstant.DOCUMENTO_TRAMITE);
-		documentoAdjuntoRequest.setOmitirValidacionAdjunto(true);
-		documentoAdjuntoService.registrarDocumentoAdjunto(documentoAdjuntoRequest);
+		if(datosFirmaDocumentoRequest!=null){
+			FirmaDocumentoTramiteHibridoBodyRequest firmaDocumentoTramiteHibridoBodyRequest = new FirmaDocumentoTramiteHibridoBodyRequest();
+			firmaDocumentoTramiteHibridoBodyRequest.setTextoFirma(datosFirmaDocumentoRequest.getTextoFirma());
+			firmaDocumentoTramiteHibridoBodyRequest.setPosition(datosFirmaDocumentoRequest.getPosition());
+			firmaDocumentoTramiteHibridoBodyRequest.setOrientacion(datosFirmaDocumentoRequest.getOrientacion());
+			firmaDocumentoTramiteHibridoBodyRequest.setPositionCustom(datosFirmaDocumentoRequest.getPositionCustom());
+			firmaDocumentoTramiteHibridoBodyRequest.setPin(datosFirmaDocumentoRequest.getPin());
+			firmaDocumentoTramiteHibridoBodyRequest.setUsuarioFirmaLogoId(datosFirmaDocumentoRequest.getUsuarioFirmaLogoId());
+			firmaDocumentoTramiteHibridoBodyRequest.setFile(filePrincipal);
+			firmaDocumentoTramiteHibridoBodyRequest.setTramiteId(tramite.getId());
+			firmaDocumentoService.firmarDocumentoHibrido(firmaDocumentoTramiteHibridoBodyRequest);
+
+			//Al ser asincrono, se espera un mmomento a que el documento ya se encuentre firmado
+			DocumentoAdjuntoRequest documentoAdjuntoRequest = DocumentoAdjuntoRequest.builder().descripcion(DescripcionDocumentoAdjuntoConstant.DOCUMENTO_FIRMADO_DIGITALMENTE).build();
+			List<DocumentoAdjunto> documentoAdjuntoList = null;
+			boolean seObtuvoDocumentoFirmado = false;
+			int cantidadIntentos = 0;
+			int cantidadIntentosMaximo = 5;
+			while(!seObtuvoDocumentoFirmado){
+				if(cantidadIntentos == cantidadIntentosMaximo)
+					throw new ServiceException("No se pudo firmar documento, volver a intentarlo en breve");
+
+				documentoAdjuntoList = documentoAdjuntoService.obtenerDocumentoAdjuntoParams(documentoAdjuntoRequest);
+				if(!CollectionUtils.isEmpty(documentoAdjuntoList)){
+					DocumentoAdjunto documentoAdjunto = documentoAdjuntoList.get(0);
+					documentoAdjunto.setSeccionAdjunto(SeccionAdjuntoConstant.PRINCIPAL);
+					documentoAdjunto.setTipoAdjunto(TipoAdjuntoConstant.DOCUMENTO_TRAMITE);
+					documentoAdjuntoService.guardarAdjunto(documentoAdjunto);
+					seObtuvoDocumentoFirmado = true;
+				}else{
+					Thread.sleep(1000);
+					++cantidadIntentos;
+				}
+			}
+		}else{
+			//Registramos el documento principal
+			DocumentoAdjuntoBodyRequest documentoAdjuntoRequest = new DocumentoAdjuntoBodyRequest();
+			documentoAdjuntoRequest.setTramiteId(tramite.getId());
+			documentoAdjuntoRequest.setDescripcion("DOCUMENTO PRINCIPAL");
+			documentoAdjuntoRequest.setFile(filePrincipal);
+			documentoAdjuntoRequest.setSeccionAdjunto(SeccionAdjuntoConstant.PRINCIPAL);
+			documentoAdjuntoRequest.setTipoAdjunto(TipoAdjuntoConstant.DOCUMENTO_TRAMITE);
+			documentoAdjuntoRequest.setOmitirValidacionAdjunto(true);
+			documentoAdjuntoService.registrarDocumentoAdjunto(documentoAdjuntoRequest);
+		}
 
 		//Registramos los adjuntos
 		fileAnexos.stream().forEach(x -> {
@@ -1933,9 +2003,12 @@ public class TramiteService {
 		Tramite tramite = buscarTramiteParams(tramiteRequest).get(0);
 		String cuo = tramite.getCuo();
 
+		//Obtenemos el tipo de documento para pide a partir del documento
+		String tipoDocumentoPide = tipoDocumentoPideJPARepository.findByTipoDocumentoPide(tramite.getTipoDocumento().getTipoDocumento()).get(0).getId();
+
 		if(StringUtils.isBlank(tramite.getCuo()))
 			//generar cuo
-			cuo = "0000000060";
+			cuo = obtenerCuo();//"0000000060";
 
 		//Creamos el body para envio
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
@@ -1946,7 +2019,7 @@ public class TramiteService {
 		recepcionTramite.setVuniorgrem(tramite.getDependenciaRemitente().getNombre());
 		recepcionTramite.setVcuo(cuo);
 		recepcionTramite.setVcuoref("");
-		recepcionTramite.setCcodtipdoc(tramite.getTipoDocumento().getTipoDocumento());
+		recepcionTramite.setCcodtipdoc(tipoDocumentoPide);//tramite.getTipoDocumento().getTipoDocumento());
 		recepcionTramite.setVnumdoc(tramite.getNumeroDocumento());// tramitePideBodyRequest.getNumeroDocumento());
 		recepcionTramite.setDfecdoc(DatatypeFactory.newInstance().newXMLGregorianCalendar(sdf.format(tramite.getFechaDocumento())));
 		recepcionTramite.setVuniorgdst(tramite.getEntidadExterna().getUnidadOrganicaDestino());// tramitePideBodyRequest.getUnidadOrganicaDestino());
@@ -1955,7 +2028,8 @@ public class TramiteService {
 		recepcionTramite.setVasu(tramite.getAsunto());// tramitePideBodyRequest.getAsunto());
 		recepcionTramite.setSnumanx(CollectionUtils.isEmpty(documentoAdjuntoAnexos) ? 0 : documentoAdjuntoAnexos.size());
 		recepcionTramite.setSnumfol(Integer.valueOf(tramite.getFolio()));
-		recepcionTramite.setBpdfdoc(documentopPrincipalResource.getInputStream().readAllBytes());
+		//recepcionTramite.setBpdfdoc(documentopPrincipalResource.getInputStream().readAllBytes());
+		recepcionTramite.setBpdfdoc(Base64.getEncoder().encode(documentopPrincipalResource.getInputStream().readAllBytes()));
 		recepcionTramite.setVnomdoc(getFileName(documentopPrincipalResource.getFilename()));//.getOriginalFilename()));
 		recepcionTramite.setVurldocanx(env.getProperty("app.micelaneos.ruta-anexos"));
 
@@ -1979,6 +2053,7 @@ public class TramiteService {
 		recepcionarTramiteResponse.setRequest(recepcionTramite);
 
 		//Realizamos el envio del tramite
+		/*
 		ObjectFactory objectFactory = new ObjectFactory();
 		JAXBElement jaxbTramiteResponse = objectFactory.createRecepcionarTramiteResponse(recepcionarTramiteResponse);
 		Date fechaEnvio = new Date();
@@ -1994,11 +2069,41 @@ public class TramiteService {
 			resultadoEnvio.put("resultado","ERROR");
 			estadoSeguimientoEnvio = EstadoTramiteConstant.CON_ERROR_PIDE;
 		}
+		*/
+
+		//Se adecua esta parte
+		String respuestaPide = null;
+		String estadoSeguimientoEnvio = EstadoTramiteConstant.ENVIADO_PIDE;
+		ObjectFactory objectFactory = new ObjectFactory();
+		JAXBElement jaxbTramiteResponse = objectFactory.createRecepcionarTramiteResponse(recepcionarTramiteResponse);
+		Date fechaEnvio = new Date();
+		try{
+			JAXBElement jaxbElementResponse = (JAXBElement) soapConnector.callWebService(env.getProperty("app.url.pideServer"), jaxbTramiteResponse);
+			//RecepcionarTramiteResponseResponse recepcionarTramiteResponseResponse = soapConnector.callWebService(recepcionarTramiteResponse);
+
+			RecepcionarTramiteResponseResponse recepcionarTramiteResponseResponse = (RecepcionarTramiteResponseResponse) jaxbElementResponse.getValue();
+			log.info("Respuesta Envio: " + recepcionarTramiteResponseResponse.getReturn().getVcodres());
+			resultadoEnvio.put("mensaje", new ObjectMapper()
+					.convertValue(recepcionarTramiteResponseResponse.getReturn(), new TypeReference<Map<String, Object>>() {})); //recepcionarTramiteResponseResponse.getReturn());
+			if(!recepcionarTramiteResponseResponse.getReturn().getVcodres().equals("0000")){
+				resultadoEnvio.put("resultado",EstadoResultadoEnvioPideConstant.ERROR);
+				estadoSeguimientoEnvio = EstadoTramiteConstant.CON_ERROR_PIDE;
+			}
+			respuestaPide = new ObjectMapper().writeValueAsString(recepcionarTramiteResponseResponse.getReturn());
+
+		}catch(Exception ex){
+			resultadoEnvio.put("resultado",EstadoResultadoEnvioPideConstant.ERROR_SERVICIO);
+			estadoSeguimientoEnvio = EstadoTramiteConstant.POR_ENVIAR_PIDE;
+			respuestaPide = ex.getMessage();
+			log.error("ERROR",ex);
+		}
+		Date fechaRespuesta = new Date();
+
 
 		//Registrammos en una tabla, el envio y la respuesta obtenida del envio, asi como la fecha y hora.
 		TramiteEnvioPide tramiteEnvioPide = new TramiteEnvioPide();
 		tramiteEnvioPide.setRequest(new ObjectMapper().writeValueAsString(recepcionTramite));
-		tramiteEnvioPide.setResponse(new ObjectMapper().writeValueAsString(recepcionarTramiteResponseResponse.getReturn()));
+		tramiteEnvioPide.setResponse(respuestaPide);
 		tramiteEnvioPide.setTramite(tramite);
 		tramiteEnvioPide.setEstado(estadoSeguimientoEnvio);
 		tramiteEnvioPide.setSecuencia(tramiteEnvioPideJPARepository.obtenerSecuencia(tramite.getId()).intValue());
@@ -2033,7 +2138,7 @@ public class TramiteService {
 
 	}
 
-	public void enviarTramitePendientePideAutomatico(Tramite tramite) {
+	public void enviarTramitePendientePideAutomatico(Tramite tramite)  {
 		String estadoTramite = tramite.getEstado();
 		Long cantidadIntentos = tramiteEnvioPideJPARepository.obtenerSecuencia(tramite.getId());
 		Long cantidadMaximaIntentos = Long.parseLong(env.getProperty("app.micelaneos.cantidad-maxima-intentos").toString());
@@ -2041,12 +2146,16 @@ public class TramiteService {
 			Map resultadEnvio = enviarTramiteAPide(tramite.getId());
 			//Vemos el indicados de resultado, si es ok entonces solocamos el estado enviado pide, sino con error pide.
 			estadoTramite = EstadoTramiteConstant.ENVIADO_PIDE;
-			if(resultadEnvio.get("resultado").equals("ERROR"))
+			if(resultadEnvio.get("resultado").equals(EstadoResultadoEnvioPideConstant.ERROR))
 				estadoTramite = EstadoTramiteConstant.CON_ERROR_PIDE;
+			if(resultadEnvio.get("resultado").equals(EstadoResultadoEnvioPideConstant.ERROR_SERVICIO)){
+				estadoTramite = EstadoTramiteConstant.POR_ENVIAR_PIDE;
+				//resultadEnvio.put("mensaje", Map.of("vcodres", "001", "vdesres", "Hubo un error en la transmisión, se volverá a intentar de forma automática en unos momentos y se informará por correo de los resultados"));
+			}
 		} catch (Exception e) {
 			log.error("ERROR", e);
-
 		}
+
 
 		//Si el envio no ha sido exitoso y ya se ha commpletado la cantidad de envios, entonces se coloca en estado con error
 		if(cantidadMaximaIntentos.compareTo(cantidadIntentos)==0
@@ -2057,8 +2166,13 @@ public class TramiteService {
 		save(tramite);
 
 		//TODO Enviamos correo si tiene estado con error PIDE
+		//if(estadoTramite.equals(EstadoTramiteConstant.CON_ERROR_PIDE))
 
 
+	}
+
+	private String obtenerCuo(){
+		return "0000000060";
 	}
 
 }

@@ -3,6 +3,7 @@ package pe.com.amsac.tramite.api.request.body.bean;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import org.dozer.Mapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
 
