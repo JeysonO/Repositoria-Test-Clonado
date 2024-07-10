@@ -8,7 +8,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 
 @Data
-@Entity
+//@Entity
 //@Table(name = "persona")
 @AttributeOverrides(value = {
 		@AttributeOverride(name = "createdDate", column = @Column(name = "created_date", updatable = false)),

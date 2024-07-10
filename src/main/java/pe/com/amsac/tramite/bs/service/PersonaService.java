@@ -7,21 +7,23 @@ import pe.com.amsac.tramite.api.request.body.bean.PersonaBodyRequest;
 import pe.com.amsac.tramite.bs.domain.Persona;
 import pe.com.amsac.tramite.bs.repository.PersonaJPARepository;
 
-@Service
+//@Service
 public class PersonaService {
 
-	@Autowired
-	private PersonaJPARepository personaJPARepository;
+	//@Autowired
+	//private PersonaJPARepository personaJPARepository;
 
-	@Autowired
+	//@Autowired
 	private Mapper mapper;
 
 	public Persona registrarPersona(PersonaBodyRequest personaBodyRequest) throws Exception {
-
+		return null;
+		/*
 		Persona persona = mapper.map(personaBodyRequest,Persona.class);
 		persona.setEstado("A");
 		personaJPARepository.save(persona);
 		return persona;
+		*/
 
 	}
 		

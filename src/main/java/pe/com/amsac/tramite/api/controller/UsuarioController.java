@@ -33,7 +33,8 @@ public class UsuarioController { //extends CustomAPIController<UsuarioResponse, 
 
 	@PostMapping
     public ResponseEntity<CommonResponse> registrarUsuario(@Valid @RequestBody UsuarioBodyRequest usuarioBodyrequest) throws Exception {
-
+		return null;
+		/*
 		log.info("Datos usuario para registrar: "+new ObjectMapper().writeValueAsString(usuarioBodyrequest));
 
 		CommonResponse commonResponse = null;
@@ -54,6 +55,7 @@ public class UsuarioController { //extends CustomAPIController<UsuarioResponse, 
 		}
 
 		return new ResponseEntity<CommonResponse>(commonResponse,httpStatus);
+		*/
 
     }
 

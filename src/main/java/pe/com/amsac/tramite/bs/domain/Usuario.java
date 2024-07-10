@@ -57,8 +57,9 @@ public class Usuario extends BaseAuditableEntity<String> {
     private String nombreCompleto;
 
     //@DBRef
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_persona", referencedColumnName = "id_persona")
+    //@ManyToOne(fetch = FetchType.LAZY)
+    //@JoinColumn(name = "id_persona", referencedColumnName = "id_persona")
+    @Transient
     private Persona persona;
 
     @Override

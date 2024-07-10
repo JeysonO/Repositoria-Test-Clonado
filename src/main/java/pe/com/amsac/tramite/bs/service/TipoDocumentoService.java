@@ -1,18 +1,16 @@
 package pe.com.amsac.tramite.bs.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pe.com.amsac.tramite.api.request.bean.TipoDocumentoRequest;
 import pe.com.amsac.tramite.api.request.body.bean.TipoDocumentoBodyRequest;
-import pe.com.amsac.tramite.bs.domain.TipoDocumento;
+import pe.com.amsac.tramite.bs.domain.TipoDocumentoTramite;
 import pe.com.amsac.tramite.bs.repository.TipoDocumentoJPARepository;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -30,20 +28,20 @@ public class TipoDocumentoService {
 	private MongoTemplate mongoTemplate;
 	*/
 
-	public TipoDocumento registrarTipoDocumento(TipoDocumentoBodyRequest tipoDocumentoBodyRequest) throws Exception {
+	public TipoDocumentoTramite registrarTipoDocumento(TipoDocumentoBodyRequest tipoDocumentoBodyRequest) throws Exception {
 
-		TipoDocumento tipoDocumento = mapper.map(tipoDocumentoBodyRequest,TipoDocumento.class);
+		TipoDocumentoTramite tipoDocumento = mapper.map(tipoDocumentoBodyRequest, TipoDocumentoTramite.class);
 		tipoDocumento.setEstado("A");
 		tipoDocumentoJPARepository.save(tipoDocumento);
 		return tipoDocumento;
 
 	}
 
-	public List<TipoDocumento> findByAllTipoDocumento() throws Exception{
+	public List<TipoDocumentoTramite> findByAllTipoDocumento() throws Exception{
 		return tipoDocumentoJPARepository.findByEstado("A");
 	}
 
-	public List<TipoDocumento> obtenerTipoDocumento(TipoDocumentoRequest tipoDocumentoRequest) throws Exception{
+	public List<TipoDocumentoTramite> obtenerTipoDocumento(TipoDocumentoRequest tipoDocumentoRequest) throws Exception{
 
 		/*
 		List<String> ambitos = Arrays.asList("A",tipoDocumentoRequest.getTipoAmbito());

@@ -98,7 +98,7 @@ public class Tramite extends BaseAuditableEntity<String> {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "id_tipo_documento", referencedColumnName = "id_tipo_documento")
-	private TipoDocumento tipoDocumento;
+	private TipoDocumentoTramite tipoDocumento;
 
 	@Transient
 	private EntidadInterna entidadInterna;

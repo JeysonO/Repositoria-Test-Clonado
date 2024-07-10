@@ -49,6 +49,7 @@ public class UsuarioService {
 	@Autowired
 	private Environment env;
 
+	/*
 	public Usuario registrarUsuario(UsuarioBodyRequest usuarioCreateBodyRequest) throws Exception{
 
 		//Se hacen validaciones de los datos del usuario a registrar
@@ -70,11 +71,11 @@ public class UsuarioService {
 	}
 
 	public List<Mensaje> validarDatosUsuario(UsuarioBodyRequest usuarioCreateBodyRequest){
-		/*
+
 		Validar:
 		- Que no exista otro usuario con el mismo email en la base de datos
 		- Que no exista otro usuario con el mismo username en la base de datos
-		*/
+
 		List<Mensaje> mensajes = new ArrayList<>();
 		if(!CollectionUtils.isEmpty(usuarioJPARepository.findByEmail(usuarioCreateBodyRequest.getEmail()))){
 			mensajes.add(new Mensaje("E001","ERROR","Ya existe otro usuario con el mismo email"));
@@ -126,6 +127,7 @@ public class UsuarioService {
 
 		return token;
 	}
+	*/
 
 	public Usuario obtenerUsuarioById(String usuarioId){
 		RestTemplate restTemplate = new RestTemplate();

@@ -14,7 +14,7 @@ import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.api.response.bean.TipoDocumentoResponse;
 import pe.com.amsac.tramite.api.response.bean.Meta;
 import pe.com.amsac.tramite.api.util.EstadoRespuestaConstant;
-import pe.com.amsac.tramite.bs.domain.TipoDocumento;
+import pe.com.amsac.tramite.bs.domain.TipoDocumentoTramite;
 import pe.com.amsac.tramite.bs.service.TipoDocumentoService;
 
 import javax.validation.Valid;
@@ -40,7 +40,7 @@ public class TipoDocumentoController {
 		HttpStatus httpStatus = HttpStatus.CREATED;
 
 		try {
-			TipoDocumento tipoDocumento = tipoDocumentoService.registrarTipoDocumento(tipoDocumentoBodyrequest);
+			TipoDocumentoTramite tipoDocumento = tipoDocumentoService.registrarTipoDocumento(tipoDocumentoBodyrequest);
 
 			TipoDocumentoResponse tipoDocumentoResponse = mapper.map(tipoDocumento, TipoDocumentoResponse.class);
 
@@ -64,10 +64,10 @@ public class TipoDocumentoController {
 		HttpStatus httpStatus = HttpStatus.OK;
 
 		try {
-			List<TipoDocumento> listaTipoDocumento = tipoDocumentoService.obtenerTipoDocumento(tipoDocumentoRequest);//tipoDocumentoService.findByAllTipoDocumento();
+			List<TipoDocumentoTramite> listaTipoDocumento = tipoDocumentoService.obtenerTipoDocumento(tipoDocumentoRequest);//tipoDocumentoService.findByAllTipoDocumento();
 			List<TipoDocumentoResponse> obtenerTipoDocumentoList =  new ArrayList<>();
 			TipoDocumentoResponse tipoDocumentoResponse = null;
-			for (TipoDocumento temp : listaTipoDocumento) {
+			for (TipoDocumentoTramite temp : listaTipoDocumento) {
 				tipoDocumentoResponse = mapper.map(temp, TipoDocumentoResponse.class);
 				obtenerTipoDocumentoList.add(tipoDocumentoResponse);
 			}

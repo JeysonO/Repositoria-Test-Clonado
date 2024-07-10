@@ -7,7 +7,7 @@ public class UsuarioFirmaCreateResponse {
 
 
     private String id;
-    private UsuarioResponse usuario;
+    private UsuarioUniqueResponse usuario;
     private String usernameServicioFirma;
     private String passwordServicioFirma;
     private String siglaFirma;

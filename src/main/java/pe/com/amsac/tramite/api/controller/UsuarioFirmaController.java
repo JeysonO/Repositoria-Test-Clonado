@@ -90,7 +90,7 @@ public class UsuarioFirmaController { //extends CustomAPIController<UsuarioRespo
 	@GetMapping
 	public ResponseEntity<CommonResponse> obtenerUsuarioFirma(@Valid UsuarioFirmaRequest usuarioFirmaRequest ) throws Exception {
 
-		log.info("obtenerUsuarioFirmaByEstado");
+		log.info("obtenerUsuarioFirma");
 
 		CommonResponse commonResponse = null;
 
@@ -102,6 +102,7 @@ public class UsuarioFirmaController { //extends CustomAPIController<UsuarioRespo
 
 			if(!CollectionUtils.isEmpty(usuarioFirmaList)){
 				for(UsuarioFirma usuarioFirmaTmp:usuarioFirmaList){
+					//usuarioFirmaTmp.getUsuario().getPersona().setTipoDocumento(null);
 					usuarioFirmaResponseList.add(mapper.map(usuarioFirmaTmp, UsuarioFirmaCreateResponse.class));
 				}
 			}

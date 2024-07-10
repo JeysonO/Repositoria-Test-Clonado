@@ -22,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.context.annotation.RequestScope;
 import org.springframework.web.multipart.MultipartFile;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
@@ -39,10 +38,8 @@ import pe.com.amsac.tramite.pide.soap.endpoint.SOAPConnector;
 import pe.com.amsac.tramite.pide.soap.tramite.request.*;
 
 import javax.xml.bind.JAXBElement;
-import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -725,7 +722,7 @@ public class TramiteService {
 		LinkedHashMap<Object, Object> dependencia = (LinkedHashMap<Object, Object>) responseD.getBody().getData();
 
 		//Obtener Tipo Documento de Tramite
-		TipoDocumento tipoDocumento = tipoDocumentoJPARepository.findById(tramite.getTipoDocumento().getId()).get();
+		TipoDocumentoTramite tipoDocumento = tipoDocumentoJPARepository.findById(tramite.getTipoDocumento().getId()).get();
 
 		// Parameters for report
 		Map<String, Object> parameters = new HashMap<>();
@@ -735,8 +732,10 @@ public class TramiteService {
 		parameters.put("fechaHoraIngreso", fechaGeneracion);
 		parameters.put("estado", "EN CUSTODIA ELECTRÓNICA POR AMSAC");
 		parameters.put("emisorNombreCompleto", user.getNombreCompleto());
-		parameters.put("emisorRazonSocial", user.getPersona().getRazonSocialNombre().toUpperCase());
-		parameters.put("emisorRuc", user.getPersona().getNumeroDocumento());
+		parameters.put("emisorRazonSocial", person.getRazonSocialNombre().toUpperCase());
+		parameters.put("emisorRuc", person.getNumeroDocumento());
+		//parameters.put("emisorRazonSocial", user.getPersona().getRazonSocialNombre().toUpperCase());
+		//parameters.put("emisorRuc", user.getPersona().getNumeroDocumento());
 		parameters.put("asunto", tramite.getAsunto());
 		//TODO: pendiente conocer destino en registro de Trmaite
 		parameters.put("destino", dependencia.get("nombre").toString().toUpperCase());
@@ -1659,7 +1658,7 @@ public class TramiteService {
 
 
 		//Obtener Tipo Documento de Tramite
-		TipoDocumento tipoDocumento = tipoDocumentoJPARepository.findById(tramite.getTipoDocumento().getId()).get();
+		TipoDocumentoTramite tipoDocumento = tipoDocumentoJPARepository.findById(tramite.getTipoDocumento().getId()).get();
 
 		// Parameters for report
 		Map<String, Object> parameters = new HashMap<>();

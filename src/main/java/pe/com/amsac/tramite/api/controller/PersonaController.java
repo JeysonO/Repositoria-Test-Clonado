@@ -26,22 +26,24 @@ public class PersonaController {
 
 	private static final Logger LOGGER = LogManager.getLogger(PersonaController.class);
 	
-	@Autowired
-	private PersonaService personaService;
+	//@Autowired
+	//private PersonaService personaService;
 
-	@Autowired
-	private Mapper mapper;
+	//@Autowired
+	//private Mapper mapper;
 
 	@PostMapping
     public ResponseEntity<CommonResponse> registrarPersona(@Valid @RequestBody PersonaBodyRequest personaBodyRequest) throws Exception{
-
-    	Persona persona = personaService.registrarPersona(personaBodyRequest);
+		return null;
+    	/*
+		Persona persona = personaService.registrarPersona(personaBodyRequest);
 
     	PersonaResponse personaResponse = mapper.map(persona,PersonaResponse.class);
 
 		CommonResponse commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK,null)).data(personaResponse).build();
 
     	return new ResponseEntity<CommonResponse>(commonResponse,HttpStatus.CREATED);
+    	*/
 
     }
 
