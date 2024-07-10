@@ -1759,8 +1759,8 @@ public class TramiteService {
 		List<DocumentoAdjunto> documentoAdjuntoList = documentoAdjuntoService.obtenerDocumentoAdjuntoParams(DocumentoAdjuntoRequest.builder().tramiteId(tramite.getId()).build());
 
 		DocumentoAdjunto documentoAdjuntoPrincipal = documentoAdjuntoList.stream().filter(x -> x.getSeccionAdjunto().equals(SeccionAdjuntoConstant.PRINCIPAL) && x.getTipoAdjunto().equals(TipoAdjuntoConstant.DOCUMENTO_TRAMITE)).findFirst().get();
-
-		Resource documentopPrincipalResource = documentoAdjuntoService.obtenerDocumentoAdjunto(DocumentoAdjuntoRequest.builder().id(documentoAdjuntoPrincipal.getId()).build());
+		documentoAdjuntoPrincipal.setTramite(tramite);
+		Resource documentopPrincipalResource = documentoAdjuntoService.obtenerArchivo(documentoAdjuntoPrincipal);//documentoAdjuntoService.obtenerDocumentoAdjunto(DocumentoAdjuntoRequest.builder().id(documentoAdjuntoPrincipal.getId()).build());
 
 
 		//Creamos el body para envio
