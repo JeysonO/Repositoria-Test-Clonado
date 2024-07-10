@@ -11,7 +11,7 @@ public interface UsuarioFirmaJPARepository extends JpaRepository<UsuarioFirma, S
 
     //@Query(value="{ 'usuario.id' : ?0,'estado' : 'A'  }")
     @Query(value = "select uf.* from usuario_firma uf \n" +
-            "inner join  usuario u on u.id_usuario = uf.id_usuario \n" +
+            "inner join  uf.usuario u on u.id_usuario = uf.id_usuario \n" +
             "where u.id_usuario = ?1 \n" +
             "and uf.estado = 'A'",
             nativeQuery = true )
@@ -20,14 +20,12 @@ public interface UsuarioFirmaJPARepository extends JpaRepository<UsuarioFirma, S
     @Query(value = "select uf from UsuarioFirma uf \n" +
             "left join fetch  uf.usuario u \n" +
             "where upper(u.nombre) like % ?1 % \n" +
-            "and uf.estado = 'A'",
-            nativeQuery = true )
+            "and uf.estado = 'A'")
     List<UsuarioFirma> obtenerUsuarioFirmaByNombreUsuario(String nombre, Pageable pageable);
 
     @Query(value = "select uf from UsuarioFirma uf \n" +
             "left join fetch  uf.usuario u \n" +
-            "where uf.estado = 'A'",
-            nativeQuery = true )
+            "where uf.estado = 'A'")
     List<UsuarioFirma> obtenerUsuarioFirma(Pageable pageable);
 
     List<UsuarioFirma> findByEstado(String estado);
