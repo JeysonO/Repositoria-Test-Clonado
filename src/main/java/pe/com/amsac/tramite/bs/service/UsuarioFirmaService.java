@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.env.Environment;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -124,8 +125,11 @@ public class UsuarioFirmaService {
 
 		return usuarioFirmaList; //usuarioFirmaMongoRepository.findByEstado("A");
 		*/
+		Pageable pageable = null;
+		if(usuarioFirmaRequest.getPageNumber()>=0 && usuarioFirmaRequest.getPageSize()>0)
+			pageable = PageRequest.of(usuarioFirmaRequest.getPageNumber(), usuarioFirmaRequest.getPageSize());
 
-		return usuarioFirmaJPARepository.obtenerUsuarioFirmaByNombreUsuario(usuarioFirmaRequest.getNombre(), PageRequest.of(usuarioFirmaRequest.getPageNumber(), usuarioFirmaRequest.getPageSize()));
+		return usuarioFirmaJPARepository.obtenerUsuarioFirmaByNombreUsuario(usuarioFirmaRequest.getNombre(), pageable);
 
 	}
 
