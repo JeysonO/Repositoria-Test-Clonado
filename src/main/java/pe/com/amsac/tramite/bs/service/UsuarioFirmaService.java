@@ -1,5 +1,6 @@
 package pe.com.amsac.tramite.bs.service;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
@@ -129,7 +130,14 @@ public class UsuarioFirmaService {
 		if(usuarioFirmaRequest.getPageNumber()>=0 && usuarioFirmaRequest.getPageSize()>0)
 			pageable = PageRequest.of(usuarioFirmaRequest.getPageNumber(), usuarioFirmaRequest.getPageSize());
 
-		return usuarioFirmaJPARepository.obtenerUsuarioFirmaByNombreUsuario(usuarioFirmaRequest.getNombre(), pageable);
+		List<UsuarioFirma> usuarioFirmaList = null;
+
+		if(!StringUtils.isBlank(usuarioFirmaRequest.getNombre()))
+			usuarioFirmaList = usuarioFirmaJPARepository.obtenerUsuarioFirmaByNombreUsuario(usuarioFirmaRequest.getNombre(), pageable);
+		else
+			usuarioFirmaList = usuarioFirmaJPARepository.obtenerUsuarioFirma(pageable);
+
+		return usuarioFirmaList;
 
 	}
 
