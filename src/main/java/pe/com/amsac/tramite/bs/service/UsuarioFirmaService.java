@@ -132,8 +132,10 @@ public class UsuarioFirmaService {
 
 		List<UsuarioFirma> usuarioFirmaList = null;
 
-		if(!StringUtils.isBlank(usuarioFirmaRequest.getNombre()))
-			usuarioFirmaList = usuarioFirmaJPARepository.obtenerUsuarioFirmaByNombreUsuario(usuarioFirmaRequest.getNombre(), pageable);
+		if(!StringUtils.isBlank(usuarioFirmaRequest.getNombre())){
+			String busquedaPorNombre = "%" + usuarioFirmaRequest.getNombre().toUpperCase() + "%";
+			usuarioFirmaList = usuarioFirmaJPARepository.obtenerUsuarioFirmaByNombreUsuario(busquedaPorNombre, pageable);
+		}
 		else
 			usuarioFirmaList = usuarioFirmaJPARepository.obtenerUsuarioFirma(pageable);
 
@@ -243,7 +245,16 @@ public class UsuarioFirmaService {
 		return (int)cantidadRegistro;
 		*/
 
-		List<UsuarioFirma> usuarioFirmaList = usuarioFirmaJPARepository.obtenerUsuarioFirmaByNombreUsuario(usuarioFirmaRequest.getNombre(), PageRequest.of(usuarioFirmaRequest.getPageNumber(), usuarioFirmaRequest.getPageSize()));
+		List<UsuarioFirma> usuarioFirmaList = null;
+
+		if(!StringUtils.isBlank(usuarioFirmaRequest.getNombre())){
+			String busquedaPorNombre = "%" + usuarioFirmaRequest.getNombre().toUpperCase() + "%";
+			usuarioFirmaList = usuarioFirmaJPARepository.obtenerUsuarioFirmaByNombreUsuario(busquedaPorNombre, null);
+		}
+		else
+			usuarioFirmaList = usuarioFirmaJPARepository.obtenerUsuarioFirma(null);
+
+		//List<UsuarioFirma> usuarioFirmaList = usuarioFirmaJPARepository.obtenerUsuarioFirmaByNombreUsuario(usuarioFirmaRequest.getNombre(), PageRequest.of(usuarioFirmaRequest.getPageNumber(), usuarioFirmaRequest.getPageSize()));
 
 		return CollectionUtils.isEmpty(usuarioFirmaList)?0:usuarioFirmaList.size();
 

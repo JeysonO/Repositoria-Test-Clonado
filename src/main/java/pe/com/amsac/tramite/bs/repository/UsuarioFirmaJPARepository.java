@@ -19,7 +19,7 @@ public interface UsuarioFirmaJPARepository extends JpaRepository<UsuarioFirma, S
 
     @Query(value = "select uf from UsuarioFirma uf \n" +
             "left join fetch  uf.usuario u \n" +
-            "where upper(u.nombre) like % ?1 % \n" +
+            "where upper(u.nombre) like ?1 \n" +
             "and uf.estado = 'A'")
     List<UsuarioFirma> obtenerUsuarioFirmaByNombreUsuario(String nombre, Pageable pageable);
 
