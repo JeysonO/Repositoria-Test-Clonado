@@ -11,7 +11,7 @@ public interface TipoDocumentoJPARepository extends JpaRepository<TipoDocumentoT
     List<TipoDocumentoTramite> findByEstado(String estado);
 
     @Query(value = "select td.* \n" +
-            "from tipo_documento td \n" +
+            "from tipo_documento_tramite td \n" +
             "where td.tipo_ambito in (?1) \n" +
             "and td.estado='A'",
             nativeQuery = true )
