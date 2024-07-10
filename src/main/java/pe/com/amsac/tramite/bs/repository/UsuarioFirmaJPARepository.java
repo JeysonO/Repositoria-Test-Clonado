@@ -11,7 +11,7 @@ public interface UsuarioFirmaJPARepository extends JpaRepository<UsuarioFirma, S
 
     //@Query(value="{ 'usuario.id' : ?0,'estado' : 'A'  }")
     @Query(value = "select uf.* from usuario_firma uf \n" +
-            "inner join  uf.usuario u on u.id_usuario = uf.id_usuario \n" +
+            "inner join  usuario u on u.id_usuario = uf.id_usuario \n" +
             "where u.id_usuario = ?1 \n" +
             "and uf.estado = 'A'",
             nativeQuery = true )
