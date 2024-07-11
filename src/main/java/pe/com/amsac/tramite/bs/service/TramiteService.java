@@ -1162,7 +1162,7 @@ public class TramiteService {
 			}
 		}
 
-		List<Tramite> tramiteList = tramiteJPARepository.findByParams(parameters,"numeroTramite",null,tramiteRequest.getPageNumber(),tramiteRequest.getPageSize());
+		List<Tramite> tramiteList = tramiteJPARepository.findByParams(parameters,"numeroTramite",null,0,0);
 
 		return CollectionUtils.isEmpty(tramiteList)?0:tramiteList.size();
 	}
