@@ -6,6 +6,7 @@ import pe.com.amsac.tramite.api.util.BaseEntity;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Date;
 
 @Data
 @Entity
@@ -51,11 +52,30 @@ public class EntidadExterna extends BaseEntity {
     @Column(name = "ruc_remitente")
     private String rucEntidadRemitente;
 
+    //Se agrega para pide despacho
     @Column(name = "uo_destino")
     private String unidadOrganicaDestino;
 
     @Column(name = "ruc_destino")
     private String rucEntidadDestino;
+
+    @Column(name = "num_reg_std")
+    private String numeroRegistroStd;
+
+    @Column(name = "anio_reg_std")
+    private String anioRegistroStd;
+
+    @Column(name = "fec_reg_std")
+    private Date fechaRegistroStd;
+
+    @Column(name = "uo_reg_std")
+    private String uoRegistroStd;
+
+    @Column(name = "usu_reg_std")
+    private String usuRegistroStd;
+
+    @Column(name = "obs_std")
+    private String obsStd;
 
     @Override
     public Serializable getEntityId() {

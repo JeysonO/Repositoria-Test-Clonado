@@ -26,10 +26,7 @@ import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoMigracionBodyR
 import pe.com.amsac.tramite.api.response.bean.DocumentoAdjuntoResponse;
 import pe.com.amsac.tramite.api.response.bean.Mensaje;
 import pe.com.amsac.tramite.api.util.FileUtils;
-import pe.com.amsac.tramite.bs.domain.DocumentoAdjunto;
-import pe.com.amsac.tramite.bs.domain.Tramite;
-import pe.com.amsac.tramite.bs.domain.TramiteDerivacion;
-import pe.com.amsac.tramite.bs.domain.Usuario;
+import pe.com.amsac.tramite.bs.domain.*;
 import pe.com.amsac.tramite.bs.repository.DocumentoAdjuntoJPARepository;
 import pe.com.amsac.tramite.bs.repository.TramiteJPARepository;
 import pe.com.amsac.tramite.bs.util.SeccionAdjuntoConstant;
@@ -637,6 +634,7 @@ public class DocumentoAdjuntoService {
 		TramiteRequest tramiteRequest = new TramiteRequest();
 		tramiteRequest.setCuo(documentoAdjuntoAcusePideRequest.getCuo());
 		Tramite tramite = tramiteService.buscarTramiteParams(tramiteRequest).get(0);
+		tramite = tramiteService.findById(tramite.getId());
 
 		DocumentoAdjuntoBodyRequest documentoAdjuntoRequest = new DocumentoAdjuntoBodyRequest();
 		documentoAdjuntoRequest.setTramiteId(tramite.getId());
@@ -644,8 +642,24 @@ public class DocumentoAdjuntoService {
 		documentoAdjuntoRequest.setFile(documentoAdjuntoAcusePideRequest.getFile());
 		documentoAdjuntoRequest.setSeccionAdjunto(SeccionAdjuntoConstant.PRINCIPAL);
 		documentoAdjuntoRequest.setTipoAdjunto(TipoAdjuntoConstant.ACUSE_RECIBO_TRAMITE_PIDE);
+		documentoAdjuntoRequest.setOmitirValidacionAdjunto(true);
 
-		return registrarDocumentoAdjunto(documentoAdjuntoRequest);
+		DocumentoAdjuntoResponse documentoAdjuntoResponse = registrarDocumentoAdjunto(documentoAdjuntoRequest);
+
+		//Datos de la entidad destino qeu recibio el tramite
+		EntidadExterna entidadExterna = tramiteService.obtenerTramiteEntidadExternaByTramiteId(tramite.getId());
+		entidadExterna.setNumeroRegistroStd(documentoAdjuntoAcusePideRequest.getNumregstd());
+		entidadExterna.setAnioRegistroStd(documentoAdjuntoAcusePideRequest.getAnioregstd());
+		entidadExterna.setFechaRegistroStd(documentoAdjuntoAcusePideRequest.getFecregstd());
+		entidadExterna.setUoRegistroStd(documentoAdjuntoAcusePideRequest.getUniorgstd());
+		entidadExterna.setUsuRegistroStd(documentoAdjuntoAcusePideRequest.getUsuregstd());
+		entidadExterna.setObsStd(documentoAdjuntoAcusePideRequest.getObs());
+		tramiteService.registrarEntidadExterna(entidadExterna);
+
+		tramite.setFechaRecepcion(documentoAdjuntoAcusePideRequest.getFecregstd());
+		tramiteService.save(tramite);
+
+		return documentoAdjuntoResponse;
 	}
 
 }

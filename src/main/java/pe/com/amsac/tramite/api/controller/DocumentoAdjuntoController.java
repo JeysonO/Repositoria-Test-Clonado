@@ -25,6 +25,7 @@ import pe.com.amsac.tramite.bs.service.FirmaDocumentoService;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @RestController
@@ -341,7 +342,7 @@ public class DocumentoAdjuntoController {
 			@RequestParam(value = "cuo", required = false) String cuo,
 			@RequestParam(value = "numregstd", required = false) String numregstd,
 			@RequestParam(value = "anioregstd", required = false) String anioregstd,
-			@RequestParam(value = "fecregstd", required = false) Date fecregstd,
+			@RequestParam(value = "fecregstd", required = false) String fecregstd,
 			@RequestParam(value = "uniorgstd", required = false) String uniorgstd,
 			@RequestParam(value = "usuregstd", required = false) String usuregstd,
 			@RequestParam(value = "obs", required = false) String obs,
@@ -359,7 +360,7 @@ public class DocumentoAdjuntoController {
 					.cuo(cuo)
 					.numregstd(numregstd)
 					.anioregstd(anioregstd)
-					.fecregstd(fecregstd)
+					.fecregstd(new SimpleDateFormat("yyyy-MM-dd").parse(fecregstd))
 					.uniorgstd(uniorgstd)
 					.usuregstd(usuregstd)
 					.obs(obs)

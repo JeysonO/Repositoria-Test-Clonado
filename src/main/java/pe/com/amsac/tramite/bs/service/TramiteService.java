@@ -514,13 +514,15 @@ public class TramiteService {
 		List<Tramite> tramiteList = buscarTramiteParams(tramiteRequest);
 
 		//Ordenamos por fecha de creacion, los mas recientes primero
+		/*
 		Collections.sort(tramiteList, new Comparator<Tramite>(){
 			@Override
 			public int compare(Tramite a, Tramite b)
 			{
-				return Long.compare(a.getCreatedDate().getTime(), b.getCreatedDate().getTime());
+				return Long.compare(b.getCreatedDate().getTime(), a.getCreatedDate().getTime());
 			}
 		});
+		*/
 
 		return tramiteList;
 	}
@@ -1605,7 +1607,7 @@ public class TramiteService {
 
 	}
 
-	private EntidadExterna obtenerTramiteEntidadExternaByTramiteId(String tramiteId){
+	public EntidadExterna obtenerTramiteEntidadExternaByTramiteId(String tramiteId){
 
 		return tramiteEntidadExternaJPARepository.findByTramiteId(tramiteId).orElse(null);
 
@@ -1818,6 +1820,8 @@ public class TramiteService {
 			if(!recepcionarTramiteResponseResponse.getReturn().getVcodres().equals("0000")){
 				resultadoEnvio.put("resultado",EstadoResultadoEnvioPideConstant.ERROR);
 				estadoSeguimientoEnvio = EstadoTramiteConstant.CON_ERROR_PIDE;
+			}else{
+				tramite.setFechaEnvio(fechaEnvio);
 			}
 			respuestaPide = new ObjectMapper().writeValueAsString(recepcionarTramiteResponseResponse.getReturn());
 
@@ -1840,6 +1844,10 @@ public class TramiteService {
 		tramiteEnvioPide.setFechaRespuesta(fechaRespuesta);
 		tramiteEnvioPide.setCreatedByUser(securityHelper.obtenerUserIdSession());
 		tramiteEnvioPideJPARepository.save(tramiteEnvioPide);
+
+		//Se actualizan datos de la transmision
+		tramite.setCuo(cuo);
+		save(tramite);
 		//}catch (Exception ex){
 			//Si hay error en la ejecución, se queda con estado POR_ENVIAR para que se vuelva a intentar, hasta 3 veces
 
@@ -2168,6 +2176,11 @@ public class TramiteService {
 		//if(estadoTramite.equals(EstadoTramiteConstant.CON_ERROR_PIDE))
 
 
+	}
+
+	public EntidadExterna registrarEntidadExterna(EntidadExterna entidadExterna){
+		tramiteEntidadExternaJPARepository.save(entidadExterna);
+		return entidadExterna;
 	}
 
 	private String obtenerCuo(){

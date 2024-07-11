@@ -3,6 +3,7 @@ package pe.com.amsac.tramite.api.response.bean;
 import lombok.Data;
 import org.dozer.Mapping;
 
+import javax.persistence.Column;
 import java.util.Date;
 import java.util.List;
 
@@ -76,7 +77,7 @@ public class TramiteResponse {
 
 	private String cuo;
 
-	//DATOS ADICIONALES PARA INTEROPERABILIDAD
+	//DATOS ADICIONALES PARA PIDE
 	private String entidadDestinoId;
 	//private String nombreEntidadDestino; esto seria razonSocial
 	private String rucEntidadDestino;
@@ -88,6 +89,20 @@ public class TramiteResponse {
 	private String cargoRemitenteId;
 	private Integer cantidadIntentos;
 	private Integer cantidadMaximaIntentos;
+
+	private String dependenciaRemitenteNombre;
+	private String usuarioRemitenteNombre;
+	private Date fechaEnvio;
+	private Date fechaRecepcion;
+
+	//Datos de la entidad destino qeu recibio el tramite
+	private String numeroRegistroStd;
+	private String anioRegistroStd;
+	private Date fechaRegistroStd;
+	private String uoRegistroStd;
+	private String usuRegistroStd;
+	private String obsStd;
+
 
 	@Mapping("intentosEnvio")
 	public Integer getCantidadIntentos(){return cantidadIntentos;}
@@ -174,5 +189,31 @@ public class TramiteResponse {
 
 	@Mapping("dependenciaUsuarioCreacion.nombre")
 	public String getDependenciaUsuarioCreacionNombre(){return dependenciaUsuarioCreacionNombre;}
+
+	//Datos para PIDE
+	@Mapping("dependenciaRemitente.nombre")
+	public String getDependenciaRemitenteNombre(){return dependenciaRemitenteNombre;}
+
+	@Mapping("usuarioRemitente.nombreCompleto")
+	public String getUsuarioRemitenteNombre(){return usuarioRemitenteNombre;}
+
+	//Datos de la entidad destino qeu recibio el tramite
+	@Mapping("entidadExterna.numeroRegistroStd")
+	public String getNumeroRegistroStd(){return numeroRegistroStd;}
+
+	@Mapping("entidadExterna.anioRegistroStd")
+	public String getAnioRegistroStd(){return anioRegistroStd;}
+
+	@Mapping("entidadExterna.fechaRegistroStd")
+	public Date getFechaRegistroStd(){return fechaRegistroStd;}
+
+	@Mapping("entidadExterna.uoRegistroStd")
+	public String getUoRegistroStd(){return uoRegistroStd;}
+
+	@Mapping("entidadExterna.usuRegistroStd")
+	public String getUsuRegistroStd(){return usuRegistroStd;}
+
+	@Mapping("entidadExterna.obsStd")
+	public String getObsStd(){return obsStd;}
 
 }
