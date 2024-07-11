@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
+import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoAcusePideRequest;
 import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
 import pe.com.amsac.tramite.api.request.body.bean.*;
 import pe.com.amsac.tramite.api.response.bean.*;
@@ -24,10 +25,7 @@ import pe.com.amsac.tramite.bs.service.FirmaDocumentoService;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/documentos-adjuntos")
@@ -336,5 +334,46 @@ public class DocumentoAdjuntoController {
 		} catch (Exception e) {
 			throw e;
 		}
+	}
+
+	@PostMapping
+	public ResponseEntity<CommonResponse> registrarDocumentoAdjuntoAcusePIDE(
+			@RequestParam(value = "cuo", required = false) String cuo,
+			@RequestParam(value = "numregstd", required = false) String numregstd,
+			@RequestParam(value = "anioregstd", required = false) String anioregstd,
+			@RequestParam(value = "fecregstd", required = false) Date fecregstd,
+			@RequestParam(value = "uniorgstd", required = false) String uniorgstd,
+			@RequestParam(value = "usuregstd", required = false) String usuregstd,
+			@RequestParam(value = "obs", required = false) String obs,
+			@RequestParam(value = "flgest", required = false) String flgest,
+			@RequestParam(value = "file", required = true) MultipartFile file) throws Exception {
+
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.CREATED;
+
+		try {
+
+			DocumentoAdjuntoResponse documentoAdjuntoResponse = documentoAdjuntoService.registrarDocumentoAdjuntoAcusePIDE(
+					DocumentoAdjuntoAcusePideRequest.builder()
+					.cuo(cuo)
+					.numregstd(numregstd)
+					.anioregstd(anioregstd)
+					.fecregstd(fecregstd)
+					.uniorgstd(uniorgstd)
+					.usuregstd(usuregstd)
+					.obs(obs)
+					.flgest(flgest)
+					.file(file)
+					.build()
+			);
+
+		} catch (ServiceException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+
 	}
 }

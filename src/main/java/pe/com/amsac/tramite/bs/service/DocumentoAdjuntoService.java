@@ -17,7 +17,9 @@ import pe.com.amsac.tramite.api.file.bean.FileStorageService;
 import pe.com.amsac.tramite.api.file.bean.FileTxProperties;
 import pe.com.amsac.tramite.api.file.bean.TramitePathFileStorage;
 import pe.com.amsac.tramite.api.file.bean.UploadFileResponse;
+import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoAcusePideRequest;
 import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
+import pe.com.amsac.tramite.api.request.bean.TramiteRequest;
 import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoCargaFromDirectoryBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoMigracionBodyRequest;
@@ -30,6 +32,7 @@ import pe.com.amsac.tramite.bs.domain.TramiteDerivacion;
 import pe.com.amsac.tramite.bs.domain.Usuario;
 import pe.com.amsac.tramite.bs.repository.DocumentoAdjuntoJPARepository;
 import pe.com.amsac.tramite.bs.repository.TramiteJPARepository;
+import pe.com.amsac.tramite.bs.util.SeccionAdjuntoConstant;
 import pe.com.amsac.tramite.bs.util.TipoAdjuntoConstant;
 
 import javax.persistence.EntityManager;
@@ -627,6 +630,22 @@ public class DocumentoAdjuntoService {
 	public DocumentoAdjunto guardarAdjunto(DocumentoAdjunto documentoAdjunto){
 		documentoAdjuntoJPARepository.save(documentoAdjunto);
 		return documentoAdjunto;
+	}
+
+	public DocumentoAdjuntoResponse registrarDocumentoAdjuntoAcusePIDE(DocumentoAdjuntoAcusePideRequest documentoAdjuntoAcusePideRequest) throws Exception {
+
+		TramiteRequest tramiteRequest = new TramiteRequest();
+		tramiteRequest.setCuo(documentoAdjuntoAcusePideRequest.getCuo());
+		Tramite tramite = tramiteService.buscarTramiteParams(tramiteRequest).get(0);
+
+		DocumentoAdjuntoBodyRequest documentoAdjuntoRequest = new DocumentoAdjuntoBodyRequest();
+		documentoAdjuntoRequest.setTramiteId(tramite.getId());
+		documentoAdjuntoRequest.setDescripcion("ACUSE de RECIBO PIDE");
+		documentoAdjuntoRequest.setFile(documentoAdjuntoAcusePideRequest.getFile());
+		documentoAdjuntoRequest.setSeccionAdjunto(SeccionAdjuntoConstant.PRINCIPAL);
+		documentoAdjuntoRequest.setTipoAdjunto(TipoAdjuntoConstant.ACUSE_RECIBO_TRAMITE_PIDE);
+
+		return registrarDocumentoAdjunto(documentoAdjuntoRequest);
 	}
 
 }

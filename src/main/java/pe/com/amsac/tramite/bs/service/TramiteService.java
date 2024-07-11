@@ -1769,7 +1769,7 @@ public class TramiteService {
 		recepcionTramite.setVnomentemi( env.getProperty("app.micelaneos.nombre-amsac"));
 		recepcionTramite.setVuniorgrem(tramitePideBodyRequest.getDependenciaRemitenteNombre());
 		recepcionTramite.setVcuo(cuo);
-		recepcionTramite.setVcuoref("0");
+		//recepcionTramite.setVcuoref("0");
 		recepcionTramite.setCcodtipdoc(tipoDocumentoPide);//tramitePideBodyRequest.getTipoDocumentoPideId());
 		recepcionTramite.setVnumdoc(tramitePideBodyRequest.getNumeroDocumento());
 		//recepcionTramite.setDfecdoc(DatatypeFactory.newInstance().newXMLGregorianCalendar(Date.from(tramitePideBodyRequest.getFechaDocumento().atStartOfDay(ZoneId.systemDefault()).toInstant()).toString()));

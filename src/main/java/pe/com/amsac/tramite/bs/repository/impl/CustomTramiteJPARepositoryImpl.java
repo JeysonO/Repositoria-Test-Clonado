@@ -115,6 +115,11 @@ public class CustomTramiteJPARepositoryImpl extends
                     + JpaConstant.CONDITION_AND + " " : "");
             whereClause = whereClause + " t.id = :id ";
         }
+        if(parameters.get("cuo") != null){
+            whereClause = (!"".equals(whereClause) ? whereClause + " "
+                    + JpaConstant.CONDITION_AND + " " : "");
+            whereClause = whereClause + " t.cuo = :cuo ";
+        }
 
         return whereClause;
     }
