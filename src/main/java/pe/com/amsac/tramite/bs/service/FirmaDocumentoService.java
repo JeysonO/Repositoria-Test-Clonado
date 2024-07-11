@@ -461,6 +461,7 @@ public class FirmaDocumentoService {
 		documentoAdjuntoRequest.setDescripcion(DescripcionDocumentoAdjuntoConstant.DOCUMENTO_FIRMADO_DIGITALMENTE);// "ARCHIVO CON FIRMA DIGITAL");
 		documentoAdjuntoRequest.setFile(file);
 		documentoAdjuntoRequest.setTramiteDerivacionId(firmaDocumento.getTramiteDerivacionId());
+		documentoAdjuntoRequest.setOmitirValidacionAdjunto(true);
 		//documentoAdjuntoRequest.setTramiteDerivacionId(documentoAdjuntoOriginal.getTramiteDerivacionId());
 		//documentoAdjuntoRequest.setTipoAdjunto(TipoAdjuntoConstant.);
 		documentoAdjuntoService.registrarDocumentoAdjunto(documentoAdjuntoRequest);
