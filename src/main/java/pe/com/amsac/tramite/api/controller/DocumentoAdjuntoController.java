@@ -336,7 +336,7 @@ public class DocumentoAdjuntoController {
 		}
 	}
 
-	@PostMapping
+	@PostMapping("/registrar-acuse-pide")
 	public ResponseEntity<CommonResponse> registrarDocumentoAdjuntoAcusePIDE(
 			@RequestParam(value = "cuo", required = false) String cuo,
 			@RequestParam(value = "numregstd", required = false) String numregstd,
