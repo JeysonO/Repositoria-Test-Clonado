@@ -53,7 +53,7 @@ public class FirmaDigitalCallbackController {
 	@PostMapping("/url-back-log/{filename}")
 	public ResponseEntity<CommonResponse> recepcionarLogArchivoFirmado(@PathVariable("filename") String filename, @RequestBody String archivoLog) throws Exception {
 
-		log.info(">> recepcionarLogArchivoFirmado");
+		log.info(">> recepcionarLogArchivoFirmado: "+filename);
 
 		firmaDocumentoService.recepcionarLogDocumento(filename, archivoLog);
 
