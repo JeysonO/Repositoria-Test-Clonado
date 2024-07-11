@@ -29,6 +29,7 @@ import pe.com.amsac.tramite.api.util.FileUtils;
 import pe.com.amsac.tramite.bs.domain.*;
 import pe.com.amsac.tramite.bs.repository.DocumentoAdjuntoJPARepository;
 import pe.com.amsac.tramite.bs.repository.TramiteJPARepository;
+import pe.com.amsac.tramite.bs.util.EstadoTramiteConstant;
 import pe.com.amsac.tramite.bs.util.SeccionAdjuntoConstant;
 import pe.com.amsac.tramite.bs.util.TipoAdjuntoConstant;
 
@@ -656,6 +657,11 @@ public class DocumentoAdjuntoService {
 		entidadExterna.setObsStd(documentoAdjuntoAcusePideRequest.getObs());
 		tramiteService.registrarEntidadExterna(entidadExterna);
 
+		String estadoTramite = EstadoTramiteConstant.RECEPCIONADO;
+		if(documentoAdjuntoAcusePideRequest.getFlgest().equals("O"))
+			estadoTramite = EstadoTramiteConstant.OBSERVADO_PIDE;
+
+		tramite.setEstado(estadoTramite);
 		tramite.setFechaRecepcion(documentoAdjuntoAcusePideRequest.getFecregstd());
 		tramiteService.save(tramite);
 
