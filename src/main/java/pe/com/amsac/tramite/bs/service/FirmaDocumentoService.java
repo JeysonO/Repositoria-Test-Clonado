@@ -447,6 +447,8 @@ public class FirmaDocumentoService {
 
 	private void procesarDocumentoTramite(String nombreArchivo, byte[] archivoFirmado) throws Exception {
 
+		log.info(">> Regisramos documento adjunto: "+nombreArchivo);
+
 		FirmaDocumento firmaDocumento = firmaDocumentoJPARepository.findById(nombreArchivo).get();
 		createSecurityContextHolder(firmaDocumento.getCreatedByUser());
 

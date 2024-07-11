@@ -42,7 +42,11 @@ public class FirmaDigitalCallbackController {
 
 		log.info(">> recepcionarArchivoFirmado");
 
-		firmaDocumentoService.recepcionarFileDocumento(filename, archivoFirmado);
+		try{
+			firmaDocumentoService.recepcionarFileDocumento(filename, archivoFirmado);
+		}catch (Exception ex){
+			log.error("ERROR",ex);
+		}
 
 		CommonResponse commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK,null)).build();
 
