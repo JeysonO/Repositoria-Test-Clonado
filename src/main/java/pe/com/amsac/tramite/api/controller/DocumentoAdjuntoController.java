@@ -360,7 +360,7 @@ public class DocumentoAdjuntoController {
 					.cuo(cuo)
 					.numregstd(numregstd)
 					.anioregstd(anioregstd)
-					.fecregstd(new SimpleDateFormat("yyyy-MM-dd").parse(fecregstd))
+					.fecregstd(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(fecregstd))
 					.uniorgstd(uniorgstd)
 					.usuregstd(usuregstd)
 					.obs(obs)
