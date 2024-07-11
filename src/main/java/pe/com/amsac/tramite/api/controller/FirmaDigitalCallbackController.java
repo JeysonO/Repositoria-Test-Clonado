@@ -54,6 +54,7 @@ public class FirmaDigitalCallbackController {
 	public ResponseEntity<CommonResponse> recepcionarLogArchivoFirmado(@PathVariable("filename") String filename, @RequestBody String archivoLog) throws Exception {
 
 		log.info(">> recepcionarLogArchivoFirmado: "+filename);
+		log.info(">> archivoLog: "+archivoLog);
 
 		firmaDocumentoService.recepcionarLogDocumento(filename, archivoLog);
 

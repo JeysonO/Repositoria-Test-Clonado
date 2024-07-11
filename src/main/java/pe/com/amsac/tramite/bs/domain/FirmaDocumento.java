@@ -1,7 +1,9 @@
 package pe.com.amsac.tramite.bs.domain;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 import pe.com.amsac.tramite.api.util.BaseAuditableEntity;
 
@@ -9,6 +11,8 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 @Data
 @Entity

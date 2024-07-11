@@ -616,7 +616,7 @@ public class FirmaDocumentoService {
 				.fechaRegistro(new Date())
 				.tramiteDerivacionId(firmaDocumentoTramiteHibridoBodyRequest.getTramiteDerivacionId())
 				.build();
-		firmaDocumentoJPARepository.save(firmaDocumento);
+		firmaDocumentoJPARepository.saveAndFlush(firmaDocumento);
 
 		String idTransaccionFirma = firmaDocumento.getId();
 
@@ -685,7 +685,7 @@ public class FirmaDocumentoService {
 
 		//Actulizamos con el id que retorna el firmador
 		firmaDocumento.setIdTransaccionFirma(responseEntity.getBody());
-		firmaDocumentoJPARepository.save(firmaDocumento);
+		firmaDocumentoJPARepository.saveAndFlush(firmaDocumento);
 
 
 	}
