@@ -1583,7 +1583,8 @@ public class TramiteService {
 		return calendar.getTime();
 	}
 
-	private void registrarTramiteEntidadExterna(Tramite tramite){
+	//@Transactional
+	public void registrarTramiteEntidadExterna(Tramite tramite){
 
 		//eliminamos la relacion de entidad externa
 		tramiteEntidadExternaJPARepository.eliminarEntidadExternaByTramiteId(tramite.getId());
@@ -1704,11 +1705,15 @@ public class TramiteService {
 		return param;
 	}
 
-
-	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
+	//@Transactional//(readOnly = false, propagation = Propagation.REQUIRED)
 	public Map registrarTramitePideHandler(TramitePideBodyRequest tramitePideBodyRequest, MultipartFile filePrincipal, List<MultipartFile> fileAnexos, DatosFirmaDocumentoRequest datosFirmaDocumentoRequest) throws Exception {
 
 		Tramite tramitePide =  registrarTramitePide(tramitePideBodyRequest, filePrincipal, fileAnexos, datosFirmaDocumentoRequest);
+
+		if(datosFirmaDocumentoRequest!=null){
+			enviarDocumentoParaFirma(datosFirmaDocumentoRequest, filePrincipal, tramitePide);
+			actualizarDatosDocumentoFirmadoDigitalmente(tramitePide.getId());
+		}
 
 		String estadoTramite = tramitePide.getEstado();
 
@@ -1745,7 +1750,7 @@ public class TramiteService {
 
 	}
 
-	private Map enviarTramiteAPide(Tramite tramite, TramitePideBodyRequest tramitePideBodyRequest, MultipartFile filePrincipal, List<MultipartFile> fileAnexos) throws Exception {
+	public Map enviarTramiteAPide(Tramite tramite, TramitePideBodyRequest tramitePideBodyRequest, MultipartFile filePrincipal, List<MultipartFile> fileAnexos) throws Exception {
 
 		Map resultadoEnvio = new HashMap();
 		resultadoEnvio.put("resultado",EstadoResultadoEnvioPideConstant.OK);
@@ -1858,8 +1863,8 @@ public class TramiteService {
 		return resultadoEnvio;
 	}
 
-
-	private Tramite registrarTramitePide(TramitePideBodyRequest tramitePideBodyRequest, MultipartFile filePrincipal, List<MultipartFile> fileAnexos, DatosFirmaDocumentoRequest datosFirmaDocumentoRequest) throws Exception {
+	@Transactional(propagation = Propagation.REQUIRED)
+	public Tramite registrarTramitePide(TramitePideBodyRequest tramitePideBodyRequest, MultipartFile filePrincipal, List<MultipartFile> fileAnexos, DatosFirmaDocumentoRequest datosFirmaDocumentoRequest) throws Exception {
 		Date fechaDocumento = null;
 		LocalDate localDateFechaDocumento = null;
 		if(tramitePideBodyRequest.getFechaDocumento()!=null){
@@ -1877,8 +1882,12 @@ public class TramiteService {
 			tramite.setFechaDocumento(fechaDocumento);
 
 		tramite.setTramiteRelacionado(null);
-		if(StringUtils.isBlank(tramite.getId()))
+		if(StringUtils.isBlank(tramite.getId())){
 			tramite.setNumeroTramite(obtenerNumeroTramite());
+			tramite.setNumeroTramiteDependencia(obtenerNumeroTramiteDependencia(tramitePideBodyRequest.getDependenciaRemitenteId()));
+			tramite.setAnioTramiteDependencia(Integer.parseInt(new SimpleDateFormat("yyyy").format(new Date())));
+			tramite.setTramiteDependencia(StringUtils.leftPad(tramite.getNumeroTramiteDependencia().toString(),6,"0") + "-" + tramite.getAnioTramiteDependencia() + "-" + tramitePideBodyRequest.getDependenciaRemitenteSigla());
+		}
 
 		tramite.setEntidadInterna(null);
 		tramite.setDependenciaDestino(null);
@@ -1916,6 +1925,19 @@ public class TramiteService {
 			registrarTramiteEntidadExterna(tramite);
 		}
 
+		if(datosFirmaDocumentoRequest==null){
+			//Registramos el documento principal
+			DocumentoAdjuntoBodyRequest documentoAdjuntoRequest = new DocumentoAdjuntoBodyRequest();
+			documentoAdjuntoRequest.setTramiteId(tramite.getId());
+			documentoAdjuntoRequest.setDescripcion("DOCUMENTO PRINCIPAL");
+			documentoAdjuntoRequest.setFile(filePrincipal);
+			documentoAdjuntoRequest.setSeccionAdjunto(SeccionAdjuntoConstant.PRINCIPAL);
+			documentoAdjuntoRequest.setTipoAdjunto(TipoAdjuntoConstant.DOCUMENTO_TRAMITE);
+			documentoAdjuntoRequest.setOmitirValidacionAdjunto(true);
+			documentoAdjuntoService.registrarDocumentoAdjunto(documentoAdjuntoRequest);
+		}
+
+		/*
 		if(datosFirmaDocumentoRequest!=null){
 			FirmaDocumentoTramiteHibridoBodyRequest firmaDocumentoTramiteHibridoBodyRequest = new FirmaDocumentoTramiteHibridoBodyRequest();
 			firmaDocumentoTramiteHibridoBodyRequest.setTextoFirma(datosFirmaDocumentoRequest.getTextoFirma());
@@ -1961,6 +1983,7 @@ public class TramiteService {
 			documentoAdjuntoRequest.setOmitirValidacionAdjunto(true);
 			documentoAdjuntoService.registrarDocumentoAdjunto(documentoAdjuntoRequest);
 		}
+		*/
 
 		//Registramos los adjuntos
 		fileAnexos.stream().forEach(x -> {
@@ -2181,6 +2204,78 @@ public class TramiteService {
 	public EntidadExterna registrarEntidadExterna(EntidadExterna entidadExterna){
 		tramiteEntidadExternaJPARepository.save(entidadExterna);
 		return entidadExterna;
+	}
+
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void enviarDocumentoParaFirma(DatosFirmaDocumentoRequest datosFirmaDocumentoRequest, MultipartFile filePrincipal, Tramite tramite) throws Exception {
+		FirmaDocumentoTramiteHibridoBodyRequest firmaDocumentoTramiteHibridoBodyRequest = new FirmaDocumentoTramiteHibridoBodyRequest();
+		firmaDocumentoTramiteHibridoBodyRequest.setTextoFirma(datosFirmaDocumentoRequest.getTextoFirma());
+		firmaDocumentoTramiteHibridoBodyRequest.setPosition(datosFirmaDocumentoRequest.getPosition());
+		firmaDocumentoTramiteHibridoBodyRequest.setOrientacion(datosFirmaDocumentoRequest.getOrientacion());
+		firmaDocumentoTramiteHibridoBodyRequest.setPositionCustom(datosFirmaDocumentoRequest.getPositionCustom());
+		firmaDocumentoTramiteHibridoBodyRequest.setPin(datosFirmaDocumentoRequest.getPin());
+		firmaDocumentoTramiteHibridoBodyRequest.setUsuarioFirmaLogoId(datosFirmaDocumentoRequest.getUsuarioFirmaLogoId());
+		firmaDocumentoTramiteHibridoBodyRequest.setFile(filePrincipal);
+		firmaDocumentoTramiteHibridoBodyRequest.setTramiteId(tramite.getId());
+		firmaDocumentoService.firmarDocumentoHibrido(firmaDocumentoTramiteHibridoBodyRequest);
+
+		/*
+		//Al ser asincrono, se espera un mmomento a que el documento ya se encuentre firmado
+		DocumentoAdjuntoRequest documentoAdjuntoRequest = DocumentoAdjuntoRequest.builder().descripcion(DescripcionDocumentoAdjuntoConstant.DOCUMENTO_FIRMADO_DIGITALMENTE).build();
+		List<DocumentoAdjunto> documentoAdjuntoList = null;
+		boolean seObtuvoDocumentoFirmado = false;
+		int cantidadIntentos = 0;
+		int cantidadIntentosMaximo = 5;
+		while(!seObtuvoDocumentoFirmado){
+			if(cantidadIntentos == cantidadIntentosMaximo)
+				throw new ServiceException("No se pudo firmar documento, volver a intentarlo en breve");
+
+			documentoAdjuntoList = documentoAdjuntoService.obtenerDocumentoAdjuntoParams(documentoAdjuntoRequest);
+			if(!CollectionUtils.isEmpty(documentoAdjuntoList)){
+				DocumentoAdjunto documentoAdjunto = documentoAdjuntoList.get(0);
+				documentoAdjunto.setSeccionAdjunto(SeccionAdjuntoConstant.PRINCIPAL);
+				documentoAdjunto.setTipoAdjunto(TipoAdjuntoConstant.DOCUMENTO_TRAMITE);
+				documentoAdjuntoService.guardarAdjunto(documentoAdjunto);
+				seObtuvoDocumentoFirmado = true;
+			}else{
+				Thread.sleep(1000);
+				++cantidadIntentos;
+			}
+		}
+		*/
+	}
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void actualizarDatosDocumentoFirmadoDigitalmente(String tramiteId) throws Exception {
+		//Al ser asincrono, se espera un mmomento a que el documento ya se encuentre firmado
+		DocumentoAdjuntoRequest documentoAdjuntoRequest = DocumentoAdjuntoRequest.builder()
+				.descripcion(DescripcionDocumentoAdjuntoConstant.DOCUMENTO_FIRMADO_DIGITALMENTE)
+				.tramiteId(tramiteId)
+				.build();
+		List<DocumentoAdjunto> documentoAdjuntoList = null;
+		boolean seObtuvoDocumentoFirmado = false;
+		int cantidadIntentos = 0;
+		int cantidadIntentosMaximo = 5;
+		while(!seObtuvoDocumentoFirmado){
+			if(cantidadIntentos == cantidadIntentosMaximo)
+				throw new ServiceException("No se pudo firmar documento, volver a intentarlo en breve");
+
+			documentoAdjuntoList = documentoAdjuntoService.obtenerDocumentoAdjuntoParams(documentoAdjuntoRequest);
+			if(!CollectionUtils.isEmpty(documentoAdjuntoList)){
+				DocumentoAdjunto documentoAdjunto = documentoAdjuntoList.get(0);
+				documentoAdjunto.setSeccionAdjunto(SeccionAdjuntoConstant.PRINCIPAL);
+				documentoAdjunto.setTipoAdjunto(TipoAdjuntoConstant.DOCUMENTO_TRAMITE);
+				documentoAdjuntoService.guardarAdjunto(documentoAdjunto);
+				seObtuvoDocumentoFirmado = true;
+			}else{
+				Thread.sleep(1000);
+				++cantidadIntentos;
+			}
+		}
+	}
+
+	private Integer obtenerNumeroTramiteDependencia(String dependenciaId){
+		Integer anioActual = Integer.parseInt(new SimpleDateFormat("yyyy").format(new Date()));
+		return tramiteJPARepository.obtenerNumeroTramiteByDependencia(dependenciaId,anioActual).intValue();
 	}
 
 	private String obtenerCuo(){

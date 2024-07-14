@@ -151,6 +151,15 @@ public class Tramite extends BaseAuditableEntity<String> {
 	@Column(name = "fecha_recepcion")
 	private Date fechaRecepcion;
 
+	@Column(name = "nro_tramite_dependencia")
+	private Integer numeroTramiteDependencia;
+
+	@Column(name = "anio_tramite_dependencia")
+	private Integer anioTramiteDependencia;
+
+	@Column(name = "tramite_dependencia")
+	private String tramiteDependencia;
+
 	@Transient
 	private Long cantidadMaximaIntentos;
 

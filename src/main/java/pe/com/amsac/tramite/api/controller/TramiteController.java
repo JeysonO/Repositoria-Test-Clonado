@@ -30,6 +30,7 @@ import pe.com.amsac.tramite.api.response.bean.Meta;
 import pe.com.amsac.tramite.api.response.bean.TramiteResponse;
 import pe.com.amsac.tramite.api.util.EstadoRespuestaConstant;
 import pe.com.amsac.tramite.bs.domain.Tramite;
+import pe.com.amsac.tramite.bs.service.TramiteCommandHandlerService;
 import pe.com.amsac.tramite.bs.service.TramiteService;
 import pe.com.amsac.tramite.bs.util.EstadoResultadoEnvioPideConstant;
 import pe.com.amsac.tramite.bs.util.EstadoTramiteConstant;
@@ -46,6 +47,9 @@ public class TramiteController {
 
 	@Autowired
 	private TramiteService tramiteService;
+
+	@Autowired
+	private TramiteCommandHandlerService tramiteCommandHandlerService;
 
 	@Autowired
 	private Mapper mapper;
@@ -352,7 +356,7 @@ public class TramiteController {
 			ObjectMapper objectMapper = new ObjectMapper();
 			log.info("Body para registrar tramite pide:"+objectMapper.writeValueAsString(tramitePideBodyRequest));
 
-			Map resultadoEnvio = tramiteService.registrarTramitePideHandler(tramitePideBodyRequest,filePrincipal,fileAnexos,datosFirmaDocumentoRequest);
+			Map resultadoEnvio = tramiteCommandHandlerService.registrarTramitePideHandler(tramitePideBodyRequest,filePrincipal,fileAnexos,datosFirmaDocumentoRequest);
 			List<Mensaje> mensajes = null;
 			//TramiteResponse tramiteResponse = mapper.map(tramite, TramiteResponse.class);
 			if(resultadoEnvio.get("resultado").equals(EstadoTramiteConstant.CON_ERROR_PIDE)

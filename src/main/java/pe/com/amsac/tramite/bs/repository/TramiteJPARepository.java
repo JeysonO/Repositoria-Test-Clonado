@@ -15,5 +15,8 @@ public interface TramiteJPARepository extends BitallJPARepository<Tramite, Strin
     @Query(value = "SELECT t FROM Tramite t")
     Page<Tramite> obtenerUltimoRegistroMaxNumeroTramite(Pageable pageable);
 
+    @Query(value = "select ISNULL(MAX(nro_tramite_dependencia),0)+1 from dbo.tramite where id_dependencia_remitente=?1 and nro_tramite_dependencia=?2", nativeQuery = true)
+    Long obtenerNumeroTramiteByDependencia(String dependenciaId, Integer anio);
+
     List<Tramite> findByEstado(String estado);
 }

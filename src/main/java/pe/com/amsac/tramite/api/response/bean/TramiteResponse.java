@@ -103,6 +103,9 @@ public class TramiteResponse {
 	private String usuRegistroStd;
 	private String obsStd;
 
+	private Integer numeroTramiteDependencia;
+	private Integer anioTramiteDependencia;
+	private String tramiteDependencia;
 
 	@Mapping("intentosEnvio")
 	public Integer getCantidadIntentos(){return cantidadIntentos;}
