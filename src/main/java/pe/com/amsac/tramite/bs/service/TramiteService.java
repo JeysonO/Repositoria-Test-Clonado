@@ -388,6 +388,7 @@ public class TramiteService {
 			tramite.setRazonSocial(tramiteBodyRequest.getRazonSocial());
 			tramite.setDependenciaDestino(null);
 			tramite.setCreatedDate(new Date());
+			tramite.setFormaRecepcion(formaRecepcionService.findByFormaRecepcion("DIGITAL").get(0));
 
 			//Obtenemos la dependencia que llega en el header para registrar el tramite
 			String dependenciaIdUserSession = securityHelper.obtenerDependenciaIdUserSession();
