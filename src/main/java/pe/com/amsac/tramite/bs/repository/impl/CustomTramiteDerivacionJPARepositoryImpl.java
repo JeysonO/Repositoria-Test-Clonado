@@ -32,6 +32,7 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
     private String buildSelectClause() throws InternalErrorException {
         String selectClause = "from TramiteDerivacion td "
                 + " left join fetch td.tramite t "
+                + " left join fetch t.tipoTramite tt "
                 + " left join fetch td.usuarioInicio ui "
                 + " left join fetch td.usuarioFin uf "
                 + " left join fetch td.dependenciaUsuarioInicio di "
@@ -165,6 +166,12 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
                     + JpaConstant.CONDITION_AND + " " : "");
             whereClause = whereClause
                     + " (ci.id = :cargoIdInicioOFin or cf.id = :cargoIdInicioOFin )";
+        }
+        if (parameters.get("tipoTramiteId") != null) {
+            whereClause = (!"".equals(whereClause) ? whereClause + " "
+                    + JpaConstant.CONDITION_AND + " " : "");
+            whereClause = whereClause
+                    + " tt.id = :tipoTramiteId ";
         }
 
         return whereClause;

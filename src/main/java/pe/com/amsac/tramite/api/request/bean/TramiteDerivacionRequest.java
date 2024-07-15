@@ -40,5 +40,7 @@ public class TramiteDerivacionRequest extends BaseRequest {
 
 	private String cargoIdInicioOFin;
 
+	private String tipoTramiteId;
+
 
 }
