@@ -107,6 +107,8 @@ public class TramiteResponse {
 	private Integer anioTramiteDependencia;
 	private String tramiteDependencia;
 
+	private String tipoTramiteNombre;
+
 	@Mapping("intentosEnvio")
 	public Integer getCantidadIntentos(){return cantidadIntentos;}
 
@@ -218,5 +220,8 @@ public class TramiteResponse {
 
 	@Mapping("entidadExterna.obsStd")
 	public String getObsStd(){return obsStd;}
+
+	@Mapping("tipoTramite.tipoTramite")
+	public String getTipoTramiteNombre(){return tipoTramiteNombre;}
 
 }

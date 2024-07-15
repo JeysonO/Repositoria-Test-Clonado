@@ -160,6 +160,10 @@ public class Tramite extends BaseAuditableEntity<String> {
 	@Column(name = "tramite_dependencia")
 	private String tramiteDependencia;
 
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "id_tipo_tramite", referencedColumnName = "id_tipo_tramite")
+	private TipoTramite tipoTramite;
+
 	@Transient
 	private Long cantidadMaximaIntentos;
 

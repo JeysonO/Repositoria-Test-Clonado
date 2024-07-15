@@ -125,6 +125,9 @@ public class TramiteService {
 	@Autowired
 	private FirmaDocumentoService firmaDocumentoService;
 
+	@Autowired
+	private TipoTramiteJPARepository tipoTramiteJPARepository;
+
 	Map<String, Object> filtroParam = new HashMap<>();
 
 	public List<Tramite> buscarTramiteParams(TramiteRequest tramiteRequest) throws Exception {
@@ -325,6 +328,7 @@ public class TramiteService {
 		//tramite.setEstado("A");
 		tramite.setEstado(EstadoTramiteConstant.REGISTRADO);
 		//Origen Documento es el atributo que me indica si el documento ha sido registrado por un usuario externo o uno interno
+		//Si es externo entonces viene de un usuario externo
 		if(tramiteBodyRequest.getOrigenDocumento().equals(OrigenDocumentoConstant.EXTERNO)){
 			tramite.setEntidadInterna(null);
 			tramite.setEntidadExterna(null);
@@ -343,6 +347,7 @@ public class TramiteService {
 				log.error("ERROR AL OBTENER RAZON SOCIAL",ex);
 			}
 		}
+		//Tramites generados de forma interna, lo hace un usuario interno, ya sea de origen interno o externo, este ultimo si estan regularizando un documento que ingreso un documento en fisico.
 		if(tramiteBodyRequest.getOrigenDocumento().equals(OrigenDocumentoConstant.INTERNO)){
 			if(tramiteBodyRequest.getOrigen().equals("INTERNO")){
 				tramite.setEntidadExterna(null);
@@ -367,6 +372,7 @@ public class TramiteService {
 				tramite.setCargoUsuarioCreacion(cargo);
 			}
 		}
+		//Estos trammites vienen de la recepcion de tramite pide, desde la mesa de partes virtual de pide
 		if(tramiteBodyRequest.getOrigenDocumento().equals(OrigenDocumentoConstant.PIDE)){
 
 			/*
@@ -408,6 +414,8 @@ public class TramiteService {
 			tramite.setCreatedDate(tramiteTemporal.getCreatedDate());
 			tramite.setNumeroTramite(tramiteTemporal.getNumeroTramite());
 		}
+
+		tramite.setTipoTramite(generarTipoTramite(tramiteBodyRequest));
 
 		tramiteJPARepository.save(tramite);
 		if(tramiteBodyRequest.getOrigenDocumento().equals(OrigenDocumentoConstant.EXTERNO)){
@@ -1916,6 +1924,10 @@ public class TramiteService {
 			tramite.setNumeroTramite(tramiteTemporal.getNumeroTramite());
 		}
 		tramite.setCreatedDate(new Date());
+		TramiteBodyRequest tramiteBodyRequest = new TramiteBodyRequest();
+		tramiteBodyRequest.setOrigenDocumento(tramitePideBodyRequest.getOrigenDocumento());
+		tramiteBodyRequest.setOrigen(tramitePideBodyRequest.getOrigen());
+		tramite.setTipoTramite(generarTipoTramite(tramiteBodyRequest));
 
 		tramiteJPARepository.save(tramite);
 		tramitePideBodyRequest.setFechaDocumento(localDateFechaDocumento);
@@ -2276,6 +2288,22 @@ public class TramiteService {
 	private Integer obtenerNumeroTramiteDependencia(String dependenciaId){
 		Integer anioActual = Integer.parseInt(new SimpleDateFormat("yyyy").format(new Date()));
 		return tramiteJPARepository.obtenerNumeroTramiteByDependencia(dependenciaId,anioActual).intValue();
+	}
+
+	public TipoTramite generarTipoTramite(TramiteBodyRequest tramiteBodyRequest){
+		TipoTramite tipoTramite = null;
+		if(tramiteBodyRequest.getOrigenDocumento().equals(OrigenDocumentoConstant.EXTERNO))
+			tipoTramite = tipoTramiteJPARepository.findByTipoTramite(TipoTramiteConstant.EXTERNO_MESA_PARTES).get(0);
+		if(tramiteBodyRequest.getOrigenDocumento().equals(OrigenDocumentoConstant.INTERNO)
+				&& !tramiteBodyRequest.getOrigen().equals(OrigenConstant.PIDE))
+			tipoTramite = tipoTramiteJPARepository.findByTipoTramite(TipoTramiteConstant.INTERNO).get(0);
+		if(tramiteBodyRequest.getOrigenDocumento().equals(OrigenDocumentoConstant.PIDE))
+			tipoTramite = tipoTramiteJPARepository.findByTipoTramite(TipoTramiteConstant.EXTERNO_PIDE).get(0);
+		if(tramiteBodyRequest.getOrigenDocumento().equals(OrigenDocumentoConstant.INTERNO)
+				&& tramiteBodyRequest.getOrigen().equals(OrigenConstant.PIDE))
+			tipoTramite = tipoTramiteJPARepository.findByTipoTramite(TipoTramiteConstant.DESPACHO_PIDE).get(0);
+
+		return tipoTramite;
 	}
 
 	private String obtenerCuo(){

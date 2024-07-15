@@ -38,7 +38,8 @@ public class CustomTramiteJPARepositoryImpl extends
                 + " left join fetch t.usuarioRemitente ur "
                 + " left join fetch t.cargoRemitente cr "
                 + " left join fetch t.entidadPide ep "
-                + " left join fetch t.tipoDocumento td ";
+                + " left join fetch t.tipoDocumento td "
+                + " left join fetch t.tipoTramite tt ";
 
 
         return selectClause;
@@ -119,6 +120,11 @@ public class CustomTramiteJPARepositoryImpl extends
             whereClause = (!"".equals(whereClause) ? whereClause + " "
                     + JpaConstant.CONDITION_AND + " " : "");
             whereClause = whereClause + " t.cuo = :cuo ";
+        }
+        if(parameters.get("tipoTramite") != null){
+            whereClause = (!"".equals(whereClause) ? whereClause + " "
+                    + JpaConstant.CONDITION_AND + " " : "");
+            whereClause = whereClause + " tt.tipoTramite = :tipoTramite ";
         }
 
         return whereClause;
