@@ -29,5 +29,6 @@ public class TramiteRequest extends BaseRequest {
 	private String origen;
 	private String cuo;
 	private String tipoTramite;
+	private String tipoTramiteId;
 
 }

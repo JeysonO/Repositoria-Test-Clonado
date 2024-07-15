@@ -10,4 +10,6 @@ public interface TipoTramiteJPARepository extends JpaRepository<TipoTramite, Str
 
     List<TipoTramite> findByTipoTramite(String tipoTramite);
 
+    List<TipoTramite> findByEstado(String estado);
+
 }

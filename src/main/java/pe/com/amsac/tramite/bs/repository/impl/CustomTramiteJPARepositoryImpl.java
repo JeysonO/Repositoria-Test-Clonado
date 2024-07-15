@@ -126,6 +126,12 @@ public class CustomTramiteJPARepositoryImpl extends
                     + JpaConstant.CONDITION_AND + " " : "");
             whereClause = whereClause + " tt.tipoTramite = :tipoTramite ";
         }
+        if(parameters.get("tipoTramiteId") != null){
+            whereClause = (!"".equals(whereClause) ? whereClause + " "
+                    + JpaConstant.CONDITION_AND + " " : "");
+            whereClause = whereClause + " tt.id = :tipoTramiteId ";
+        }
+
 
         return whereClause;
     }
