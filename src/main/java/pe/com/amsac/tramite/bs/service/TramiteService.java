@@ -2308,7 +2308,7 @@ public class TramiteService {
 	}
 
 	private String obtenerCuo(){
-		return "0000000060";
+		return "0000000090";
 	}
 
 }
