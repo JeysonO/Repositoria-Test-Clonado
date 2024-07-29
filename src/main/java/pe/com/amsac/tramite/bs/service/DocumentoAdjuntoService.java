@@ -1,6 +1,7 @@
 package pe.com.amsac.tramite.bs.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import javassist.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -18,6 +19,7 @@ import pe.com.amsac.tramite.api.file.bean.FileTxProperties;
 import pe.com.amsac.tramite.api.file.bean.TramitePathFileStorage;
 import pe.com.amsac.tramite.api.file.bean.UploadFileResponse;
 import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoAcusePideRequest;
+import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoPideRequest;
 import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
 import pe.com.amsac.tramite.api.request.bean.TramiteRequest;
 import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoBodyRequest;
@@ -664,6 +666,21 @@ public class DocumentoAdjuntoService {
 		tramite.setEstado(estadoTramite);
 		tramite.setFechaRecepcion(documentoAdjuntoAcusePideRequest.getFecregstd());
 		tramiteService.save(tramite);
+
+		return documentoAdjuntoResponse;
+	}
+
+	public DocumentoAdjuntoResponse obtenerDocumentoAdjuntoPideList(DocumentoAdjuntoPideRequest documentoAdjuntoPideRequest) throws Exception {
+
+		Optional<DocumentoAdjunto> documentoAdjuntoOptional = documentoAdjuntoJPARepository.obtenerDocumentoAdjuntoPide(documentoAdjuntoPideRequest.getCuo(), documentoAdjuntoPideRequest.getNombreArchivo());
+		if(!documentoAdjuntoOptional.isPresent())
+			throw new NotFoundException("Archivo no existe");
+
+		DocumentoAdjunto documentoAdjunto = documentoAdjuntoOptional.get();
+		DocumentoAdjuntoResponse documentoAdjuntoResponse = mapper.map(documentoAdjunto, DocumentoAdjuntoResponse.class);
+
+		Resource file = obtenerArchivo(documentoAdjunto);
+		documentoAdjuntoResponse.setUploadFileResponse(createUploadFileResponse(file, documentoAdjunto));
 
 		return documentoAdjuntoResponse;
 	}

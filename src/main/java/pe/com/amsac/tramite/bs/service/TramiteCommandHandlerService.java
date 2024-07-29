@@ -65,41 +65,46 @@ public class TramiteCommandHandlerService {
 
 		Tramite tramitePide =  tramiteService.registrarTramitePide(tramitePideBodyRequest, filePrincipal, fileAnexos, datosFirmaDocumentoRequest);
 
-		if(datosFirmaDocumentoRequest!=null){
-			tramiteService.enviarDocumentoParaFirma(datosFirmaDocumentoRequest, filePrincipal, tramitePide);
-			tramiteService.actualizarDatosDocumentoFirmadoDigitalmente(tramitePide.getId());
-		}
-
-		String estadoTramite = tramitePide.getEstado();
-
 		Map resultadEnvio = new HashMap();
 
-		//try{
-		//resultadEnvio = enviarTramiteAPide(tramitePide.getId());
-		resultadEnvio = tramiteService.enviarTramiteAPide(tramitePide, tramitePideBodyRequest, filePrincipal, fileAnexos);
-		//Vemos el indicados de resultado, si es ok entonces solocamos el estado enviado pide, sino con error pide.
-		estadoTramite = EstadoTramiteConstant.ENVIADO_PIDE;
-		if(resultadEnvio.get("resultado").equals(EstadoResultadoEnvioPideConstant.ERROR))
-			estadoTramite = EstadoTramiteConstant.CON_ERROR_PIDE;
-		if(resultadEnvio.get("resultado").equals(EstadoResultadoEnvioPideConstant.ERROR_SERVICIO)){
-			estadoTramite = EstadoTramiteConstant.POR_ENVIAR_PIDE;
-			resultadEnvio.put("mensaje", Map.of("vcodres", "001", "vdesres", "Hubo un error en la transmisión, se volverá a intentar de forma automática en unos momentos y se informará por correo de los resultados"));
-		}
-		/*
+		try{
+			if(datosFirmaDocumentoRequest!=null){
+				tramiteService.enviarDocumentoParaFirma(datosFirmaDocumentoRequest, filePrincipal, tramitePide);
+				tramiteService.actualizarDatosDocumentoFirmadoDigitalmente(tramitePide.getId());
+			}
+
+			String estadoTramite = tramitePide.getEstado();
+
+			//try{
+			//resultadEnvio = enviarTramiteAPide(tramitePide.getId());
+			resultadEnvio = tramiteService.enviarTramiteAPide(tramitePide, tramitePideBodyRequest, filePrincipal, fileAnexos);
+			//Vemos el indicados de resultado, si es ok entonces solocamos el estado enviado pide, sino con error pide.
+			estadoTramite = EstadoTramiteConstant.ENVIADO_PIDE;
+			if(resultadEnvio.get("resultado").equals(EstadoResultadoEnvioPideConstant.ERROR))
+				estadoTramite = EstadoTramiteConstant.CON_ERROR_PIDE;
+			if(resultadEnvio.get("resultado").equals(EstadoResultadoEnvioPideConstant.ERROR_SERVICIO)){
+				estadoTramite = EstadoTramiteConstant.POR_ENVIAR_PIDE;
+				resultadEnvio.put("mensaje", Map.of("vcodres", "001", "vdesres", "Hubo un error en la transmisión, se volverá a intentar de forma automática en unos momentos y se informará por correo de los resultados"));
+			}
+			/*
+			}catch (Exception ex){
+				estadoTramite = EstadoTramiteConstant.POR_ENVIAR_PIDE;
+				resultadEnvio.put("mensaje", Map.of("vcodres", "001", "vdesres", "Hubo un error en la transmisión, se volverá a intentar de forma automática en unos momentos y se informará por correo de los resultados"));
+				log.error("ERROR", ex);
+			}
+			*/
+
+			Tramite tramite = tramiteService.findById(tramitePide.getId());
+			tramite.setEstado(estadoTramite);
+			tramite.setIntentosEnvio(tramite.getIntentosEnvio()==null?1:tramite.getIntentosEnvio()+1);
+			tramiteService.save(tramite);
+
+			resultadEnvio.put("tramiteId",tramite.getId());
+			resultadEnvio.put("resultado",estadoTramite);
 		}catch (Exception ex){
-			estadoTramite = EstadoTramiteConstant.POR_ENVIAR_PIDE;
-			resultadEnvio.put("mensaje", Map.of("vcodres", "001", "vdesres", "Hubo un error en la transmisión, se volverá a intentar de forma automática en unos momentos y se informará por correo de los resultados"));
+			//Hacemos la compensacion de la transaccion de registro de tramite, borramos
 			log.error("ERROR", ex);
 		}
-		*/
-
-		Tramite tramite = tramiteService.findById(tramitePide.getId());
-		tramite.setEstado(estadoTramite);
-		tramite.setIntentosEnvio(tramite.getIntentosEnvio()==null?1:tramite.getIntentosEnvio()+1);
-		tramiteService.save(tramite);
-
-		resultadEnvio.put("tramiteId",tramite.getId());
-		resultadEnvio.put("resultado",estadoTramite);
 
 		return resultadEnvio;
 

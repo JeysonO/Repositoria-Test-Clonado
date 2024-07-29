@@ -24,7 +24,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			"/swagger-ui/**",
 			"/v2/api-docs/**",
 			"/swagger-resources/**",
-			"/firma-callback/**"
+			"/firma-callback/**",
+			"/documentos-adjuntos/pide"
 	};
 	
 	@Autowired

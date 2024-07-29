@@ -1,5 +1,6 @@
 package pe.com.amsac.tramite.api.controller;
 
+import javassist.NotFoundException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoAcusePideRequest;
+import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoPideRequest;
 import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
 import pe.com.amsac.tramite.api.request.body.bean.*;
 import pe.com.amsac.tramite.api.response.bean.*;
@@ -376,5 +378,26 @@ public class DocumentoAdjuntoController {
 
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 
+	}
+
+	@GetMapping("/pide")
+	public ResponseEntity<CommonResponse> obtenerDocumentoAdjuntoPide(@Valid DocumentoAdjuntoPideRequest documentoAdjuntoPideRequest) throws Exception {
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.OK;
+
+		try {
+			DocumentoAdjuntoResponse documentoAdjuntoResponse =  documentoAdjuntoService.obtenerDocumentoAdjuntoPideList(documentoAdjuntoPideRequest);
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(documentoAdjuntoResponse).build();
+
+		} catch (ServiceException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}catch (NotFoundException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, Arrays.asList(new Mensaje("001","E",se.getMessage())))).build();
+			httpStatus = HttpStatus.NOT_FOUND;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 	}
 }
