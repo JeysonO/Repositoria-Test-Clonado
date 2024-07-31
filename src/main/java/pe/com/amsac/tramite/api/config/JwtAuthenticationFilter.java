@@ -24,6 +24,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.LinkedHashMap;
 
@@ -94,6 +95,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return bearerToken.substring(7, bearerToken.length());
         }
         return null;
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String allowResources = env.getProperty("app.security.allow-resources");
+        if(org.apache.commons.lang3.StringUtils.isBlank(allowResources))
+            return false;
+
+        String[] allowedResources = allowResources.split(",");
+        return Arrays.stream(allowedResources).filter(x -> request.getServletPath().startsWith(x)).count()>0;
+
     }
 
 }

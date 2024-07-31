@@ -146,6 +146,9 @@ app:
       username: edgard.alvino@gmail.com
       password: ealvino
 
+  security:
+    allow-resources: /documentos-adjuntos/pide,/firma-callback
+
 ## File Storage Properties
 file:
   base-upload-dir: tramite/file

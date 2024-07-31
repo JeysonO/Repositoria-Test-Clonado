@@ -3,6 +3,7 @@ package pe.com.amsac.tramite.api.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -23,13 +24,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			"/v3/api-docs/**",
 			"/swagger-ui/**",
 			"/v2/api-docs/**",
-			"/swagger-resources/**",
-			"/firma-callback/**",
-			"/documentos-adjuntos/pide"
+			"/swagger-resources/**"
 	};
 	
 	@Autowired
     private JwtAuthenticationEntryPoint unauthorizedHandler;
+
+	@Autowired
+	private Environment env;
 	
 	@Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
@@ -98,7 +100,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			//	.permitAll()
 			//.antMatchers("/api/v2/api-docs/**")
             //    .permitAll()
-			.antMatchers(AUTH_WHITE_LIST).permitAll()
+			.antMatchers(env.getProperty("app.security.allow-resources")!=null?env.getProperty("app.security.allow-resources").split(","):AUTH_WHITE_LIST).permitAll()
 			//.antMatchers("/signin/**")
 			//	.permitAll()
             //.antMatchers("/security/api/user/checkUsernameAvailability", "/api/user/checkEmailAvailability")
