@@ -21,6 +21,7 @@ import pe.com.amsac.tramite.api.config.DatosToken;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.config.exceptions.ResourceNotFoundException;
 import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
+import pe.com.amsac.tramite.api.file.bean.FileStorageService;
 import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.FirmaDocumentoTramiteBodyRequest;
 import pe.com.amsac.tramite.api.request.body.bean.FirmaDocumentoTramiteExternoBodyRequest;
@@ -29,9 +30,7 @@ import pe.com.amsac.tramite.api.response.bean.*;
 import pe.com.amsac.tramite.api.util.CustomMultipartFile;
 import pe.com.amsac.tramite.bs.domain.*;
 import pe.com.amsac.tramite.bs.repository.FirmaDocumentoJPARepository;
-import pe.com.amsac.tramite.bs.util.DescripcionDocumentoAdjuntoConstant;
-import pe.com.amsac.tramite.bs.util.EstadoFirmaDocumentoConstant;
-import pe.com.amsac.tramite.bs.util.TipoDocumentoFirmaConstant;
+import pe.com.amsac.tramite.bs.util.*;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -77,6 +76,9 @@ public class FirmaDocumentoService {
 
 	@Autowired
 	private Mapper mapper;
+
+	@Autowired
+	private FileStorageService fileStorageService;
 
 	public void firmarDocumentoTramite(FirmaDocumentoTramiteBodyRequest firmaDocumentoTramiteBodyRequest) throws Exception {
 		//Obtenemos el id del usuario que desea firmar
@@ -433,6 +435,12 @@ public class FirmaDocumentoService {
 		FirmaDocumento firmaDocumento = firmaDocumentoJPARepository.findById(nombreArchivo).get();
 		if(firmaDocumento.getTipoDocumento().equals(TipoDocumentoFirmaConstant.DOCUMENTO_TRAMITE)){
 			procesarDocumentoTramite(nombreArchivo,archivoFirmado);
+		}else if(firmaDocumento.getTipoDocumento().equals(TipoDocumentoFirmaConstant.DOCUMENTO_TRAMITE_PIDE)){
+			procesarDocumentoTramitePide(nombreArchivo,archivoFirmado);
+		}else if(firmaDocumento.getTipoDocumento().equals(TipoDocumentoFirmaConstant.DOCUMENTO_ACUSE_PIDE)){
+			procesarDocumentoAcusePide(nombreArchivo,archivoFirmado);
+		}else if(firmaDocumento.getTipoDocumento().equals(TipoDocumentoFirmaConstant.DOCUMENTO_ACUSE_OBSERVADO_PIDE)){
+			procesarDocumentoAcuseObservadoPide(nombreArchivo,archivoFirmado);
 		}else{
 			procesarDocumentoExterno(nombreArchivo,archivoFirmado);
 		}
@@ -465,7 +473,6 @@ public class FirmaDocumentoService {
 		//documentoAdjuntoRequest.setTramiteDerivacionId(documentoAdjuntoOriginal.getTramiteDerivacionId());
 		//documentoAdjuntoRequest.setTipoAdjunto(TipoAdjuntoConstant.);
 		documentoAdjuntoService.registrarDocumentoAdjunto(documentoAdjuntoRequest);
-
 
 		//Actualizamos el estado en firma documento
 		firmaDocumento.setEstado(EstadoFirmaDocumentoConstant.FIRMADO);
@@ -576,7 +583,7 @@ public class FirmaDocumentoService {
 	}
 
 
-	public void firmarDocumentoHibrido(FirmaDocumentoTramiteHibridoBodyRequest firmaDocumentoTramiteHibridoBodyRequest) throws Exception {
+	public String firmarDocumentoHibrido(FirmaDocumentoTramiteHibridoBodyRequest firmaDocumentoTramiteHibridoBodyRequest) throws Exception {
 
 		//Obtenemos el id del usuario que desea firmar
 		String usuarioId = securityHelper.obtenerUserIdSession();
@@ -610,7 +617,7 @@ public class FirmaDocumentoService {
 		}
 
 		FirmaDocumento firmaDocumento = FirmaDocumento.builder()
-				.tipoDocumento(TipoDocumentoFirmaConstant.DOCUMENTO_TRAMITE)
+				.tipoDocumento(StringUtils.isBlank(firmaDocumentoTramiteHibridoBodyRequest.getTipoDocumentoFirma())?TipoDocumentoFirmaConstant.DOCUMENTO_TRAMITE:firmaDocumentoTramiteHibridoBodyRequest.getTipoDocumentoFirma())
 				.nombreOriginalDocumento(nombreArchivoFirmado)
 				.nombreTemporalDocumento(uuidParaArchivoFirmado)
 				.idTramite(firmaDocumentoTramiteHibridoBodyRequest.getTramiteId())
@@ -689,7 +696,72 @@ public class FirmaDocumentoService {
 		//Actulizamos con el id que retorna el firmador
 		firmaDocumento.setIdTransaccionFirma(responseEntity.getBody());
 		firmaDocumentoJPARepository.save(firmaDocumento);
+		return idTransaccionFirma;
 
+	}
+
+	private void procesarDocumentoTramitePide(String nombreArchivo, byte[] archivoFirmado) throws Exception {
+
+		log.info(">> Regisramos documento adjunto procesarDocumentoTramitePide: "+nombreArchivo);
+
+		FirmaDocumento firmaDocumento = firmaDocumentoJPARepository.findById(nombreArchivo).get();
+		createSecurityContextHolder(firmaDocumento.getCreatedByUser());
+
+		CustomMultipartFile file = new CustomMultipartFile(archivoFirmado,firmaDocumento.getNombreOriginalDocumento(),firmaDocumento.getContentType());
+
+		DocumentoAdjuntoBodyRequest documentoAdjuntoRequest = new DocumentoAdjuntoBodyRequest();
+		documentoAdjuntoRequest.setTramiteId(firmaDocumento.getIdTramite());
+		documentoAdjuntoRequest.setDescripcion(DescripcionDocumentoAdjuntoConstant.DOCUMENTO_FIRMADO_DIGITALMENTE);// "ARCHIVO CON FIRMA DIGITAL");
+		documentoAdjuntoRequest.setFile(file);
+		documentoAdjuntoRequest.setTramiteDerivacionId(firmaDocumento.getTramiteDerivacionId());
+		documentoAdjuntoRequest.setOmitirValidacionAdjunto(true);
+		documentoAdjuntoRequest.setSeccionAdjunto(SeccionAdjuntoConstant.PRINCIPAL);
+		documentoAdjuntoRequest.setTipoAdjunto(TipoAdjuntoConstant.DOCUMENTO_TRAMITE);
+		documentoAdjuntoService.registrarDocumentoAdjunto(documentoAdjuntoRequest);
+
+		//Actualizamos el estado en firma documento
+		firmaDocumento.setEstado(EstadoFirmaDocumentoConstant.FIRMADO);
+		firmaDocumento.setFechaFirmaDocumento(new Date());
+		firmaDocumentoJPARepository.save(firmaDocumento);
+
+	}
+
+	private void procesarDocumentoAcusePide(String nombreArchivo, byte[] archivoFirmado) throws Exception {
+
+		log.info(">> Regisramos documento adjunto procesarDocumentoAcusePide: "+nombreArchivo);
+
+		FirmaDocumento firmaDocumento = firmaDocumentoJPARepository.findById(nombreArchivo).get();
+		createSecurityContextHolder(firmaDocumento.getCreatedByUser());
+
+		CustomMultipartFile file = new CustomMultipartFile(archivoFirmado,firmaDocumento.getNombreOriginalDocumento(),firmaDocumento.getContentType());
+
+		DocumentoAdjuntoBodyRequest documentoAdjuntoRequest = new DocumentoAdjuntoBodyRequest();
+		documentoAdjuntoRequest.setTramiteId(firmaDocumento.getIdTramite());
+		documentoAdjuntoRequest.setDescripcion(DescripcionDocumentoAdjuntoConstant.DOCUMENTO_FIRMADO_DIGITALMENTE);// "ARCHIVO CON FIRMA DIGITAL");
+		documentoAdjuntoRequest.setFile(file);
+		documentoAdjuntoRequest.setTramiteDerivacionId(firmaDocumento.getTramiteDerivacionId());
+		documentoAdjuntoRequest.setOmitirValidacionAdjunto(true);
+		documentoAdjuntoRequest.setSeccionAdjunto(SeccionAdjuntoConstant.SECUNDARIO);
+		documentoAdjuntoRequest.setTipoAdjunto(TipoAdjuntoConstant.ACUSE_RECIBO_TRAMITE_PIDE);
+		documentoAdjuntoService.registrarDocumentoAdjunto(documentoAdjuntoRequest);
+
+		//Actualizamos el estado en firma documento
+		firmaDocumento.setEstado(EstadoFirmaDocumentoConstant.FIRMADO);
+		firmaDocumento.setFechaFirmaDocumento(new Date());
+		firmaDocumentoJPARepository.save(firmaDocumento);
+
+	}
+
+	private void procesarDocumentoAcuseObservadoPide(String nombreArchivo, byte[] archivoFirmado) throws Exception {
+
+		log.info(">> Regisramos documento adjunto procesarDocumentoAcuseObservadoPide: "+nombreArchivo);
+
+		FileUtils.writeByteArrayToFile(new File( environment.getProperty("app.ruta.documento-firma-externo")+nombreArchivo+".pdf"), archivoFirmado);
+		FirmaDocumento firmaDocumento = firmaDocumentoJPARepository.findById(nombreArchivo).get();
+		createSecurityContextHolder(firmaDocumento.getCreatedByUser());
+		firmaDocumento.setEstado(EstadoFirmaDocumentoConstant.FIRMADO);
+		firmaDocumento.setFechaFirmaDocumento(new Date());
+		firmaDocumentoJPARepository.save(firmaDocumento);
 
 	}
 

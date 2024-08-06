@@ -18,17 +18,19 @@
     <style name="Obs" fontName="Arial" fontSize="8"/>
     <style name="RowTitle" backcolor="#DEE2E6" forecolor="#000000" fontName="Arial Black" fontSize="9" isBold="true"/>
 
-    <parameter name="numeroTramite" class="java.lang.Integer"/>
     <parameter name="tipoDocumento" class="java.lang.String"/>
     <parameter name="fechaGeneracion" class="java.lang.String"/>
     <parameter name="fechaHoraIngreso" class="java.lang.String"/>
     <parameter name="estado" class="java.lang.String"/>
+    <parameter name="cuo" class="java.lang.String"/>
     <!--
     <parameter name="emisorNombreCompleto" class="java.lang.String"/>
     -->
     <parameter name="emisorRazonSocial" class="java.lang.String"/>
     <parameter name="emisorRuc" class="java.lang.String"/>
     <parameter name="asunto" class="java.lang.String"/>
+    <parameter name="observacion" class="java.lang.String"/>
+
     <!--
     <parameter name="destino" class="java.lang.String"/>
     -->
@@ -53,13 +55,13 @@
                 <reportElement style="RowTitle" mode="Opaque" x="0" y="133" width="520" height="19"/>
                 <box leftPadding="13"/>
                 <textElement textAlignment="Left" verticalAlignment="Middle"/>
-                <text><![CDATA[Nro. TRAMITE]]></text>
+                <text><![CDATA[CUO]]></text>
             </staticText>
             <textField>
                 <reportElement style="Detail" mode="Opaque" x="0" y="152" width="520" height="17"/>
                 <box leftPadding="13"/>
                 <textElement textAlignment="Left" verticalAlignment="Middle"/>
-                <textFieldExpression><![CDATA[$P{numeroTramite}]]></textFieldExpression>
+                <textFieldExpression><![CDATA[$P{cuo}]]></textFieldExpression>
             </textField>
             <staticText>
                 <reportElement style="RowTitle" mode="Opaque" x="0" y="169" width="520" height="19"/>
@@ -170,18 +172,25 @@
                 <textElement textAlignment="Left" verticalAlignment="Middle"/>
                 <textFieldExpression><![CDATA[$P{destino}]]></textFieldExpression>
             </textField>
-            <!--
             <staticText>
                 <reportElement style="RowTitle" mode="Opaque" x="0" y="450" width="520" height="19"/>
                 <box leftPadding="13"/>
                 <textElement textAlignment="Left" verticalAlignment="Middle"/>
-                <text><![CDATA[HUELLAS DIGITALES DE DOCUMENTOS REGISTRADOS]]></text>
+                <text><![CDATA[OBSERVACIÓN]]></text>
             </staticText>
+            <textField>
+                <reportElement style="Detail" mode="Opaque" x="0" y="469" width="520" height="17"/>
+                <box leftPadding="13"/>
+                <textElement textAlignment="Left" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$P{observacion}]]></textFieldExpression>
+            </textField>
+            <!--
             <image vAlign="Middle" hAlign="Center">
                 <reportElement x="0" y="469" width="40" height="40"/>
                 <box leftPadding="13"/>
                 <imageExpression><![CDATA["C:/Users/sayhu/Downloads/huellas.jpg"]]></imageExpression>
             </image>
+            -->
             -->
             <!--
             <staticText>

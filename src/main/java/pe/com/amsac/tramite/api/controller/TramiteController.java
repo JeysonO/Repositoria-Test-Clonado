@@ -1,5 +1,6 @@
 package pe.com.amsac.tramite.api.controller;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
@@ -20,10 +21,7 @@ import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.request.bean.TareasComplementariasMigracionRequest;
 import pe.com.amsac.tramite.api.request.bean.TramiteRequest;
-import pe.com.amsac.tramite.api.request.body.bean.DatosFirmaDocumentoRequest;
-import pe.com.amsac.tramite.api.request.body.bean.TramiteBodyRequest;
-import pe.com.amsac.tramite.api.request.body.bean.TramiteMigracionBodyRequest;
-import pe.com.amsac.tramite.api.request.body.bean.TramitePideBodyRequest;
+import pe.com.amsac.tramite.api.request.body.bean.*;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.api.response.bean.Mensaje;
 import pe.com.amsac.tramite.api.response.bean.Meta;
@@ -35,7 +33,9 @@ import pe.com.amsac.tramite.bs.service.TramiteService;
 import pe.com.amsac.tramite.bs.util.EstadoResultadoEnvioPideConstant;
 import pe.com.amsac.tramite.bs.util.EstadoTramiteConstant;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.io.IOException;
 import java.util.*;
 
 @Slf4j
@@ -416,6 +416,60 @@ public class TramiteController {
 
 	}
 	*/
+
+	@DeleteMapping("/{tramiteId}")
+	public ResponseEntity<CommonResponse> eliminarTramiteId(@PathVariable String tramiteId) throws Exception {
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.OK;
+
+		try {
+
+			log.info("eliminarTramiteId:"+tramiteId);
+
+			tramiteService.eliminarTramite(tramiteId);
+
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).build();
+
+
+		} catch (Exception se) {
+			log.error("Error",se);
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, null,null)).build();
+			httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+
+	}
+
+	@PostMapping("/generar-acuse-observacion-firmado")
+	public ResponseEntity<Resource> generarAcuseObservacionFirmado(@Valid @RequestBody AcuseReciboObservacionPideRequest acuseReciboObservacionPideRequest, HttpServletRequest request)
+			throws Exception {
+		try {
+
+			Map<String, Object> param =  tramiteService.generarAcuseObservacionFirmado(acuseReciboObservacionPideRequest);
+			Resource resource = (Resource)param.get("file");
+			String nombreArchivo = param.get("nombre").toString();
+
+			String contentType = null;
+			try {
+				contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
+			} catch (IOException ex) {
+				LOGGER.info("No se puede determinar el MimeType.");
+			}
+
+			if (contentType == null) {
+				contentType = "application/octet-stream";
+			}
+
+			return ResponseEntity.ok().contentType(MediaType.parseMediaType(contentType))
+					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nombreArchivo + "\"")
+					.body(resource);
+
+		} catch (Exception e) {
+			throw e;
+		}
+	}
 
 
 }

@@ -24,6 +24,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
+import pe.com.amsac.tramite.api.config.exceptions.ResourceNotFoundException;
 import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.file.bean.FileStorageService;
 import pe.com.amsac.tramite.api.request.bean.*;
@@ -40,6 +41,7 @@ import pe.com.amsac.tramite.pide.soap.tramite.request.*;
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.DatatypeFactory;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -127,6 +129,12 @@ public class TramiteService {
 
 	@Autowired
 	private TipoTramiteJPARepository tipoTramiteJPARepository;
+
+	@Autowired
+	private UsuarioFirmaLogoService usuarioFirmaLogoService;
+
+	@Autowired
+	private UsuarioFirmaService usuarioFirmaService;
 
 	Map<String, Object> filtroParam = new HashMap<>();
 
@@ -428,8 +436,11 @@ public class TramiteService {
 		}
 
 		if(tramiteBodyRequest.getOrigenDocumento().equals(OrigenDocumentoConstant.PIDE)){
-			Map param = generarReporteAcuseTramiteInteroperabilidad(tramite);
-			registrarAcuseComoDocumentoDelTramite(param);
+			Map param = generarReporteAcuseTramiteInteroperabilidad(tramite,tramiteBodyRequest.getDependenciaInternaDestinoTramitePide());
+			tramiteBodyRequest.setId(tramite.getId());
+			firmarDocumentoAcuse(param, tramiteBodyRequest.getPinFirma(), tramiteBodyRequest.getId());
+			//Nos aseguramos que se haya firmado el documento para continuar, sino lanzamos excepcion
+			actualizarAcuseComoDocumentoDelTramite(tramite.getId());
 		}
 
 		//Guardamos datos de la entidad interna
@@ -498,12 +509,14 @@ public class TramiteService {
 			numeroTramite = tramite.getNumeroTramite()+1; //numeroTramite = obtenerNumeroTramite().get(0).getNumeroTramite()+1;
 		}
 		*/
+		/*
 		int numeroTramite=1;
 		Optional<Tramite> tramite = tramiteJPARepository.obtenerUltimoRegistroMaxNumeroTramite(PageRequest.of(0, 1, Sort.by("numeroTramite").descending())).get().findFirst();
 		if(tramite.isPresent()){
 			numeroTramite = tramite.get().getNumeroTramite()+1;
 		}
-		return numeroTramite;
+		*/
+		return tramiteJPARepository.obtenerUltimoRegistroMaxNumeroTramite().intValue();
 	}
 
 	public List<Tramite> buscarTramiteParamsByUsuarioId(String usuarioId, TramiteRequest tramiteRequest) throws Exception {
@@ -1629,7 +1642,7 @@ public class TramiteService {
 
 	}
 
-	public Map generarReporteAcuseTramiteInteroperabilidad(Tramite tramite) throws Exception {
+	public Map generarReporteAcuseTramiteInteroperabilidad(Tramite tramite, String dependenciaInternaDestino) throws Exception {
 
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 		InputStream url = classloader.getResourceAsStream("acuseTramiteExternoInteroperabilidad.jrxml");
@@ -1637,37 +1650,7 @@ public class TramiteService {
 		JasperReport jasperReport = JasperCompileManager.compileReport(url);
 
 		DateFormat Formato = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-		//String fechaGeneracion = Formato.format(tramite.getCreatedDate());
 		String fechaGeneracion = Formato.format(determinarFechaGeneracion(tramite.getCreatedDate()));
-
-		RestTemplate restTemplate = new RestTemplate();
-		HttpHeaders headers = new HttpHeaders();
-		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
-		HttpEntity entity = new HttpEntity<>(null, headers);
-
-		/*
-		//Mapear Usuario y Persona
-		String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/" + tramite.getCreatedByUser();
-		ResponseEntity<CommonResponse> response = restTemplate.exchange(uri, HttpMethod.GET, entity, new ParameterizedTypeReference<CommonResponse>() {
-		});
-
-		LinkedHashMap<Object, Object> usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
-		LinkedHashMap<String, String> persona = (LinkedHashMap<String, String>) usuario.get("persona");
-
-		Persona person = mapper.map(persona, Persona.class);
-		usuario.replace("persona", person);
-		Usuario user = mapper.map(usuario, Usuario.class);
-		*/
-
-		//Mapear Dependencia Destino
-		/*
-		String uriD = env.getProperty("app.url.seguridad") + "/dependencias/obtener-dependencia-by-id/" + tramite.getDependenciaDestino().getId();
-		ResponseEntity<CommonResponse> responseD = restTemplate.exchange(uriD, HttpMethod.GET, entity, new ParameterizedTypeReference<CommonResponse>() {
-		});
-
-		LinkedHashMap<Object, Object> dependencia = (LinkedHashMap<Object, Object>) responseD.getBody().getData();
-		*/
-
 
 		//Obtener Tipo Documento de Tramite
 		TipoDocumentoTramite tipoDocumento = tipoDocumentoJPARepository.findById(tramite.getTipoDocumento().getId()).get();
@@ -1678,13 +1661,11 @@ public class TramiteService {
 		parameters.put("tipoDocumento", tipoDocumento.getTipoDocumento().toUpperCase());
 		parameters.put("fechaGeneracion", fechaGeneracion);
 		parameters.put("fechaHoraIngreso", fechaGeneracion);
-		parameters.put("estado", "EN CUSTODIA ELECTRÓNICA POR AMSAC");
-		//parameters.put("emisorNombreCompleto", user.getNombreCompleto());
+		parameters.put("estado", "RECEPCIONADO");
 		parameters.put("emisorRazonSocial", tramite.getEntidadExterna().getRazonSocial());// user.getPersona().getRazonSocialNombre().toUpperCase());
 		parameters.put("emisorRuc", tramite.getEntidadExterna().getRucEntidadRemitente()); // user.getPersona().getNumeroDocumento());
 		parameters.put("asunto", tramite.getAsunto());
-		//TODO: pendiente conocer destino en registro de Trmaite
-		//parameters.put("destino", dependencia.get("nombre").toString().toUpperCase());
+		parameters.put("destino", dependenciaInternaDestino);
 
 		List<String> lista = null;
 		JRBeanCollectionDataSource source = new JRBeanCollectionDataSource(lista);
@@ -1693,8 +1674,6 @@ public class TramiteService {
 
 		//Directorio donde se guardará una copia fisica
 		String nombreArchivoAcuse = "acuseRecibo-" + new SimpleDateFormat("ddMMyyyyHHmmssSSS").format(new Date()) + ".pdf";
-		//final String reportPdf = env.getProperty("file.base-upload-dir") + File.separator + "acuse" + File.separator + "acuseRecibo.pdf";
-		//final String reportPdf = env.getProperty("file.base-upload-dir") + File.separator + "acuse" + File.separator + nombreArchivoAcuse;
 
 		String rutaAcuse = env.getProperty("file.base-upload-dir") + File.separator + "acuse";
 		fileStorageService.createDirectory(rutaAcuse);
@@ -2230,6 +2209,7 @@ public class TramiteService {
 		firmaDocumentoTramiteHibridoBodyRequest.setUsuarioFirmaLogoId(datosFirmaDocumentoRequest.getUsuarioFirmaLogoId());
 		firmaDocumentoTramiteHibridoBodyRequest.setFile(filePrincipal);
 		firmaDocumentoTramiteHibridoBodyRequest.setTramiteId(tramite.getId());
+		firmaDocumentoTramiteHibridoBodyRequest.setTipoDocumentoFirma(TipoDocumentoFirmaConstant.DOCUMENTO_TRAMITE_PIDE);
 		firmaDocumentoService.firmarDocumentoHibrido(firmaDocumentoTramiteHibridoBodyRequest);
 
 		/*
@@ -2262,6 +2242,8 @@ public class TramiteService {
 		//Al ser asincrono, se espera un mmomento a que el documento ya se encuentre firmado
 		DocumentoAdjuntoRequest documentoAdjuntoRequest = DocumentoAdjuntoRequest.builder()
 				.descripcion(DescripcionDocumentoAdjuntoConstant.DOCUMENTO_FIRMADO_DIGITALMENTE)
+				.seccionAdjunto(SeccionAdjuntoConstant.PRINCIPAL)
+				.tipoAdjunto(TipoAdjuntoConstant.DOCUMENTO_TRAMITE)
 				.tramiteId(tramiteId)
 				.build();
 		List<DocumentoAdjunto> documentoAdjuntoList = null;
@@ -2274,10 +2256,12 @@ public class TramiteService {
 
 			documentoAdjuntoList = documentoAdjuntoService.obtenerDocumentoAdjuntoParams(documentoAdjuntoRequest);
 			if(!CollectionUtils.isEmpty(documentoAdjuntoList)){
+				/*
 				DocumentoAdjunto documentoAdjunto = documentoAdjuntoList.get(0);
 				documentoAdjunto.setSeccionAdjunto(SeccionAdjuntoConstant.PRINCIPAL);
 				documentoAdjunto.setTipoAdjunto(TipoAdjuntoConstant.DOCUMENTO_TRAMITE);
 				documentoAdjuntoService.guardarAdjunto(documentoAdjunto);
+				*/
 				seObtuvoDocumentoFirmado = true;
 			}else{
 				Thread.sleep(1000);
@@ -2309,6 +2293,166 @@ public class TramiteService {
 
 	private String obtenerCuo(){
 		return "0000000090";
+	}
+
+	private void firmarDocumentoAcuse(Map mapaArchivo, String pinFirma, String tramiteId) throws Exception {
+		//Obtenemos el archiov
+		Path path = Paths.get(mapaArchivo.get("ruta").toString());
+		byte[] archivoAcuseByteArray = Files.readAllBytes(path);
+		CustomMultipartFile file = new CustomMultipartFile(archivoAcuseByteArray,mapaArchivo.get("nombreArchivo").toString(),"application/pdf");
+
+		//Obtenemos el usuario firma logo id
+		String usuarioFirmaLogoId = usuarioFirmaLogoService.obtenerUsuarioFirmaLogoByUsuarioFirmaId(usuarioFirmaService.obtenerUsuarioFirmaByUsuarioId(securityHelper.obtenerUserIdSession()).getId()).get(0).getId();
+		FirmaDocumentoTramiteHibridoBodyRequest firmaDocumentoTramiteHibridoBodyRequest = new FirmaDocumentoTramiteHibridoBodyRequest();
+		firmaDocumentoTramiteHibridoBodyRequest.setTextoFirma("En señal de conformidad");
+		firmaDocumentoTramiteHibridoBodyRequest.setPosition("3.4");
+		firmaDocumentoTramiteHibridoBodyRequest.setOrientacion("VERTICAL");
+		firmaDocumentoTramiteHibridoBodyRequest.setPin(pinFirma);
+		firmaDocumentoTramiteHibridoBodyRequest.setUsuarioFirmaLogoId(usuarioFirmaLogoId);
+		firmaDocumentoTramiteHibridoBodyRequest.setFile(file);
+		firmaDocumentoTramiteHibridoBodyRequest.setTramiteId(tramiteId);
+		firmaDocumentoTramiteHibridoBodyRequest.setTipoDocumentoFirma(TipoDocumentoFirmaConstant.DOCUMENTO_ACUSE_PIDE);
+		firmaDocumentoService.firmarDocumentoHibrido(firmaDocumentoTramiteHibridoBodyRequest);
+	}
+
+	private void actualizarAcuseComoDocumentoDelTramite(String tramiteId) throws Exception {
+
+		DocumentoAdjuntoRequest documentoAdjuntoRequest = DocumentoAdjuntoRequest.builder()
+				.descripcion(DescripcionDocumentoAdjuntoConstant.DOCUMENTO_FIRMADO_DIGITALMENTE)
+				.tipoAdjunto(TipoAdjuntoConstant.ACUSE_RECIBO_TRAMITE_AMSAC)
+				.seccionAdjunto(SeccionAdjuntoConstant.SECUNDARIO)
+				.tramiteId(tramiteId)
+				.build();
+		List<DocumentoAdjunto> documentoAdjuntoList = null;
+		boolean seObtuvoDocumentoFirmado = false;
+		int cantidadIntentos = 0;
+		int cantidadIntentosMaximo = 5;
+		while(!seObtuvoDocumentoFirmado){
+			if(cantidadIntentos == cantidadIntentosMaximo)
+				throw new ServiceException("No se pudo firmar documento, volver a intentarlo en breve");
+
+			documentoAdjuntoList = documentoAdjuntoService.obtenerDocumentoAdjuntoParams(documentoAdjuntoRequest);
+			if(!CollectionUtils.isEmpty(documentoAdjuntoList)){
+				seObtuvoDocumentoFirmado = true;
+			}else{
+				Thread.sleep(1000);
+				++cantidadIntentos;
+			}
+		}
+
+	}
+
+	public void eliminarTramite(String tramiteId){
+		//Se considera eliminacion logica
+		Tramite tramite = findById(tramiteId);
+		tramite.setEstado(EstadoTramiteConstant.ELIMINADO);
+		save(tramite);
+
+	}
+
+	public Map generarReporteAcuseTramiteInteroperabilidadObservacion(Map<String, Object> parameters) throws Exception {
+
+		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+		InputStream url = classloader.getResourceAsStream("acuseTramiteExternoInteroperabilidadObservado.jrxml");
+
+		JasperReport jasperReport = JasperCompileManager.compileReport(url);
+
+		/*
+		DateFormat Formato = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+		String fechaGeneracion = Formato.format(determinarFechaGeneracion(tramite.getCreatedDate()));
+
+		//Obtener Tipo Documento de Tramite
+		TipoDocumentoTramite tipoDocumento = tipoDocumentoJPARepository.findById(tramite.getTipoDocumento().getId()).get();
+
+		// Parameters for report
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("tipoDocumento", tipoDocumento.getTipoDocumento().toUpperCase());
+		parameters.put("fechaGeneracion", fechaGeneracion);
+		parameters.put("fechaHoraIngreso", fechaGeneracion);
+		parameters.put("estado", "RECEPCIONADO");
+		parameters.put("emisorRazonSocial", tramite.getEntidadExterna().getRazonSocial());// user.getPersona().getRazonSocialNombre().toUpperCase());
+		parameters.put("emisorRuc", tramite.getEntidadExterna().getRucEntidadRemitente()); // user.getPersona().getNumeroDocumento());
+		parameters.put("asunto", tramite.getAsunto());
+		parameters.put("cuo", dependenciaInternaDestino);
+		parameters.put("observacion", dependenciaInternaDestino);
+		*/
+
+		List<String> lista = null;
+		JRBeanCollectionDataSource source = new JRBeanCollectionDataSource(lista);
+
+		JasperPrint print = JasperFillManager.fillReport(jasperReport, parameters,source);
+
+		//Directorio donde se guardará una copia fisica
+		String nombreArchivoAcuse = "acuseRecibo-" + new SimpleDateFormat("ddMMyyyyHHmmssSSS").format(new Date()) + ".pdf";
+
+		String rutaAcuse = env.getProperty("file.base-upload-dir") + File.separator + "temporales";
+		fileStorageService.createDirectory(rutaAcuse);
+
+		final String reportPdf = rutaAcuse + File.separator + nombreArchivoAcuse;
+
+		//Guardamos en el directorio
+		JasperExportManager.exportReportToPdfFile(print, reportPdf);
+
+		Map<String, Object> param = new HashMap<>();
+		param.put("ruta",reportPdf);
+		//param.put("numeroTramite",tramite.getNumeroTramite());
+		//param.put("correo",user.getEmail());
+		//param.put("tramiteId",tramite.getId());
+		param.put("nombreArchivo",nombreArchivoAcuse);
+
+		return param;
+	}
+
+	public Map generarAcuseObservacionFirmado(AcuseReciboObservacionPideRequest acuseReciboObservacionPideRequest) throws Exception {
+
+		//Generamos el acuse
+		Map<String, Object> parameters = new ObjectMapper().convertValue(acuseReciboObservacionPideRequest, new TypeReference<Map<String, Object>>() {});
+		Map<String, Object> param =  generarReporteAcuseTramiteInteroperabilidadObservacion(parameters);
+
+		//Ahora se firma el documento
+		Resource fileResource = firmarDocumentoAcuseObservado(param, acuseReciboObservacionPideRequest.getPinFirma());
+
+		Map<String, Object> resultMap = new HashMap<>();
+		resultMap.put("file",fileResource);
+		resultMap.put("nombreArchivo",fileResource.getFilename());
+
+		return resultMap;
+	}
+
+	private Resource firmarDocumentoAcuseObservado(Map mapaArchivo, String pinFirma) throws Exception {
+		//Obtenemos el archiov
+		Path path = Paths.get(mapaArchivo.get("ruta").toString());
+		byte[] archivoAcuseByteArray = Files.readAllBytes(path);
+		CustomMultipartFile file = new CustomMultipartFile(archivoAcuseByteArray,mapaArchivo.get("nombreArchivo").toString(),"application/pdf");
+
+		//Obtenemos el usuario firma logo id
+		String usuarioFirmaLogoId = usuarioFirmaLogoService.obtenerUsuarioFirmaLogoByUsuarioFirmaId(usuarioFirmaService.obtenerUsuarioFirmaByUsuarioId(securityHelper.obtenerUserIdSession()).getId()).get(0).getId();
+		FirmaDocumentoTramiteHibridoBodyRequest firmaDocumentoTramiteHibridoBodyRequest = new FirmaDocumentoTramiteHibridoBodyRequest();
+		firmaDocumentoTramiteHibridoBodyRequest.setTextoFirma("En señal de conformidad");
+		firmaDocumentoTramiteHibridoBodyRequest.setPosition("3.4");
+		firmaDocumentoTramiteHibridoBodyRequest.setOrientacion("VERTICAL");
+		firmaDocumentoTramiteHibridoBodyRequest.setPin(pinFirma);
+		firmaDocumentoTramiteHibridoBodyRequest.setUsuarioFirmaLogoId(usuarioFirmaLogoId);
+		firmaDocumentoTramiteHibridoBodyRequest.setFile(file);
+		//firmaDocumentoTramiteHibridoBodyRequest.setTramiteId(tramiteId);
+		firmaDocumentoTramiteHibridoBodyRequest.setTipoDocumentoFirma(TipoDocumentoFirmaConstant.DOCUMENTO_ACUSE_OBSERVADO_PIDE);
+		String idTransaccionFirma = firmaDocumentoService.firmarDocumentoHibrido(firmaDocumentoTramiteHibridoBodyRequest);
+
+		//Obtener el archivo firmado
+		boolean encontrado = false;
+		Resource resource = null;
+		while(!encontrado){
+			Thread.sleep(1000l);
+			try{
+				resource = firmaDocumentoService.obtenerDocumentoExternoFirmado(idTransaccionFirma);
+				encontrado = true;
+			}catch (ResourceNotFoundException ex){
+				log.error("ERROR",ex);
+			}catch (Exception ex){
+				throw ex;
+			}
+		}
+		return resource;
 	}
 
 }

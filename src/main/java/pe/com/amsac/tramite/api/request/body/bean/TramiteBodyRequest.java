@@ -26,7 +26,7 @@ public class TramiteBodyRequest {
 	//Datos del documento
 	private LocalDate fechaDocumento;
 	private String tipoDocumentoId;
-	private String origenDocumento; //INTERNO, EXTERNO
+	private String origenDocumento; //INTERNO, EXTERNO, PIDE
 	private String numeroDocumento;
 	private String siglas;
 	private String formaRecepcionId;
@@ -64,6 +64,10 @@ public class TramiteBodyRequest {
 	private boolean validarTramiteRelacionado;
 
 	private String cuo;
+
+	//Pin para firmar
+	private String pinFirma;
+	private String dependenciaInternaDestinoTramitePide;
 
 	@Mapping("dependenciaDestino.id")
 	public String getDependenciaDestinoId(){return dependenciaDestinoId;}

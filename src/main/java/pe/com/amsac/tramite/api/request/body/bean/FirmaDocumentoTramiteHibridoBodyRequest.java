@@ -19,4 +19,5 @@ public class FirmaDocumentoTramiteHibridoBodyRequest {
 	private String tramiteDerivacionId;
 	private MultipartFile file;
 	private String usuarioFirmaLogoId;
+	private String tipoDocumentoFirma;
 }

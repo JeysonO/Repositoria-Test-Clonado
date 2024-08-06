@@ -10,6 +10,8 @@ public class EstadoTramiteConstant {
     public final static String REGISTRADO   = "REGISTRADO";
     public final static String NOTIFICADO   = "NOTIFICADO";
     public final static String CANCELADO    = "CANCELADO";
+    public final static String ELIMINADO    = "ELIMINADO"; //Se considera este estado para eliminacion logica
+
 
     public final static String PENDIENTE_PIDE           = "PENDIENTE"; //PIDE
     public final static String ENVIADO_PIDE             = "ENVIADO"; //PIDE
