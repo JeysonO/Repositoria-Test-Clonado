@@ -115,12 +115,19 @@ public class TramiteCommandHandlerService {
 		//Registramos tramite
 		Tramite tramitePide =  tramiteService.recepcionarTramitePide(tramiteBodyRequest);
 
-		//Generamos el acuse y se firma
-		Map param = tramiteService.generarReporteAcuseTramiteInteroperabilidad(tramitePide,tramiteBodyRequest.getDependenciaInternaDestinoTramitePide());
-		tramiteBodyRequest.setId(tramitePide.getId());
-		tramiteService.firmarDocumentoAcuse(param, tramiteBodyRequest.getPinFirma(), tramiteBodyRequest.getId());
-		//Nos aseguramos que se haya firmado el documento para continuar, sino lanzamos excepcion
-		tramiteService.actualizarAcuseComoDocumentoDelTramite(tramitePide.getId());
+		try{
+			//Generamos el acuse y se firma
+			Map param = tramiteService.generarReporteAcuseTramiteInteroperabilidad(tramitePide,tramiteBodyRequest.getDependenciaInternaDestinoTramitePide());
+			tramiteBodyRequest.setId(tramitePide.getId());
+			tramiteService.firmarDocumentoAcuse(param, tramiteBodyRequest.getPinFirma(), tramiteBodyRequest.getId());
+			//Nos aseguramos que se haya firmado el documento para continuar, sino lanzamos excepcion
+			tramiteService.actualizarAcuseComoDocumentoDelTramite(tramitePide.getId());
+		}catch (Exception ex){
+			//Si hay error, eliminamos logicamente el tramite creado
+			tramiteService.eliminarTramite(tramitePide.getId());
+			throw ex;
+		}
+
 
 		return tramitePide;
 

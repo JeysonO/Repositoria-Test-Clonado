@@ -525,6 +525,7 @@ public class TramiteController {
 
 
 		} catch (ServiceException se) {
+			log.error("ERROR", se);
 			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes(),se.getAtributos())).build();
 			httpStatus = HttpStatus.CONFLICT;
 		}

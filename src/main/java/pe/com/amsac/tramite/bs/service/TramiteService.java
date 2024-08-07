@@ -2344,7 +2344,7 @@ public class TramiteService {
 
 		DocumentoAdjuntoRequest documentoAdjuntoRequest = DocumentoAdjuntoRequest.builder()
 				.descripcion(DescripcionDocumentoAdjuntoConstant.DOCUMENTO_FIRMADO_DIGITALMENTE)
-				.tipoAdjunto(TipoAdjuntoConstant.ACUSE_RECIBO_TRAMITE_AMSAC)
+				.tipoAdjunto(TipoAdjuntoConstant.ACUSE_RECIBO_TRAMITE_PIDE)
 				.seccionAdjunto(SeccionAdjuntoConstant.SECUNDARIO)
 				.tramiteId(tramiteId)
 				.build();
@@ -2444,6 +2444,7 @@ public class TramiteService {
 		return resultMap;
 	}
 
+	//@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
 	private Resource firmarDocumentoAcuseObservado(Map mapaArchivo, String pinFirma) throws Exception {
 		//Obtenemos el archiov
 		Path path = Paths.get(mapaArchivo.get("ruta").toString());

@@ -14,6 +14,8 @@ import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -582,7 +584,7 @@ public class FirmaDocumentoService {
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 	}
 
-
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
 	public String firmarDocumentoHibrido(FirmaDocumentoTramiteHibridoBodyRequest firmaDocumentoTramiteHibridoBodyRequest) throws Exception {
 
 		//Obtenemos el id del usuario que desea firmar
