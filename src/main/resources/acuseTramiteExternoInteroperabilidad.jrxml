@@ -29,9 +29,7 @@
     <parameter name="emisorRazonSocial" class="java.lang.String"/>
     <parameter name="emisorRuc" class="java.lang.String"/>
     <parameter name="asunto" class="java.lang.String"/>
-    <!--
     <parameter name="destino" class="java.lang.String"/>
-    -->
 
     <title>
         <band height="800" splitType="Stretch">

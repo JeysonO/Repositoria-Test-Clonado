@@ -31,9 +31,7 @@
     <parameter name="asunto" class="java.lang.String"/>
     <parameter name="observacion" class="java.lang.String"/>
 
-    <!--
     <parameter name="destino" class="java.lang.String"/>
-    -->
 
     <title>
         <band height="800" splitType="Stretch">
