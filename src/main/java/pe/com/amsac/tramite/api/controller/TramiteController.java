@@ -499,5 +499,39 @@ public class TramiteController {
 
 	}
 
+	/**
+	 * Servicio que se encarga de registrar los tramites que viene de pide y qeu son recepcionados por la mesa de partes virtual pide
+	 * @param tramiteBodyrequest
+	 * @return
+	 * @throws Exception
+	 */
+	@PostMapping("/recepcionar-tramite-pide")
+	public ResponseEntity<CommonResponse> recepcionarTramitePide(@Valid @RequestBody TramiteBodyRequest tramiteBodyrequest) throws Exception {
+
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.CREATED;
+
+		try {
+
+			ObjectMapper objectMapper = new ObjectMapper();
+			log.info("Body para registrar recepcionar-tramite-pide:"+objectMapper.writeValueAsString(tramiteBodyrequest));
+
+			Tramite tramite = tramiteCommandHandlerService.recepcionarTramitePide(tramiteBodyrequest);
+
+			TramiteResponse tramiteResponse = mapper.map(tramite, TramiteResponse.class);
+
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(tramiteResponse).build();
+
+
+		} catch (ServiceException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes(),se.getAtributos())).build();
+			httpStatus = HttpStatus.CONFLICT;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+
+	}
+
 
 }

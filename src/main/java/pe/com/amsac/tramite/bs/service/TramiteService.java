@@ -2318,7 +2318,8 @@ public class TramiteService {
 		return cuo;
 	}
 
-	private void firmarDocumentoAcuse(Map mapaArchivo, String pinFirma, String tramiteId) throws Exception {
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
+	public void firmarDocumentoAcuse(Map mapaArchivo, String pinFirma, String tramiteId) throws Exception {
 		//Obtenemos el archiov
 		Path path = Paths.get(mapaArchivo.get("ruta").toString());
 		byte[] archivoAcuseByteArray = Files.readAllBytes(path);
@@ -2338,7 +2339,8 @@ public class TramiteService {
 		firmaDocumentoService.firmarDocumentoHibrido(firmaDocumentoTramiteHibridoBodyRequest);
 	}
 
-	private void actualizarAcuseComoDocumentoDelTramite(String tramiteId) throws Exception {
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
+	public void actualizarAcuseComoDocumentoDelTramite(String tramiteId) throws Exception {
 
 		DocumentoAdjuntoRequest documentoAdjuntoRequest = DocumentoAdjuntoRequest.builder()
 				.descripcion(DescripcionDocumentoAdjuntoConstant.DOCUMENTO_FIRMADO_DIGITALMENTE)
@@ -2476,6 +2478,175 @@ public class TramiteService {
 			}
 		}
 		return resource;
+	}
+
+
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
+	public Tramite recepcionarTramitePide(TramiteBodyRequest tramiteBodyRequest) throws Exception {
+
+		if(StringUtils.isBlank(tramiteBodyRequest.getIdTramiteRelacionado()) && tramiteBodyRequest.isValidarTramiteRelacionado()){
+			Map<String, Object> mapaRetorno = numeroDocumentoRepetido(tramiteBodyRequest);
+			if(mapaRetorno!=null && !((Map)mapaRetorno.get("atributos")).get("idTramiteRelacionado").toString().equals(tramiteBodyRequest.getId()) ){
+				throw new ServiceException((List<Mensaje>) mapaRetorno.get("errores"), (Map) mapaRetorno.get("atributos"));
+			}
+		}
+
+		Date fechaDocumento = null;
+		if(tramiteBodyRequest.getFechaDocumento()!=null){
+			ZoneId defaultZoneId = ZoneId.systemDefault();
+			LocalDate localDate = tramiteBodyRequest.getFechaDocumento();
+			tramiteBodyRequest.setFechaDocumento(null);
+			fechaDocumento =Date.from(localDate.atStartOfDay(defaultZoneId).toInstant());
+		}
+
+		Tramite tramite = mapper.map(tramiteBodyRequest,Tramite.class);
+
+		if(fechaDocumento!=null)
+			tramite.setFechaDocumento(fechaDocumento);
+
+		//List<Tramite> tramiteList = obtenerNumeroTramite();
+		/*
+		Tramite tramiteList = obtenerNumeroTramite();
+
+		int numeroTramite = 1;
+
+		if(!CollectionUtils.isEmpty(tramiteList))
+			numeroTramite = obtenerNumeroTramite().get(0).getNumeroTramite()+1;
+		tramite.setNumeroTramite(numeroTramite);
+		*/
+		tramite.setTramiteRelacionado(null);
+		if(!StringUtils.isBlank(tramiteBodyRequest.getIdTramiteRelacionado())){
+			Tramite tramiteRelacionado = new Tramite();
+			tramiteRelacionado.setId(tramiteBodyRequest.getIdTramiteRelacionado());
+			tramite.setTramiteRelacionado(tramiteRelacionado);
+		}
+
+		//Solo si es registro, genero un numero de tramite
+		if(StringUtils.isBlank(tramite.getId()))
+			tramite.setNumeroTramite(obtenerNumeroTramite());
+
+		//tramite.setEstado("A");
+		tramite.setEstado(EstadoTramiteConstant.REGISTRADO);
+		//Origen Documento es el atributo que me indica si el documento ha sido registrado por un usuario externo o uno interno
+		//Si es externo entonces viene de un usuario externo
+		if(tramiteBodyRequest.getOrigenDocumento().equals(OrigenDocumentoConstant.EXTERNO)){
+			tramite.setEntidadInterna(null);
+			tramite.setEntidadExterna(null);
+			tramite.setTramitePrioridad(null);
+			tramite.setDependenciaUsuarioCreacion(null);
+			tramite.setCargoUsuarioCreacion(null);
+			//Se setea la forma de recepcion siempre como digital
+			tramite.setFormaRecepcion(formaRecepcionService.findByFormaRecepcion("DIGITAL").get(0));
+
+			//Seteamos la razon social del usuario en el campo razon social del tramite
+			try{
+				String usuarioId = securityHelper.obtenerUserIdSession();
+				UsuarioResponse usuarioResponse = obtenerUsuarioById(usuarioId);
+				tramite.setRazonSocial(usuarioResponse.getPersona().getRazonSocialNombre());
+			}catch (Exception ex){
+				log.error("ERROR AL OBTENER RAZON SOCIAL",ex);
+			}
+		}
+		//Tramites generados de forma interna, lo hace un usuario interno, ya sea de origen interno o externo, este ultimo si estan regularizando un documento que ingreso un documento en fisico.
+		if(tramiteBodyRequest.getOrigenDocumento().equals(OrigenDocumentoConstant.INTERNO)){
+			if(tramiteBodyRequest.getOrigen().equals("INTERNO")){
+				tramite.setEntidadExterna(null);
+				tramite.setFormaRecepcion(null);
+			}else{
+				tramite.setEntidadInterna(null);
+				tramite.setRazonSocial(tramiteBodyRequest.getRazonSocial());
+			}
+			tramite.setDependenciaDestino(null);
+			//Obtenemos la dependencia que llega en el header para registrar el tramite
+			String dependenciaIdUserSession = securityHelper.obtenerDependenciaIdUserSession();
+			if(!StringUtils.isBlank(dependenciaIdUserSession)){
+				Dependencia dependencia = new Dependencia();
+				dependencia.setId(dependenciaIdUserSession);
+				tramite.setDependenciaUsuarioCreacion(dependencia);
+			}
+			//Obtenemos el cargo que llega en el header para registrar el tramite
+			String cargoIdUserSession = securityHelper.obtenerCargoIdUserSession();
+			if(!StringUtils.isBlank(cargoIdUserSession)){
+				Cargo cargo = new Cargo();
+				cargo.setId(cargoIdUserSession);
+				tramite.setCargoUsuarioCreacion(cargo);
+			}
+		}
+		//Estos trammites vienen de la recepcion de tramite pide, desde la mesa de partes virtual de pide
+		if(tramiteBodyRequest.getOrigenDocumento().equals(OrigenDocumentoConstant.PIDE)){
+
+			/*
+			tramite.setEntidadInterna(null);
+			tramite.setEntidadExterna(null);
+			tramite.setTramitePrioridad(null);
+			tramite.setDependenciaUsuarioCreacion(null);
+			tramite.setCargoUsuarioCreacion(null);
+			tramite.setFormaRecepcion(formaRecepcionService.findByFormaRecepcion("DIGITAL").get(0));
+			*/
+
+			tramite.setEntidadInterna(null);
+			tramite.setRazonSocial(tramiteBodyRequest.getRazonSocial());
+			tramite.setDependenciaDestino(null);
+			tramite.setCreatedDate(new Date());
+			tramite.setFormaRecepcion(formaRecepcionService.findByFormaRecepcion("DIGITAL").get(0));
+
+			//Obtenemos la dependencia que llega en el header para registrar el tramite
+			String dependenciaIdUserSession = securityHelper.obtenerDependenciaIdUserSession();
+			if(!StringUtils.isBlank(dependenciaIdUserSession)){
+				Dependencia dependencia = new Dependencia();
+				dependencia.setId(dependenciaIdUserSession);
+				tramite.setDependenciaUsuarioCreacion(dependencia);
+			}
+			//Obtenemos el cargo que llega en el header para registrar el tramite
+			String cargoIdUserSession = securityHelper.obtenerCargoIdUserSession();
+			if(!StringUtils.isBlank(cargoIdUserSession)){
+				Cargo cargo = new Cargo();
+				cargo.setId(cargoIdUserSession);
+				tramite.setCargoUsuarioCreacion(cargo);
+			}
+
+		}
+
+
+		//Si es modificacion
+		if(!StringUtils.isBlank(tramite.getId())){
+			Tramite tramiteTemporal = tramiteJPARepository.findById(tramite.getId()).get();
+			tramite.setCreatedByUser(tramiteTemporal.getCreatedByUser());
+			tramite.setCreatedDate(tramiteTemporal.getCreatedDate());
+			tramite.setNumeroTramite(tramiteTemporal.getNumeroTramite());
+		}
+
+		tramite.setTipoTramite(generarTipoTramite(tramiteBodyRequest));
+
+		tramiteJPARepository.save(tramite);
+		if(tramiteBodyRequest.getOrigenDocumento().equals(OrigenDocumentoConstant.EXTERNO)){
+			registrarDerivacion(tramite);
+			Map param = generarReporteAcuseTramite(tramite);
+			DocumentoAdjuntoResponse documentoAdjuntoResponse = registrarAcuseComoDocumentoDelTramite(param);
+			param.put("documentoAdjuntoId",documentoAdjuntoResponse.getId());
+			enviarAcuseTramite(param);
+		}
+
+		/*
+		if(tramiteBodyRequest.getOrigenDocumento().equals(OrigenDocumentoConstant.PIDE)){
+			Map param = generarReporteAcuseTramiteInteroperabilidad(tramite,tramiteBodyRequest.getDependenciaInternaDestinoTramitePide());
+			tramiteBodyRequest.setId(tramite.getId());
+			firmarDocumentoAcuse(param, tramiteBodyRequest.getPinFirma(), tramiteBodyRequest.getId());
+			//Nos aseguramos que se haya firmado el documento para continuar, sino lanzamos excepcion
+			actualizarAcuseComoDocumentoDelTramite(tramite.getId());
+		}
+		*/
+
+		//Guardamos datos de la entidad interna
+		if(tramite.getEntidadExterna()!=null){
+			registrarTramiteEntidadExterna(tramite);
+		}
+		if(tramite.getEntidadInterna()!=null){
+			registrarTramiteEntidadInterna(tramite);
+		}
+
+		return tramite;
+
 	}
 
 }
