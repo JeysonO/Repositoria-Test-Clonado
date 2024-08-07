@@ -350,11 +350,11 @@
 					</execution>
 				</executions>
 				<configuration>
-					<generatePackage>pe.com.amsac.tramite.pide.soap.tramite.request</generatePackage>
+					<generatePackage>pe.com.amsac.tramite.pide.soap.cuo.request</generatePackage>
 					<generateDirectory>${project.basedir}/src/main/java</generateDirectory>
 					<schemaDirectory>${project.basedir}/src/main/resources/wsdl</schemaDirectory>
 					<schemaIncludes>
-						<include>*.wsdl</include>
+						<include>cuo.wsdl</include>
 					</schemaIncludes>
 				</configuration>
 			</plugin>
