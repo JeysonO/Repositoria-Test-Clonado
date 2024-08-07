@@ -151,6 +151,7 @@ app:
 
   security:
     allow-resources: /documentos-adjuntos/pide,/firma-callback
+    allow-resources-filter: /documentos-adjuntos/pide/**,/firma-callback/**
 
 ## File Storage Properties
 file:
