@@ -128,6 +128,7 @@ app:
     scheduler: https://std.amsac.pe/admin/login
     enviarAcuseTramite: http://amsac-tramite-service:8200/tramites/enviar-acuse-tramite/%s
     pideServer: http://161.132.150.248/wsiopidetramite/IOTramite
+    cuoServer: https://ws3.pide.gob.pe/services/PcmCuo
 
   field:
     asuntoDerivacion: "STD AMSAC - Expediente Asignado"
@@ -140,6 +141,8 @@ app:
     nombre-amsac: AMSAC SAC
     cantidad-maxima-intentos: 3
     ruta-anexos: http://amsac.pe
+    indProduccion: N
+    servicio-cuo: 3011
 
   credenciales:
     schedule:

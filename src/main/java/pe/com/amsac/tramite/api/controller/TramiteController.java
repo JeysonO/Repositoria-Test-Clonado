@@ -471,5 +471,33 @@ public class TramiteController {
 		}
 	}
 
+	@GetMapping("/obtener-cuo")
+	public ResponseEntity<CommonResponse> obtenerCuo() throws Exception {
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.OK;
+
+		try {
+
+			log.info("obtenerCuo");
+
+			String cuo = tramiteService.obtenerCuo();
+
+			Map<String, Object> param = new HashMap<>();
+			param.put("cuo", cuo);
+
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(param).build();
+
+
+		} catch (Exception se) {
+			log.error("Error",se);
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, null,null)).build();
+			httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+
+	}
+
 
 }

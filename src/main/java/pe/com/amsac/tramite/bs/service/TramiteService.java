@@ -35,6 +35,8 @@ import pe.com.amsac.tramite.api.util.InternalErrorException;
 import pe.com.amsac.tramite.bs.domain.*;
 import pe.com.amsac.tramite.bs.repository.*;
 import pe.com.amsac.tramite.bs.util.*;
+import pe.com.amsac.tramite.pide.soap.cuo.request.*;
+import pe.com.amsac.tramite.pide.soap.endpoint.SOAPCUOConnector;
 import pe.com.amsac.tramite.pide.soap.endpoint.SOAPConnector;
 import pe.com.amsac.tramite.pide.soap.tramite.request.*;
 
@@ -84,6 +86,9 @@ public class TramiteService {
 
 	@Autowired
 	private SOAPConnector soapConnector;
+
+	@Autowired
+	private SOAPCUOConnector soapCuoConnector;
 
 	@Autowired
 	private Mapper mapper;
@@ -2291,8 +2296,26 @@ public class TramiteService {
 		return tipoTramite;
 	}
 
-	private String obtenerCuo(){
-		return "0000000090";
+	public String obtenerCuo(){
+
+		String indProduccion = env.getProperty("app.micelaneos.indProduccion");
+		String cuo = null;
+		ObjectCUOFactory objectFactory = new ObjectCUOFactory();
+
+		if(indProduccion.equals("N")){
+			GetCUO cuoEntidad = objectFactory.createGetCUO();
+			cuoEntidad.setIp("127.0.0.1");
+			GetCUOResponse getCUOEntidadResponse = soapCuoConnector.callWebService(cuoEntidad);
+			cuo = getCUOEntidadResponse.getReturn();
+		}else{
+			GetCUOEntidad cuoEntidad = objectFactory.createGetCUOEntidad();
+			cuoEntidad.setRuc(env.getProperty("app.micelaneos.ruc-amsac"));
+			cuoEntidad.setServicio(env.getProperty("app.micelaneos.servicio-cuo"));
+			GetCUOEntidadResponse getCUOEntidadResponse = soapCuoConnector.callWebService(cuoEntidad);
+			cuo = getCUOEntidadResponse.getReturn();
+		}
+
+		return cuo;
 	}
 
 	private void firmarDocumentoAcuse(Map mapaArchivo, String pinFirma, String tramiteId) throws Exception {
