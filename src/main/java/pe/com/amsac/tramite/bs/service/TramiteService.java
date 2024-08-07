@@ -2296,21 +2296,23 @@ public class TramiteService {
 
 	public String obtenerCuo(){
 
-		String indProduccion = env.getProperty("app.micelaneos.indProduccion");
+		String environment = env.getProperty("app.micelaneos.environment");
 		String cuo = null;
 		ObjectFactory objectFactory = new ObjectFactory();
 
-		if(indProduccion.equals("N")){
+		if(environment.equals("TEST")){ //TEST
 			GetCUO cuoEntidad = objectFactory.createGetCUO();
 			cuoEntidad.setIp("127.0.0.1");
 			GetCUOResponse getCUOEntidadResponse = soapCuoConnector.callWebService(cuoEntidad);
 			cuo = getCUOEntidadResponse.getReturn();
-		}else{
+		}else if(environment.equals("PROD")){ //PRODUCCION
 			GetCUOEntidad cuoEntidad = objectFactory.createGetCUOEntidad();
 			cuoEntidad.setRuc(env.getProperty("app.micelaneos.ruc-amsac"));
 			cuoEntidad.setServicio(env.getProperty("app.micelaneos.servicio-cuo"));
 			GetCUOEntidadResponse getCUOEntidadResponse = soapCuoConnector.callWebService(cuoEntidad);
 			cuo = getCUOEntidadResponse.getReturn();
+		}else{ //DESARROLLO
+			cuo = "0000000040";
 		}
 
 		return cuo;
