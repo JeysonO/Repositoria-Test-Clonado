@@ -13,8 +13,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -36,6 +34,7 @@ import pe.com.amsac.tramite.bs.domain.*;
 import pe.com.amsac.tramite.bs.repository.*;
 import pe.com.amsac.tramite.bs.util.*;
 import pe.com.amsac.tramite.pide.soap.cuo.request.*;
+import pe.com.amsac.tramite.pide.soap.cuo.request.ObjectFactory;
 import pe.com.amsac.tramite.pide.soap.endpoint.SOAPCUOConnector;
 import pe.com.amsac.tramite.pide.soap.endpoint.SOAPConnector;
 import pe.com.amsac.tramite.pide.soap.tramite.request.*;
@@ -43,7 +42,6 @@ import pe.com.amsac.tramite.pide.soap.tramite.request.*;
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.DatatypeFactory;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -1804,7 +1802,7 @@ public class TramiteService {
 		//Realizamos el envio del tramite
 		String respuestaPide = null;
 		String estadoSeguimientoEnvio = EstadoTramiteConstant.ENVIADO_PIDE;
-		ObjectFactory objectFactory = new ObjectFactory();
+		pe.com.amsac.tramite.pide.soap.tramite.request.ObjectFactory objectFactory = new pe.com.amsac.tramite.pide.soap.tramite.request.ObjectFactory();
 		JAXBElement jaxbTramiteResponse = objectFactory.createRecepcionarTramiteResponse(recepcionarTramiteResponse);
 		Date fechaEnvio = new Date();
 		try{
@@ -2101,7 +2099,7 @@ public class TramiteService {
 		//Se adecua esta parte
 		String respuestaPide = null;
 		String estadoSeguimientoEnvio = EstadoTramiteConstant.ENVIADO_PIDE;
-		ObjectFactory objectFactory = new ObjectFactory();
+		pe.com.amsac.tramite.pide.soap.tramite.request.ObjectFactory objectFactory = new pe.com.amsac.tramite.pide.soap.tramite.request.ObjectFactory();
 		JAXBElement jaxbTramiteResponse = objectFactory.createRecepcionarTramiteResponse(recepcionarTramiteResponse);
 		Date fechaEnvio = new Date();
 		try{
@@ -2300,7 +2298,7 @@ public class TramiteService {
 
 		String indProduccion = env.getProperty("app.micelaneos.indProduccion");
 		String cuo = null;
-		ObjectCUOFactory objectFactory = new ObjectCUOFactory();
+		ObjectFactory objectFactory = new ObjectFactory();
 
 		if(indProduccion.equals("N")){
 			GetCUO cuoEntidad = objectFactory.createGetCUO();

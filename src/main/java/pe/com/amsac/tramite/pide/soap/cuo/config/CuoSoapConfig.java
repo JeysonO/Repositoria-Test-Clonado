@@ -14,7 +14,8 @@ public class CuoSoapConfig {
     @Autowired
     private Environment env;
 
-    public Jaxb2Marshaller marshaller() {
+    @Bean
+    public Jaxb2Marshaller marshallerCuo() {
         Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
         // this is the package name specified in the <generatePackage> specified in
         // pom.xml
@@ -23,13 +24,13 @@ public class CuoSoapConfig {
     }
 
     @Bean
-    public SOAPCUOConnector soapConnector(Jaxb2Marshaller marshaller) {
+    public SOAPCUOConnector soapCuoConnector(Jaxb2Marshaller marshallerCuo) {
         SOAPCUOConnector client = new SOAPCUOConnector();
         //client.setDefaultUri("http://161.132.150.248/wsentidad/Entidad");
         //client.setDefaultUri("https://ws3.pide.gob.pe/services/PcmCuo");
         client.setDefaultUri(env.getProperty("app.url.cuoServer"));
-        client.setMarshaller(marshaller);
-        client.setUnmarshaller(marshaller);
+        client.setMarshaller(marshallerCuo);
+        client.setUnmarshaller(marshallerCuo);
         return client;
     }
 }

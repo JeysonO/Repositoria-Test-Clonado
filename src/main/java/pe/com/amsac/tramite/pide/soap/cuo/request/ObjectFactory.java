@@ -26,14 +26,14 @@ import javax.xml.bind.annotation.XmlRegistry;
  * 
  */
 @XmlRegistry
-public class ObjectCUOFactory {
+public class ObjectFactory {
 
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: pe.com.amsac.tramite.pide.soap.cuo.request
      * 
      */
-    public ObjectCUOFactory() {
+    public ObjectFactory() {
     }
 
     /**
