@@ -303,7 +303,7 @@ public class DocumentoAdjuntoController {
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 	}
 
-	@GetMapping("/downloadAcuseFile/{tramiteId}")
+	@GetMapping("/downloadAcusePideFile/{tramiteId}")
 	public ResponseEntity<Resource> downloadAcuseTramiteFile(@PathVariable String tramiteId, HttpServletRequest request)
 			throws Exception {
 		try {

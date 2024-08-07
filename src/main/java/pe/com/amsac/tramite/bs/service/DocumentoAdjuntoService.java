@@ -624,7 +624,8 @@ public class DocumentoAdjuntoService {
 
 		//return documentoAdjuntoJPARepository.findById(documentoAdjuntoId).get();
 
-		return documentoAdjuntoJPARepository.obtenerDocumentoAdjuntoAcuse(tramiteId, TipoAdjuntoConstant.ACUSE_RECIBO_TRAMITE_AMSAC).get();
+		//return documentoAdjuntoJPARepository.obtenerDocumentoAdjuntoAcuse(tramiteId, TipoAdjuntoConstant.ACUSE_RECIBO_TRAMITE_AMSAC).get();
+		return documentoAdjuntoJPARepository.obtenerDocumentoAdjuntoAcuse(tramiteId, TipoAdjuntoConstant.ACUSE_RECIBO_TRAMITE_PIDE).get();
 	}
 
 	public DocumentoAdjunto guardarAdjunto(DocumentoAdjunto documentoAdjunto){
