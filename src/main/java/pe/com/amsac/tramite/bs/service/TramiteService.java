@@ -2367,6 +2367,7 @@ public class TramiteService {
 
 	}
 
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
 	public void eliminarTramite(String tramiteId){
 		//Se considera eliminacion logica
 		Tramite tramite = findById(tramiteId);
