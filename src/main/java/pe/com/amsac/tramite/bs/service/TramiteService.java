@@ -2329,7 +2329,7 @@ public class TramiteService {
 		String usuarioFirmaLogoId = usuarioFirmaLogoService.obtenerUsuarioFirmaLogoByUsuarioFirmaId(usuarioFirmaService.obtenerUsuarioFirmaByUsuarioId(securityHelper.obtenerUserIdSession()).getId()).get(0).getId();
 		FirmaDocumentoTramiteHibridoBodyRequest firmaDocumentoTramiteHibridoBodyRequest = new FirmaDocumentoTramiteHibridoBodyRequest();
 		firmaDocumentoTramiteHibridoBodyRequest.setTextoFirma("En señal de conformidad");
-		firmaDocumentoTramiteHibridoBodyRequest.setPosition("3.4");
+		firmaDocumentoTramiteHibridoBodyRequest.setPosition("3.5");
 		firmaDocumentoTramiteHibridoBodyRequest.setOrientacion("VERTICAL");
 		firmaDocumentoTramiteHibridoBodyRequest.setPin(pinFirma);
 		firmaDocumentoTramiteHibridoBodyRequest.setUsuarioFirmaLogoId(usuarioFirmaLogoId);
@@ -2456,7 +2456,7 @@ public class TramiteService {
 		String usuarioFirmaLogoId = usuarioFirmaLogoService.obtenerUsuarioFirmaLogoByUsuarioFirmaId(usuarioFirmaService.obtenerUsuarioFirmaByUsuarioId(securityHelper.obtenerUserIdSession()).getId()).get(0).getId();
 		FirmaDocumentoTramiteHibridoBodyRequest firmaDocumentoTramiteHibridoBodyRequest = new FirmaDocumentoTramiteHibridoBodyRequest();
 		firmaDocumentoTramiteHibridoBodyRequest.setTextoFirma("En señal de conformidad");
-		firmaDocumentoTramiteHibridoBodyRequest.setPosition("3.4");
+		firmaDocumentoTramiteHibridoBodyRequest.setPosition("3.5");
 		firmaDocumentoTramiteHibridoBodyRequest.setOrientacion("VERTICAL");
 		firmaDocumentoTramiteHibridoBodyRequest.setPin(pinFirma);
 		firmaDocumentoTramiteHibridoBodyRequest.setUsuarioFirmaLogoId(usuarioFirmaLogoId);

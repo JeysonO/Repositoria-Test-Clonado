@@ -189,7 +189,6 @@
                 <imageExpression><![CDATA["C:/Users/sayhu/Downloads/huellas.jpg"]]></imageExpression>
             </image>
             -->
-            -->
             <!--
             <staticText>
                 <reportElement style="Detail" mode="Opaque" x="51" y="469" width="469" height="46"/>
