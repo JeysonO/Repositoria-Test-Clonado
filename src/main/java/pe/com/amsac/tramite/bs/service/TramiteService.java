@@ -2429,6 +2429,7 @@ public class TramiteService {
 		return param;
 	}
 
+	/*
 	public Map generarAcuseObservacionFirmado(AcuseReciboObservacionPideRequest acuseReciboObservacionPideRequest) throws Exception {
 
 		//Generamos el acuse
@@ -2444,9 +2445,10 @@ public class TramiteService {
 
 		return resultMap;
 	}
+	*/
 
-	//@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
-	private Resource firmarDocumentoAcuseObservado(Map mapaArchivo, String pinFirma) throws Exception {
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
+	public String firmarDocumentoAcuseObservado(Map mapaArchivo, String pinFirma) throws Exception {
 		//Obtenemos el archiov
 		Path path = Paths.get(mapaArchivo.get("ruta").toString());
 		byte[] archivoAcuseByteArray = Files.readAllBytes(path);
@@ -2465,6 +2467,7 @@ public class TramiteService {
 		firmaDocumentoTramiteHibridoBodyRequest.setTipoDocumentoFirma(TipoDocumentoFirmaConstant.DOCUMENTO_ACUSE_OBSERVADO_PIDE);
 		String idTransaccionFirma = firmaDocumentoService.firmarDocumentoHibrido(firmaDocumentoTramiteHibridoBodyRequest);
 
+		/*
 		//Obtener el archivo firmado
 		boolean encontrado = false;
 		Resource resource = null;
@@ -2485,6 +2488,9 @@ public class TramiteService {
 			}
 		}
 		return resource;
+		*/
+		return idTransaccionFirma;
+
 	}
 
 

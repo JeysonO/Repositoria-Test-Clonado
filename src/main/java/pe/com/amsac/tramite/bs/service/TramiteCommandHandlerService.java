@@ -25,6 +25,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
+import pe.com.amsac.tramite.api.config.exceptions.ResourceNotFoundException;
 import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.file.bean.FileStorageService;
 import pe.com.amsac.tramite.api.request.bean.*;
@@ -60,6 +61,8 @@ import java.util.stream.Stream;
 public class TramiteCommandHandlerService {
 
 	private final TramiteService tramiteService;
+
+	private final FirmaDocumentoService firmaDocumentoService;
 
 	public Map registrarTramitePideHandler(TramitePideBodyRequest tramitePideBodyRequest, MultipartFile filePrincipal, List<MultipartFile> fileAnexos, DatosFirmaDocumentoRequest datosFirmaDocumentoRequest) throws Exception {
 
@@ -131,6 +134,44 @@ public class TramiteCommandHandlerService {
 
 		return tramitePide;
 
+	}
+
+	public Map generarAcuseObservacionFirmado(AcuseReciboObservacionPideRequest acuseReciboObservacionPideRequest) throws Exception {
+
+		//Generamos el acuse
+		Map<String, Object> parameters = new ObjectMapper().convertValue(acuseReciboObservacionPideRequest, new TypeReference<Map<String, Object>>() {});
+		Map<String, Object> param =  tramiteService.generarReporteAcuseTramiteInteroperabilidadObservacion(parameters);
+
+		//Ahora se firma el documento
+		String idTransaccionFirma = tramiteService.firmarDocumentoAcuseObservado(param, acuseReciboObservacionPideRequest.getPinFirma());
+
+		log.info("Se genero el idTransaccionFirma para acuse observado: "+idTransaccionFirma);
+
+		//Obtener el archivo firmado
+		boolean encontrado = false;
+		Resource resource = null;
+		Integer cantidadIntentos = 0;
+		Integer cantidadIntentosMaximo = 5;
+		while(!encontrado){
+			Thread.sleep(1000l);
+			if(cantidadIntentos<=cantidadIntentosMaximo)
+				throw new ServiceException("NO SE OBTUVO EL ARCHIVO ACUSE FIRMADO");
+			try{
+				++cantidadIntentos;
+				resource = firmaDocumentoService.obtenerDocumentoExternoFirmado(idTransaccionFirma);
+				encontrado = true;
+			}catch (ResourceNotFoundException ex){
+				log.info("ARCHIVO NO ENCONTRADO "+idTransaccionFirma);
+			}catch (Exception ex){
+				throw ex;
+			}
+		}
+
+		Map<String, Object> resultMap = new HashMap<>();
+		resultMap.put("file",resource);
+		resultMap.put("nombreArchivo",resource.getFilename());
+
+		return resultMap;
 	}
 
 }

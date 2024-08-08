@@ -447,7 +447,7 @@ public class TramiteController {
 			throws Exception {
 		try {
 
-			Map<String, Object> param =  tramiteService.generarAcuseObservacionFirmado(acuseReciboObservacionPideRequest);
+			Map<String, Object> param =  tramiteCommandHandlerService.generarAcuseObservacionFirmado(acuseReciboObservacionPideRequest);
 			Resource resource = (Resource)param.get("file");
 			String nombreArchivo = param.get("nombreArchivo").toString();
 
