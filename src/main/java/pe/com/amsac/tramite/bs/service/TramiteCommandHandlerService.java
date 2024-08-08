@@ -154,7 +154,7 @@ public class TramiteCommandHandlerService {
 		Integer cantidadIntentosMaximo = 5;
 		while(!encontrado){
 			Thread.sleep(1000l);
-			if(cantidadIntentos<=cantidadIntentosMaximo)
+			if(cantidadIntentos>=cantidadIntentosMaximo)
 				throw new ServiceException("NO SE OBTUVO EL ARCHIVO ACUSE FIRMADO");
 			try{
 				++cantidadIntentos;
