@@ -2468,13 +2468,18 @@ public class TramiteService {
 		//Obtener el archivo firmado
 		boolean encontrado = false;
 		Resource resource = null;
+		Integer cantidadIntentos = 0;
+		Integer cantidadIntentosMaximo = 5;
 		while(!encontrado){
 			Thread.sleep(1000l);
+			if(cantidadIntentos<=cantidadIntentosMaximo)
+				throw new ServiceException("NO SE OBTUVO EL ARCHIVO ACUSE FIRMADO");
 			try{
+				++cantidadIntentos;
 				resource = firmaDocumentoService.obtenerDocumentoExternoFirmado(idTransaccionFirma);
 				encontrado = true;
 			}catch (ResourceNotFoundException ex){
-				log.error("ERROR",ex);
+				log.info("ARCHIVO NO ENCONTRADO "+idTransaccionFirma);
 			}catch (Exception ex){
 				throw ex;
 			}

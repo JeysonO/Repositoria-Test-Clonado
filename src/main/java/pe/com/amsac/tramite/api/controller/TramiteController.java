@@ -449,7 +449,7 @@ public class TramiteController {
 
 			Map<String, Object> param =  tramiteService.generarAcuseObservacionFirmado(acuseReciboObservacionPideRequest);
 			Resource resource = (Resource)param.get("file");
-			String nombreArchivo = param.get("nombre").toString();
+			String nombreArchivo = param.get("nombreArchivo").toString();
 
 			String contentType = null;
 			try {
@@ -467,6 +467,7 @@ public class TramiteController {
 					.body(resource);
 
 		} catch (Exception e) {
+			log.error("ERROR",e);
 			throw e;
 		}
 	}

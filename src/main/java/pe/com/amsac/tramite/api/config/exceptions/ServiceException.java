@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 @Data
-public class ServiceException extends Exception {
+public class ServiceException extends RuntimeException {
 
 	private static final long serialVersionUID = -2900331782449121653L;
 
