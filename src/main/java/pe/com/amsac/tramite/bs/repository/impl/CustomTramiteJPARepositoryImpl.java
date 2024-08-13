@@ -132,6 +132,10 @@ public class CustomTramiteJPARepositoryImpl extends
             whereClause = whereClause + " tt.id = :tipoTramiteId ";
         }
 
+        whereClause = (!"".equals(whereClause) ? whereClause + " "
+                + JpaConstant.CONDITION_AND + " " : "");
+        whereClause = whereClause + " t.estado <> 'ELIMINADO' ";
+
 
         return whereClause;
     }

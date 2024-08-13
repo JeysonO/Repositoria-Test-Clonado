@@ -1,18 +1,25 @@
 package pe.com.amsac.tramite.api.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import net.sf.jasperreports.engine.JasperExportManager;
+import net.sf.jasperreports.engine.JasperPrint;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.request.bean.AtenderDerivacionLoteRequest;
+import pe.com.amsac.tramite.api.request.bean.TramiteRequest;
 import pe.com.amsac.tramite.api.request.body.bean.*;
 import pe.com.amsac.tramite.api.request.bean.TramiteDerivacionRequest;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
@@ -622,6 +629,23 @@ public class TramiteDerivacionController {
 		}
 
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+
+	}
+
+	@GetMapping("/exportar-historial")
+	//public ResponseEntity<Resource> downloadFileEscala(@Valid TramiteRequest tramiteRequest, HttpServletResponse response) throws Exception {
+	public ResponseEntity<Resource> downloadHistorial(@Valid TramiteDerivacionRequest tramiteDerivacionRequest) throws Exception {
+
+		JasperPrint jasperPrint = tramiteDerivacionService.exportarHistorial(tramiteDerivacionRequest);
+
+		byte[] reporte = JasperExportManager.exportReportToPdf(jasperPrint);
+		Resource resource = new ByteArrayResource(reporte);
+
+		String contentType = "application/pdf";
+
+		return ResponseEntity.ok().contentType(MediaType.parseMediaType(contentType))
+				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=tramite-seguimiento-reporte.pdf")
+				.body(resource);
 
 	}
 

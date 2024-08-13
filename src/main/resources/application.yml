@@ -153,6 +153,9 @@ app:
     allow-resources: /documentos-adjuntos/pide,/firma-callback
     allow-resources-filter: /documentos-adjuntos/pide/**,/firma-callback/**
 
+  resources:
+    reporte-seguimiento-tramite: tramite/resource/reporte/reporteHistoricoDerivacion.jrxml
+
 ## File Storage Properties
 file:
   base-upload-dir: tramite/file

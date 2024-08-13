@@ -3,6 +3,12 @@ package pe.com.amsac.tramite.bs.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.jasperreports.engine.JasperCompileManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import net.sf.jasperreports.engine.util.JRLoader;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dozer.Mapper;
@@ -31,10 +37,7 @@ import pe.com.amsac.tramite.bs.util.EstadoTramiteDerivacionConstant;
 import pe.com.amsac.tramite.bs.util.FormaDerivacionConstant;
 import pe.com.amsac.tramite.bs.util.TipoAdjuntoConstant;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -2326,6 +2329,52 @@ public class TramiteDerivacionService {
 
 		return registroTramiteDerivacion;
 
+	}
+
+	public JasperPrint exportarHistorial(TramiteDerivacionRequest tramiteDerivacionRequest) throws Exception {
+
+		//Se obtiene el tramite
+		Tramite tramite = tramiteService.findById(tramiteDerivacionRequest.getTramiteId());
+
+		//Se obtiene el nombre de la dependencia/empresa
+		RestTemplate restTemplate = new RestTemplate();
+		String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/";
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
+		HttpEntity entity = new HttpEntity<>(null, headers);
+
+		String uriBusqueda = uri + tramite.getCreatedByUser();
+		ResponseEntity<CommonResponse> response = restTemplate.exchange(uriBusqueda, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+		LinkedHashMap<Object, Object> usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
+		String dependenciaEmpresa = tramite.getRazonSocial();
+
+		List<TramiteDerivacion> listaTramiteDerivacion = buscarTramiteDerivacionParams(tramiteDerivacionRequest);
+
+		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+
+		//InputStream url1 = classloader.getResourceAsStream("reporteHistorialDerivacion.jrxml");
+		//JasperReport jasperReport = JasperCompileManager.compileReport(url1);
+
+
+		JasperReport jasperReport = JasperCompileManager.compileReport(new FileInputStream(new File(env.getProperty("app.resources.reporte-seguimiento-tramite"))));
+
+		JRBeanCollectionDataSource source = new JRBeanCollectionDataSource(listaTramiteDerivacion);
+
+		String fecha = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date());
+
+		// Parameters for report
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("tramite", tramite.getNumeroTramite() );
+		parameters.put("asunto", tramite.getAsunto() );
+		parameters.put("fecha", fecha);
+		//parameters.put("fechaReporte", fecha);
+		parameters.put("dependenciaEmpresa", dependenciaEmpresa );
+		parameters.put("tipoTramite", tramite.getTipoTramite() );
+
+
+		JasperPrint print = JasperFillManager.fillReport(jasperReport,parameters,source);
+
+		return print;
 	}
 
 
