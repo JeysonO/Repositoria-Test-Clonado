@@ -141,7 +141,7 @@ app:
     nombre-amsac: AMSAC SAC
     cantidad-maxima-intentos: 3
     ruta-anexos: http://amsac.pe
-    environment: DEV
+    environment: TEST #DEV, TEST, PROD
     servicio-cuo: 3011
 
   credenciales:

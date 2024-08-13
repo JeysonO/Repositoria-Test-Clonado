@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.ws.client.core.support.WebServiceGatewaySupport;
+import org.springframework.ws.soap.client.core.SoapActionCallback;
 import pe.com.amsac.tramite.pide.soap.cuo.request.GetCUO;
 import pe.com.amsac.tramite.pide.soap.cuo.request.GetCUOEntidad;
 import pe.com.amsac.tramite.pide.soap.cuo.request.GetCUOEntidadResponse;
@@ -66,7 +67,7 @@ public class SOAPCUOConnector extends WebServiceGatewaySupport {
     public GetCUOResponse callWebService(GetCUO getCUO){
 
         GetCUOResponse response = (GetCUOResponse) getWebServiceTemplate()
-                .marshalSendAndReceive(getCUO);
+                .marshalSendAndReceive(getCUO,new SoapActionCallback("getCUO"));
         return response;
 
     }
@@ -74,7 +75,7 @@ public class SOAPCUOConnector extends WebServiceGatewaySupport {
     public GetCUOEntidadResponse callWebService(GetCUOEntidad getCUOEntidad){
 
         GetCUOEntidadResponse response = (GetCUOEntidadResponse) getWebServiceTemplate()
-                .marshalSendAndReceive(getCUOEntidad);
+                .marshalSendAndReceive(getCUOEntidad, new SoapActionCallback("getCUOEntidad"));
         return response;
 
     }
