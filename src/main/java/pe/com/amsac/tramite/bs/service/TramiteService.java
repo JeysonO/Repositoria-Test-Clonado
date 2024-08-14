@@ -1746,9 +1746,11 @@ public class TramiteService {
 		Map resultadoEnvio = new HashMap();
 		resultadoEnvio.put("resultado",EstadoResultadoEnvioPideConstant.OK);
 
-		//try {
-			//Obtenemos el nummero de cuo
-		String cuo = obtenerCuo();// "0000000060";
+		String cuo = tramite.getCuo();
+		if(StringUtils.isBlank(cuo)){
+			cuo = obtenerCuo();
+			tramite.setCuo(cuo);
+		}
 
 		String tipoDocumentoPide = tipoDocumentoPideJPARepository.findByTipoDocumentoPide(tipoDocumentoJPARepository.findById(tramitePideBodyRequest.getTipoDocumentoPideId()).get().getTipoDocumento()).get(0).getId();
 
@@ -1782,7 +1784,7 @@ public class TramiteService {
 		//recepcionTramite.setBpdfdoc(Base64.getEncoder().encode(filePrincipal.getBytes()));
 		recepcionTramite.setBpdfdoc(Base64.getEncoder().encode(documentopPrincipalResource.getInputStream().readAllBytes()));
 		recepcionTramite.setVnomdoc(getFileName(filePrincipal.getOriginalFilename()));
-		recepcionTramite.setVurldocanx("ruta anexos");
+		recepcionTramite.setVurldocanx(env.getProperty("app.url.descargaAnexoPideAmsac"));
 
 		fileAnexos.stream().forEach(x -> {
 			DocumentoAnexo documentoAnexo = new DocumentoAnexo();
@@ -1842,15 +1844,12 @@ public class TramiteService {
 		tramiteEnvioPideJPARepository.save(tramiteEnvioPide);
 
 		//Se actualizan datos de la transmision
-		tramite.setCuo(cuo);
+		//tramite.setCuo(cuo);
 		save(tramite);
 		//}catch (Exception ex){
 			//Si hay error en la ejecución, se queda con estado POR_ENVIAR para que se vuelva a intentar, hasta 3 veces
 
 		//}
-
-		//Registrammos en una tabla, el envio y la respuesta obtenida del envio, asi como la fecha y hora.
-
 		return resultadoEnvio;
 	}
 
@@ -2242,7 +2241,7 @@ public class TramiteService {
 	}
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void actualizarDatosDocumentoFirmadoDigitalmente(String tramiteId) throws Exception {
-		//Al ser asincrono, se espera un mmomento a que el documento ya se encuentre firmado
+		//Al ser asincrono, se espera un momento a que el documento ya se encuentre firmado
 		DocumentoAdjuntoRequest documentoAdjuntoRequest = DocumentoAdjuntoRequest.builder()
 				.descripcion(DescripcionDocumentoAdjuntoConstant.DOCUMENTO_FIRMADO_DIGITALMENTE)
 				.seccionAdjunto(SeccionAdjuntoConstant.PRINCIPAL)
@@ -2259,12 +2258,6 @@ public class TramiteService {
 
 			documentoAdjuntoList = documentoAdjuntoService.obtenerDocumentoAdjuntoParams(documentoAdjuntoRequest);
 			if(!CollectionUtils.isEmpty(documentoAdjuntoList)){
-				/*
-				DocumentoAdjunto documentoAdjunto = documentoAdjuntoList.get(0);
-				documentoAdjunto.setSeccionAdjunto(SeccionAdjuntoConstant.PRINCIPAL);
-				documentoAdjunto.setTipoAdjunto(TipoAdjuntoConstant.DOCUMENTO_TRAMITE);
-				documentoAdjuntoService.guardarAdjunto(documentoAdjunto);
-				*/
 				seObtuvoDocumentoFirmado = true;
 			}else{
 				Thread.sleep(1000);

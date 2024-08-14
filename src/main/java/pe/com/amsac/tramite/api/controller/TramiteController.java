@@ -338,8 +338,16 @@ public class TramiteController {
 
 	}
 
+	/**
+	 * Registro de tramite de pide que es registrado desde Tramite Documentario, lo hace un usuario interno, y puede firmar tambien el documento.
+	 * @param tramitePideBodyRequest
+	 * @param datosFirmaDocumentoRequest
+	 * @param filePrincipal
+	 * @param fileAnexos
+	 * @return
+	 * @throws Exception
+	 */
 	@PostMapping("/tramite-pide")
-	//public ResponseEntity<CommonResponse> registrarTramitePide(@Valid @RequestBody TramitePideBodyRequest tramitePideBodyRequest) throws Exception {
 	public ResponseEntity<CommonResponse> registrarDocumentoAdjunto(
 			@RequestPart(value = "tramite", required = true) TramitePideBodyRequest tramitePideBodyRequest,
 			@RequestPart(value = "datosFirmaDocumento", required = false) DatosFirmaDocumentoRequest datosFirmaDocumentoRequest,
@@ -357,6 +365,7 @@ public class TramiteController {
 			log.info("Body para registrar tramite pide:"+objectMapper.writeValueAsString(tramitePideBodyRequest));
 
 			Map resultadoEnvio = tramiteCommandHandlerService.registrarTramitePideHandler(tramitePideBodyRequest,filePrincipal,fileAnexos,datosFirmaDocumentoRequest);
+			log.info("resultadoEnvio: "+ resultadoEnvio);
 			List<Mensaje> mensajes = null;
 			//TramiteResponse tramiteResponse = mapper.map(tramite, TramiteResponse.class);
 			if(resultadoEnvio.get("resultado").equals(EstadoTramiteConstant.CON_ERROR_PIDE)
@@ -379,10 +388,12 @@ public class TramiteController {
 
 			commonResponse = CommonResponse.builder().meta(new Meta(estadoRespuesta, mensajes)).data(resultadoEnvio).build();
 
-
 		} catch (ServiceException se) {
 			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes(),se.getAtributos())).build();
 			httpStatus = HttpStatus.CONFLICT;
+		} catch (Exception ex) {
+			log.error("ERROR controller: ",ex);
+			throw ex;
 		}
 
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
@@ -472,6 +483,7 @@ public class TramiteController {
 		}
 	}
 
+	/*
 	@GetMapping("/obtener-cuo")
 	public ResponseEntity<CommonResponse> obtenerCuo() throws Exception {
 		CommonResponse commonResponse = null;
@@ -499,6 +511,7 @@ public class TramiteController {
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 
 	}
+	*/
 
 	/**
 	 * Servicio que se encarga de registrar los tramites que viene de pide y qeu son recepcionados por la mesa de partes virtual pide

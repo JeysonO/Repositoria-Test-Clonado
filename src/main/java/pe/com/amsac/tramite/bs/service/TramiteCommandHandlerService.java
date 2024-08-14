@@ -105,8 +105,8 @@ public class TramiteCommandHandlerService {
 			resultadEnvio.put("tramiteId",tramite.getId());
 			resultadEnvio.put("resultado",estadoTramite);
 		}catch (Exception ex){
-			//Hacemos la compensacion de la transaccion de registro de tramite, borramos
 			log.error("ERROR", ex);
+			tramiteService.eliminarTramite(tramitePide.getId());
 		}
 
 		return resultadEnvio;
