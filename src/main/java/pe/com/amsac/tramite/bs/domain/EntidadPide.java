@@ -31,6 +31,10 @@ public class EntidadPide extends BaseAuditableEntity<String> {
 	@Column(name = "nombre")
 	private String nombre;
 
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "id_categoria_entidad", referencedColumnName = "id_categoria_entidad")
+	private CategoriaEntidad categoriaEntidad;
+
 	@Column(name = "estado")
 	private String estado;
 

@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
+import pe.com.amsac.tramite.api.request.bean.EntidadPideRequest;
+import pe.com.amsac.tramite.api.request.bean.TramiteRequest;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.api.response.bean.Meta;
 import pe.com.amsac.tramite.api.response.bean.EntidadPideResponse;
@@ -15,6 +17,7 @@ import pe.com.amsac.tramite.api.util.EstadoRespuestaConstant;
 import pe.com.amsac.tramite.bs.domain.EntidadPide;
 import pe.com.amsac.tramite.bs.service.EntidadPideService;
 
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,14 +33,14 @@ public class EntidadPideController {
 	private Mapper mapper;
 
 	@GetMapping
-	public ResponseEntity<CommonResponse> obtenerEntidadPide() throws Exception {
+	public ResponseEntity<CommonResponse> obtenerEntidadPide(@Valid EntidadPideRequest entidadPideRequest ) throws Exception {
 
 		CommonResponse commonResponse = null;
 
 		HttpStatus httpStatus = HttpStatus.OK;
 
 		try {
-			List<EntidadPide> entidadPideList = tipoDocumentoPideService.obtenerEntidadPideByEstado("A");//tipoDocumentoService.findByAllTipoDocumento();
+			List<EntidadPide> entidadPideList = tipoDocumentoPideService.obtenerEntidadPideByCategoriaEntidad(entidadPideRequest.getIdCategoriaEntidad());//tipoDocumentoService.findByAllTipoDocumento();
 			List<EntidadPideResponse> entidadPideResponseList =  new ArrayList<>();
 			EntidadPideResponse entidadPideResponse = null;
 			for (EntidadPide temp : entidadPideList) {

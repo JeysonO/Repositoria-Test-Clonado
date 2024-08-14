@@ -16,13 +16,15 @@ public class EntidadPideService {
 	@Autowired
 	private EntidadPideJPARepository entidadPideJPARepository;
 
-	@Autowired
-	private Mapper mapper;
-
 
 	public List<EntidadPide> obtenerEntidadPideByEstado(String estado) throws Exception{
 
 		return entidadPideJPARepository.findByEstado(estado);
+	}
+
+	public List<EntidadPide> obtenerEntidadPideByCategoriaEntidad(String idCategoriaEntidad) throws Exception{
+
+		return entidadPideJPARepository.findByCategoriaEntidad_Id(idCategoriaEntidad);
 	}
 		
 	
