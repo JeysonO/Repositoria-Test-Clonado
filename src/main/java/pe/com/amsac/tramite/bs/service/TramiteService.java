@@ -2655,4 +2655,30 @@ public class TramiteService {
 
 	}
 
+	public boolean probarConexionAPide(){
+		boolean conexionValida = true;
+		//Realizamos el envio del tramite
+		String respuestaPide = null;
+		String estadoSeguimientoEnvio = EstadoTramiteConstant.ENVIADO_PIDE;
+		pe.com.amsac.tramite.pide.soap.tramite.request.ObjectFactory objectFactory = new pe.com.amsac.tramite.pide.soap.tramite.request.ObjectFactory();
+		RecepcionTramite recepcionTramite = new RecepcionTramite();
+		recepcionTramite.setVrucentrem(env.getProperty("app.micelaneos.ruc-amsac"));
+		RecepcionarTramiteResponse recepcionarTramiteResponse = new RecepcionarTramiteResponse();
+		recepcionarTramiteResponse.setRequest(recepcionTramite);
+		JAXBElement jaxbTramiteResponse = objectFactory.createRecepcionarTramiteResponse(recepcionarTramiteResponse);
+		Date fechaEnvio = new Date();
+		try{
+			JAXBElement jaxbElementResponse = (JAXBElement) soapConnector.callWebService(env.getProperty("app.url.pideServer"), jaxbTramiteResponse);
+			//RecepcionarTramiteResponseResponse recepcionarTramiteResponseResponse = soapConnector.callWebService(recepcionarTramiteResponse);
+
+			RecepcionarTramiteResponseResponse recepcionarTramiteResponseResponse = (RecepcionarTramiteResponseResponse) jaxbElementResponse.getValue();
+			log.info("Respuesta Envio: " + recepcionarTramiteResponseResponse.getReturn().getVcodres());
+
+		}catch(Exception ex){
+			log.error("ERROR", ex);
+			conexionValida = false;
+		}
+		return conexionValida;
+	}
+
 }

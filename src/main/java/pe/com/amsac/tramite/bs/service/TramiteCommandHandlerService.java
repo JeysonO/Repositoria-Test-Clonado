@@ -66,6 +66,11 @@ public class TramiteCommandHandlerService {
 
 	public Map registrarTramitePideHandler(TramitePideBodyRequest tramitePideBodyRequest, MultipartFile filePrincipal, List<MultipartFile> fileAnexos, DatosFirmaDocumentoRequest datosFirmaDocumentoRequest) throws Exception {
 
+		/*
+		if(!tramiteService.probarConexionAPide())
+			throw new ServiceException("La conexión a PIDE no esta Disponible, intente nuevamente");
+		*/
+
 		Tramite tramitePide =  tramiteService.registrarTramitePide(tramitePideBodyRequest, filePrincipal, fileAnexos, datosFirmaDocumentoRequest);
 
 		Map resultadEnvio = new HashMap();

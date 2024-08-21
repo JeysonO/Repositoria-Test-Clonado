@@ -3,6 +3,7 @@ package pe.com.amsac.tramite.api.config.exceptions;
 import lombok.Data;
 import pe.com.amsac.tramite.api.response.bean.Mensaje;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -13,6 +14,7 @@ public class ServiceException extends RuntimeException {
 
 	public ServiceException(String message) {
 		super(message);
+		this.mensajes = Arrays.asList(new Mensaje("0000","E", message));
 	}
 
 	public ServiceException(List<Mensaje> mensajes) {

@@ -127,8 +127,10 @@ app:
     linkTramite: https://std.amsac.pe/admin/tramites-pendientes/
     scheduler: https://std.amsac.pe/admin/login
     enviarAcuseTramite: http://amsac-tramite-service:8200/tramites/enviar-acuse-tramite/%s
-    pideServer: http://161.132.150.248/wsiopidetramite/IOTramite
+    ##pideServer: http://161.132.150.248/wsiopidetramite/IOTramite
+    pideServer: http://mpv-iotd.gobiernodigital.gob.pe/wsiopidetramite/IOTramite
     cuoServer: https://ws3.pide.gob.pe/services/PcmCuo
+    descargaAnexoPideAmsac: https://std.amsac.pe/admin/descargar-anexo
 
   field:
     asuntoDerivacion: "STD AMSAC - Expediente Asignado"
