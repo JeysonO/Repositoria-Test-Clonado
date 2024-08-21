@@ -1808,6 +1808,7 @@ public class TramiteService {
 		JAXBElement jaxbTramiteResponse = objectFactory.createRecepcionarTramiteResponse(recepcionarTramiteResponse);
 		Date fechaEnvio = new Date();
 		try{
+			log.info("Enviado Tramite: "+ tramite.getId() +", CUO:"+tramite.getCuo()+", a la siguiente ruta: "+env.getProperty("app.url.pideServer"));
 			JAXBElement jaxbElementResponse = (JAXBElement) soapConnector.callWebService(env.getProperty("app.url.pideServer"), jaxbTramiteResponse);
 			//RecepcionarTramiteResponseResponse recepcionarTramiteResponseResponse = soapConnector.callWebService(recepcionarTramiteResponse);
 
