@@ -515,12 +515,12 @@ public class TramiteController {
 
 	/**
 	 * Servicio que se encarga de registrar los tramites que viene de pide y qeu son recepcionados por la mesa de partes virtual pide
-	 * @param tramiteBodyrequest
+	 * @param tramitePIDERecepcionBodyRequest
 	 * @return
 	 * @throws Exception
 	 */
 	@PostMapping("/recepcionar-tramite-pide")
-	public ResponseEntity<CommonResponse> recepcionarTramitePide(@Valid @RequestBody TramiteBodyRequest tramiteBodyrequest) throws Exception {
+	public ResponseEntity<CommonResponse> recepcionarTramitePide(@Valid @RequestBody TramitePIDERecepcionBodyRequest tramitePIDERecepcionBodyRequest) throws Exception {
 
 		CommonResponse commonResponse = null;
 
@@ -529,9 +529,9 @@ public class TramiteController {
 		try {
 
 			ObjectMapper objectMapper = new ObjectMapper();
-			log.info("Body para registrar recepcionar-tramite-pide:"+objectMapper.writeValueAsString(tramiteBodyrequest));
+			log.info("Body para registrar recepcionar-tramite-pide:"+objectMapper.writeValueAsString(tramitePIDERecepcionBodyRequest));
 
-			Tramite tramite = tramiteCommandHandlerService.recepcionarTramitePide(tramiteBodyrequest);
+			Tramite tramite = tramiteCommandHandlerService.recepcionarTramitePide(tramitePIDERecepcionBodyRequest);
 
 			TramiteResponse tramiteResponse = mapper.map(tramite, TramiteResponse.class);
 

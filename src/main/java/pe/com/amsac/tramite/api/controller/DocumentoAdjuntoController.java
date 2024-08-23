@@ -400,4 +400,59 @@ public class DocumentoAdjuntoController {
 
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 	}
+
+	@PostMapping("/firmar-cargo-tramite-pide")
+	public ResponseEntity<Resource> firmarCargoTramitePide(
+			@RequestParam(value = "tramiteId", required = false) String tramiteId,
+			@RequestParam(value = "file", required = true) MultipartFile file,
+			@RequestParam(value = "textoFirma", required = false) String textoFirma,
+			@RequestParam(value = "position", required = false) String position,
+			@RequestParam(value = "orientacion", required = false) String orientacion,
+			@RequestParam(value = "positionCustom", required = false) String positionCustom,
+			@RequestParam(value = "pin", required = false) String pin,
+			@RequestParam(value = "usuarioFirmaLogoId", required = false) String usuarioFirmaLogoId
+			, HttpServletRequest request) throws Exception {
+
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.OK;
+
+		try {
+
+			FirmaDocumentoTramiteHibridoBodyRequest firmaDocumentoTramiteHibridoBodyRequest = new FirmaDocumentoTramiteHibridoBodyRequest();
+			firmaDocumentoTramiteHibridoBodyRequest.setTextoFirma(textoFirma);
+			firmaDocumentoTramiteHibridoBodyRequest.setPosition(position);
+			firmaDocumentoTramiteHibridoBodyRequest.setOrientacion(orientacion);
+			firmaDocumentoTramiteHibridoBodyRequest.setPositionCustom(positionCustom);
+			firmaDocumentoTramiteHibridoBodyRequest.setPin(pin);
+			firmaDocumentoTramiteHibridoBodyRequest.setUsuarioFirmaLogoId(usuarioFirmaLogoId);
+			firmaDocumentoTramiteHibridoBodyRequest.setFile(file);
+			firmaDocumentoTramiteHibridoBodyRequest.setTramiteId(tramiteId);
+
+			//Resource resource = documentoAdjuntoService.obtenerDocumentoAdjunto(documentoAdjuntoRequest);
+			Map<String, Object> param =  documentoAdjuntoService.generarCargoFirmado(firmaDocumentoTramiteHibridoBodyRequest);
+			Resource resource = (Resource)param.get("file");
+			String nombreArchivo = param.get("nombre").toString();
+
+			String contentType = null;
+			try {
+				contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
+			} catch (IOException ex) {
+				LOGGER.info("No se puede determinar el MimeType.");
+			}
+
+			if (contentType == null) {
+				contentType = "application/octet-stream";
+			}
+
+			return ResponseEntity.ok().contentType(MediaType.parseMediaType(contentType))
+					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nombreArchivo + "\"")
+					.body(resource);
+
+
+		} catch (Exception ex) {
+			throw ex;
+		}
+
+	}
 }

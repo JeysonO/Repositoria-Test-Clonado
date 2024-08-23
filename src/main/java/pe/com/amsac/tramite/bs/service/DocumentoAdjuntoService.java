@@ -1,5 +1,6 @@
 package pe.com.amsac.tramite.bs.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javassist.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +14,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
+import pe.com.amsac.tramite.api.config.exceptions.ResourceNotFoundException;
 import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.file.bean.FileStorageService;
 import pe.com.amsac.tramite.api.file.bean.FileTxProperties;
@@ -22,9 +24,7 @@ import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoAcusePideRequest;
 import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoPideRequest;
 import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
 import pe.com.amsac.tramite.api.request.bean.TramiteRequest;
-import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoBodyRequest;
-import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoCargaFromDirectoryBodyRequest;
-import pe.com.amsac.tramite.api.request.body.bean.DocumentoAdjuntoMigracionBodyRequest;
+import pe.com.amsac.tramite.api.request.body.bean.*;
 import pe.com.amsac.tramite.api.response.bean.DocumentoAdjuntoResponse;
 import pe.com.amsac.tramite.api.response.bean.Mensaje;
 import pe.com.amsac.tramite.api.util.FileUtils;
@@ -88,6 +88,9 @@ public class DocumentoAdjuntoService {
 
 	@Autowired
 	private EntityManager entityManager;
+
+	@Autowired
+	private FirmaDocumentoService firmaDocumentoService;
 
 	public List<DocumentoAdjuntoResponse> obtenerDocumentoAdjuntoList(DocumentoAdjuntoRequest documentoAdjuntoRequest) throws Exception {
 
@@ -684,6 +687,49 @@ public class DocumentoAdjuntoService {
 		documentoAdjuntoResponse.setUploadFileResponse(createUploadFileResponse(file, documentoAdjunto));
 
 		return documentoAdjuntoResponse;
+	}
+
+	public Map generarCargoFirmado(FirmaDocumentoTramiteHibridoBodyRequest firmaDocumentoTramiteHibridoBodyRequest) throws Exception {
+
+		Resource resource = null;
+
+		if(firmaDocumentoTramiteHibridoBodyRequest.getTramiteId()==null){ //El cargo observado no necesita ser registrado
+			String idTransaccionFirma = tramiteService.firmarDocumentoAcuseObservado(firmaDocumentoTramiteHibridoBodyRequest);
+
+			log.info("Se genero el idTransaccionFirma para acuse observado: "+idTransaccionFirma);
+
+			//Obtener el archivo firmado
+			boolean encontrado = false;
+
+			Integer cantidadIntentos = 0;
+			Integer cantidadIntentosMaximo = 5;
+			while(!encontrado){
+				Thread.sleep(1000l);
+				if(cantidadIntentos>=cantidadIntentosMaximo)
+					throw new ServiceException("NO SE OBTUVO EL ARCHIVO ACUSE FIRMADO");
+				try{
+					++cantidadIntentos;
+					resource = firmaDocumentoService.obtenerDocumentoExternoFirmado(idTransaccionFirma);
+					encontrado = true;
+				}catch (ResourceNotFoundException ex){
+					log.info("ARCHIVO NO ENCONTRADO "+idTransaccionFirma);
+				}catch (Exception ex){
+					throw ex;
+				}
+			}
+		}else{
+			String idTransaccionFirma = tramiteService.firmarDocumentoCargoPIDE(firmaDocumentoTramiteHibridoBodyRequest);
+			//Nos aseguramos que se haya firmado el documento para continuar, sino lanzamos excepcion
+			tramiteService.actualizarAcuseComoDocumentoDelTramite(firmaDocumentoTramiteHibridoBodyRequest.getTramiteId());
+
+			resource = firmaDocumentoService.obtenerDocumentoExternoFirmado(idTransaccionFirma);
+		}
+
+		Map<String, Object> resultMap = new HashMap<>();
+		resultMap.put("file",resource);
+		resultMap.put("nombreArchivo",resource.getFilename());
+
+		return resultMap;
 	}
 
 }

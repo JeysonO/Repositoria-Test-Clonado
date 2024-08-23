@@ -118,11 +118,13 @@ public class TramiteCommandHandlerService {
 
 	}
 
-	public Tramite recepcionarTramitePide(TramiteBodyRequest tramiteBodyRequest) throws Exception {
+	public Tramite recepcionarTramitePide(TramitePIDERecepcionBodyRequest tramiteBodyRequest) throws Exception {
 
 		//Registramos tramite
 		Tramite tramitePide =  tramiteService.recepcionarTramitePide(tramiteBodyRequest);
 
+		//Esta parte ya no lo consideramos en este punto porque se tiene que firmar el documento principal que seria el cargo.
+		/*
 		try{
 			//Generamos el acuse y se firma
 			Map param = tramiteService.generarReporteAcuseTramiteInteroperabilidad(tramitePide,tramiteBodyRequest.getDependenciaInternaDestinoTramitePide());
@@ -135,6 +137,7 @@ public class TramiteCommandHandlerService {
 			tramiteService.eliminarTramite(tramitePide.getId());
 			throw ex;
 		}
+		*/
 
 
 		return tramitePide;

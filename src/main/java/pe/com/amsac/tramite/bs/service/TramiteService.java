@@ -1822,6 +1822,7 @@ public class TramiteService {
 			}else{
 				tramite.setFechaEnvio(fechaEnvio);
 			}
+			//TODO Falta considerar el estado -1, con estado -1 debe entrar a la politica de reintentos.
 			respuestaPide = new ObjectMapper().writeValueAsString(recepcionarTramiteResponseResponse.getReturn());
 
 		}catch(Exception ex){
@@ -2489,14 +2490,16 @@ public class TramiteService {
 
 
 	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
-	public Tramite recepcionarTramitePide(TramiteBodyRequest tramiteBodyRequest) throws Exception {
+	public Tramite recepcionarTramitePide(TramitePIDERecepcionBodyRequest tramiteBodyRequest) throws Exception {
 
+		/*
 		if(StringUtils.isBlank(tramiteBodyRequest.getIdTramiteRelacionado()) && tramiteBodyRequest.isValidarTramiteRelacionado()){
 			Map<String, Object> mapaRetorno = numeroDocumentoRepetido(tramiteBodyRequest);
 			if(mapaRetorno!=null && !((Map)mapaRetorno.get("atributos")).get("idTramiteRelacionado").toString().equals(tramiteBodyRequest.getId()) ){
 				throw new ServiceException((List<Mensaje>) mapaRetorno.get("errores"), (Map) mapaRetorno.get("atributos"));
 			}
 		}
+		*/
 
 		Date fechaDocumento = null;
 		if(tramiteBodyRequest.getFechaDocumento()!=null){
@@ -2623,9 +2626,10 @@ public class TramiteService {
 			tramite.setNumeroTramite(tramiteTemporal.getNumeroTramite());
 		}
 
-		tramite.setTipoTramite(generarTipoTramite(tramiteBodyRequest));
+		tramite.setTipoTramite(generarTipoTramite(mapper.map(tramiteBodyRequest,TramiteBodyRequest.class)));
 
 		tramiteJPARepository.save(tramite);
+		/*
 		if(tramiteBodyRequest.getOrigenDocumento().equals(OrigenDocumentoConstant.EXTERNO)){
 			registrarDerivacion(tramite);
 			Map param = generarReporteAcuseTramite(tramite);
@@ -2633,6 +2637,7 @@ public class TramiteService {
 			param.put("documentoAdjuntoId",documentoAdjuntoResponse.getId());
 			enviarAcuseTramite(param);
 		}
+		*/
 
 		/*
 		if(tramiteBodyRequest.getOrigenDocumento().equals(OrigenDocumentoConstant.PIDE)){
@@ -2680,6 +2685,25 @@ public class TramiteService {
 			conexionValida = false;
 		}
 		return conexionValida;
+	}
+
+
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
+	public String firmarDocumentoCargoPIDE(FirmaDocumentoTramiteHibridoBodyRequest firmaDocumentoTramiteHibridoBodyRequest) throws Exception {
+		firmaDocumentoTramiteHibridoBodyRequest.setTipoDocumentoFirma(TipoDocumentoFirmaConstant.DOCUMENTO_ACUSE_PIDE);
+		return firmaDocumentoService.firmarDocumentoHibrido(firmaDocumentoTramiteHibridoBodyRequest);
+	}
+
+
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
+	public String firmarDocumentoAcuseObservado(FirmaDocumentoTramiteHibridoBodyRequest firmaDocumentoTramiteHibridoBodyRequest) throws Exception {
+
+		//Obtenemos el usuario firma logo id
+		firmaDocumentoTramiteHibridoBodyRequest.setTipoDocumentoFirma(TipoDocumentoFirmaConstant.DOCUMENTO_ACUSE_OBSERVADO_PIDE);
+		String idTransaccionFirma = firmaDocumentoService.firmarDocumentoHibrido(firmaDocumentoTramiteHibridoBodyRequest);
+
+		return idTransaccionFirma;
+
 	}
 
 }
