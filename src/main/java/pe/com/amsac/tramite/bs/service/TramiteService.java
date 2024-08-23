@@ -2626,7 +2626,11 @@ public class TramiteService {
 			tramite.setNumeroTramite(tramiteTemporal.getNumeroTramite());
 		}
 
-		tramite.setTipoTramite(generarTipoTramite(mapper.map(tramiteBodyRequest,TramiteBodyRequest.class)));
+		TramiteBodyRequest tramiteBodyRequestTmp = new TramiteBodyRequest();
+		tramiteBodyRequestTmp.setOrigen(tramiteBodyRequest.getOrigen());
+		tramiteBodyRequestTmp.setOrigenDocumento(tramiteBodyRequest.getOrigenDocumento());
+
+		tramite.setTipoTramite(generarTipoTramite(tramiteBodyRequestTmp));
 
 		tramiteJPARepository.save(tramite);
 		/*
