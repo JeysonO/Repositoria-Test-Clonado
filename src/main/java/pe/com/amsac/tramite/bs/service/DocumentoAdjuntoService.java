@@ -723,7 +723,10 @@ public class DocumentoAdjuntoService {
 			//Nos aseguramos que se haya firmado el documento para continuar, sino lanzamos excepcion
 			tramiteService.actualizarAcuseComoDocumentoDelTramite(firmaDocumentoTramiteHibridoBodyRequest.getTramiteId());
 
-			resource = firmaDocumentoService.obtenerDocumentoExternoFirmado(idTransaccionFirma);
+			DocumentoAdjunto documentoAdjunto = obtenerDocumentoAdjuntoAcuse(firmaDocumentoTramiteHibridoBodyRequest.getTramiteId());
+			resource = obtenerArchivo(documentoAdjunto);
+
+			//resource = firmaDocumentoService.obtenerDocumentoExternoFirmado(idTransaccionFirma);
 		}
 
 		Map<String, Object> resultMap = new HashMap<>();
