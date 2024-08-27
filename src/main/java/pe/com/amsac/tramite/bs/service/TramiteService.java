@@ -2346,7 +2346,7 @@ public class TramiteService {
 		List<DocumentoAdjunto> documentoAdjuntoList = null;
 		boolean seObtuvoDocumentoFirmado = false;
 		int cantidadIntentos = 0;
-		int cantidadIntentosMaximo = 5;
+		int cantidadIntentosMaximo = 6;
 		while(!seObtuvoDocumentoFirmado){
 			if(cantidadIntentos == cantidadIntentosMaximo)
 				throw new ServiceException("No se pudo firmar documento, volver a intentarlo en breve");
@@ -2692,14 +2692,14 @@ public class TramiteService {
 	}
 
 
-	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
+	//@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
 	public String firmarDocumentoCargoPIDE(FirmaDocumentoTramiteHibridoBodyRequest firmaDocumentoTramiteHibridoBodyRequest) throws Exception {
 		firmaDocumentoTramiteHibridoBodyRequest.setTipoDocumentoFirma(TipoDocumentoFirmaConstant.DOCUMENTO_ACUSE_PIDE);
 		return firmaDocumentoService.firmarDocumentoHibrido(firmaDocumentoTramiteHibridoBodyRequest);
 	}
 
 
-	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
+	//@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
 	public String firmarDocumentoAcuseObservado(FirmaDocumentoTramiteHibridoBodyRequest firmaDocumentoTramiteHibridoBodyRequest) throws Exception {
 
 		//Obtenemos el usuario firma logo id

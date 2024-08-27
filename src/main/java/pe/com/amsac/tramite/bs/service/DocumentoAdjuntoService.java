@@ -719,6 +719,7 @@ public class DocumentoAdjuntoService {
 			}
 		}else{
 			String idTransaccionFirma = tramiteService.firmarDocumentoCargoPIDE(firmaDocumentoTramiteHibridoBodyRequest);
+			log.info("idTransaccionFirma: "+idTransaccionFirma);
 			//Nos aseguramos que se haya firmado el documento para continuar, sino lanzamos excepcion
 			tramiteService.actualizarAcuseComoDocumentoDelTramite(firmaDocumentoTramiteHibridoBodyRequest.getTramiteId());
 
