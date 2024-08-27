@@ -731,7 +731,7 @@ public class DocumentoAdjuntoService {
 
 		Map<String, Object> resultMap = new HashMap<>();
 		resultMap.put("file",resource);
-		resultMap.put("nombreArchivo",resource.getFilename());
+		resultMap.put("nombre",resource.getFilename());
 
 		return resultMap;
 	}
