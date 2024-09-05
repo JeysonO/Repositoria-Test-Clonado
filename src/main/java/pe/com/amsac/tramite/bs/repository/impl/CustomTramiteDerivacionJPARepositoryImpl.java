@@ -214,7 +214,7 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
         String orderByClause = null;
 
         if(parameters.get("tipoTramite").equals(TipoTramiteConstant.DESPACHO_PIDE)){
-            selectClause = "select '0' as id_tramite_derivacion, t.id_tramite, t.numero_tramite as numTramite, t.created_date as fechaCreacion, t.asunto, t.estado, di.nombre as dependenciaEmisor, CONCAT(ui.nombre,' ',ui.ape_paterno) as usuarioEmisior, ep.nombre as dependenciaDestino, ee.nombre as usuarioDestino, do.descripcion, tp.descripcion as prioridad, DATEDIFF(HOUR,t.fecha_envio,ISNULL(t.fecha_recepcion,GETDATE())) as atencion \n" +
+            selectClause = "select '0' as id_tramite_derivacion, t.id_tramite, t.numero_tramite as numTramite, t.created_date as fechaCreacion, t.asunto, t.estado, di.nombre as dependenciaEmisor, CONCAT(ui.nombre,' ',ui.ape_paterno) as usuarioEmisior, ep.nombre as dependenciaDestino, ee.nombre as usuarioDestino, do.descripcion, tp.descripcion as prioridad, DATEDIFF(HOUR,t.fecha_envio,ISNULL(t.fecha_recepcion,GETDATE())) as atencion, tt.tipo_tramite \n" +
                     "from tramite t \n" +
                     "inner join tipo_tramite tt   on tt.id_tipo_tramite = t.id_tipo_tramite\n" +
                     "inner join dependencia di    on di.id_dependencia = t.id_dependencia_remitente\n" +
@@ -226,7 +226,7 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
             whereClause = " where " + buildWhereDetalleDashboard(parameters);
             orderByClause = " ORDER BY t.created_date desc ";
         }else{
-            selectClause = "select td.id_tramite_derivacion, t.id_tramite, t.numero_tramite as numTramite, t.created_date as fechaCreacion, t.asunto, t.estado, di.nombre as dependenciaEmisor, CONCAT(ui.nombre,' ',ui.ape_paterno) as usuarioEmisior, df.nombre as dependenciaDestino, CONCAT(uf.nombre,' ',uf.ape_paterno) as usuarioDestino, do.descripcion, tp.descripcion as prioridad, DATEDIFF(DAY,td.fecha_inicio,ISNULL(td.fecha_fin,GETDATE())) as atencion \n" +
+            selectClause = "select td.id_tramite_derivacion, t.id_tramite, t.numero_tramite as numTramite, t.created_date as fechaCreacion, t.asunto, t.estado, di.nombre as dependenciaEmisor, CONCAT(ui.nombre,' ',ui.ape_paterno) as usuarioEmisior, df.nombre as dependenciaDestino, CONCAT(uf.nombre,' ',uf.ape_paterno) as usuarioDestino, do.descripcion, tp.descripcion as prioridad, DATEDIFF(DAY,td.fecha_inicio,ISNULL(td.fecha_fin,GETDATE())) as atencion, tt.tipo_tramite \n" +
                     "from tramite_derivacion td \n" +
                     "inner join tramite t         on t.id_tramite = td.id_tramite\n" +
                     "inner join tipo_tramite tt   on tt.id_tipo_tramite = t.id_tipo_tramite\n" +
@@ -258,6 +258,7 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
             detalleDashboardDTO.setTipoDocumento(objeto[10].toString());
             detalleDashboardDTO.setPrioridad(objeto[11].toString());
             detalleDashboardDTO.setDiasFueraPlazo(Integer.parseInt(objeto[12].toString()));
+            detalleDashboardDTO.setTipoTramite(objeto[13].toString());
             detalleDashboardDTOList.add(detalleDashboardDTO);
         }
 

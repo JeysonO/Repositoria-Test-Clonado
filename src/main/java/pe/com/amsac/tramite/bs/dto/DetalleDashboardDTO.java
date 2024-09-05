@@ -20,4 +20,5 @@ public class DetalleDashboardDTO {
     private Integer diasFueraPlazo;
     private String idTramite;
     private String idTramiteDerivacion;
+    private String tipoTramite;
 }
