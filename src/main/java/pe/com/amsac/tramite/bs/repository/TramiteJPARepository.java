@@ -19,7 +19,7 @@ public interface TramiteJPARepository extends BitallJPARepository<Tramite, Strin
     @Query(value = "SELECT MAX(t.numeroTramite)+1 FROM Tramite t where t.estado<>'ELIMINADO'")
     Long obtenerUltimoRegistroMaxNumeroTramite();
 
-    @Query(value = "select ISNULL(MAX(nro_tramite_dependencia),0)+1 from dbo.tramite where id_dependencia_remitente=?1 and nro_tramite_dependencia=?2", nativeQuery = true)
+    @Query(value = "select ISNULL(MAX(nro_tramite_dependencia),0)+1 from dbo.tramite where id_dependencia_remitente=?1 and anio_tramite_dependencia=?2 and estado!='ELIMINADO'", nativeQuery = true)
     Long obtenerNumeroTramiteByDependencia(String dependenciaId, Integer anio);
 
     List<Tramite> findByEstado(String estado);

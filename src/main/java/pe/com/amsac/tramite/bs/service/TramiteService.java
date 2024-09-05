@@ -64,6 +64,9 @@ public class TramiteService {
 	@Autowired
 	private TramiteJPARepository tramiteJPARepository;
 
+	@Autowired
+	private TramitePrioridadService tramitePrioridadService;
+
 	//@Autowired
 	//private TramiteMigracionJPARepository tramiteMigracionJPARepository;
 
@@ -1912,6 +1915,7 @@ public class TramiteService {
 		tramiteBodyRequest.setOrigenDocumento(tramitePideBodyRequest.getOrigenDocumento());
 		tramiteBodyRequest.setOrigen(tramitePideBodyRequest.getOrigen());
 		tramite.setTipoTramite(generarTipoTramite(tramiteBodyRequest));
+		tramite.setTramitePrioridad(tramitePrioridadService.findByAllTramitePrioridad().stream().filter(x -> x.getPrioridad().equals("2")).findFirst().get()); //Seteamos la prioridad Normal = 2
 
 		tramiteJPARepository.save(tramite);
 		tramitePideBodyRequest.setFechaDocumento(localDateFechaDocumento);
@@ -2278,8 +2282,11 @@ public class TramiteService {
 		if(tramiteBodyRequest.getOrigenDocumento().equals(OrigenDocumentoConstant.EXTERNO))
 			tipoTramite = tipoTramiteJPARepository.findByTipoTramite(TipoTramiteConstant.EXTERNO_MESA_PARTES).get(0);
 		if(tramiteBodyRequest.getOrigenDocumento().equals(OrigenDocumentoConstant.INTERNO)
-				&& !tramiteBodyRequest.getOrigen().equals(OrigenConstant.PIDE))
+				&& tramiteBodyRequest.getOrigen().equals(OrigenConstant.INTERNO))
 			tipoTramite = tipoTramiteJPARepository.findByTipoTramite(TipoTramiteConstant.INTERNO).get(0);
+		if(tramiteBodyRequest.getOrigenDocumento().equals(OrigenDocumentoConstant.INTERNO)
+				&& tramiteBodyRequest.getOrigen().equals(OrigenConstant.EXTERNO))
+			tipoTramite = tipoTramiteJPARepository.findByTipoTramite(TipoTramiteConstant.INTERNO_REGUL).get(0);
 		if(tramiteBodyRequest.getOrigenDocumento().equals(OrigenDocumentoConstant.PIDE))
 			tipoTramite = tipoTramiteJPARepository.findByTipoTramite(TipoTramiteConstant.EXTERNO_PIDE).get(0);
 		if(tramiteBodyRequest.getOrigenDocumento().equals(OrigenDocumentoConstant.INTERNO)

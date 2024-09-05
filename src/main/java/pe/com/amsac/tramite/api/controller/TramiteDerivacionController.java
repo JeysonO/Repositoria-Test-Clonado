@@ -18,17 +18,15 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
-import pe.com.amsac.tramite.api.request.bean.AtenderDerivacionLoteRequest;
-import pe.com.amsac.tramite.api.request.bean.TramiteRequest;
+import pe.com.amsac.tramite.api.request.bean.TramiteDashboardRequest;
 import pe.com.amsac.tramite.api.request.body.bean.*;
 import pe.com.amsac.tramite.api.request.bean.TramiteDerivacionRequest;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
 import pe.com.amsac.tramite.api.response.bean.Meta;
 import pe.com.amsac.tramite.api.response.bean.TramiteDerivacionResponse;
-import pe.com.amsac.tramite.api.response.bean.UsuarioFirmaLogoCreateResponse;
 import pe.com.amsac.tramite.api.util.EstadoRespuestaConstant;
-import pe.com.amsac.tramite.bs.domain.Tramite;
 import pe.com.amsac.tramite.bs.domain.TramiteDerivacion;
+import pe.com.amsac.tramite.bs.dto.DetalleDashboardDTO;
 import pe.com.amsac.tramite.bs.service.TramiteDerivacionService;
 import pe.com.amsac.tramite.bs.util.FormaDerivacionConstant;
 
@@ -671,4 +669,42 @@ public class TramiteDerivacionController {
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 	}
 	*/
+
+	//A este api se invoca desde la pantalla de reporte para obtener los valores resumidos del dashboard
+	@GetMapping("/dashboard")
+	public ResponseEntity<CommonResponse> dashboard(@Valid TramiteDashboardRequest tramiteDashboardRequest) throws Exception {
+
+		HttpStatus httpStatus = HttpStatus.OK;
+
+		Map mapaResult = tramiteDerivacionService.indicadoresReporteByParams(tramiteDashboardRequest);
+
+		CommonResponse commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(mapaResult).build();
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+	}
+
+	//A este api se invoca desde la pantalla de reporte para obtener el listado detalle
+	@GetMapping("/detalle-by-params")
+	public ResponseEntity<CommonResponse> detalleByParams(@Valid TramiteDashboardRequest tramiteDashboardRequest) throws Exception {
+
+		HttpStatus httpStatus = HttpStatus.OK;
+
+		List<DetalleDashboardDTO> detalleDashboardDTOList = tramiteDerivacionService.detalleReporteByParams(tramiteDashboardRequest);
+
+		CommonResponse commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(detalleDashboardDTOList).build();
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+	}
+
+	@GetMapping("/detalle-by-params/record-count")
+	public ResponseEntity<CommonResponse> detalleRecordCountByParams(@Valid TramiteDashboardRequest tramiteDashboardRequest) throws Exception {
+
+		HttpStatus httpStatus = HttpStatus.OK;
+
+		Integer cantidadRegistros = tramiteDerivacionService.detalleRecordCountByParams(tramiteDashboardRequest);
+
+		CommonResponse commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).data(Map.of("cantidadRegistros", cantidadRegistros)).build();
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+	}
 }

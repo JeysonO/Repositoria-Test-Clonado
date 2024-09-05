@@ -5,6 +5,7 @@ public class TipoTramiteConstant {
     public final static String INTERNO              = "INTERNO";
     public final static String EXTERNO_PIDE         = "EXTERNO_PIDE";
     public final static String DESPACHO_PIDE        = "DESPACHO_PIDE";
+    public final static String INTERNO_REGUL        = "INTERNO_REGUL";
 
 
 }

@@ -2,13 +2,13 @@ package pe.com.amsac.tramite.bs.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
-import net.sf.jasperreports.engine.util.JRLoader;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dozer.Mapper;
@@ -26,16 +26,17 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
 import pe.com.amsac.tramite.api.request.bean.DocumentoAdjuntoRequest;
+import pe.com.amsac.tramite.api.request.bean.TramiteDashboardRequest;
 import pe.com.amsac.tramite.api.request.bean.TramiteDerivacionRequest;
 import pe.com.amsac.tramite.api.request.body.bean.*;
 import pe.com.amsac.tramite.api.response.bean.*;
+import pe.com.amsac.tramite.api.util.InternalErrorException;
 import pe.com.amsac.tramite.bs.domain.*;
+import pe.com.amsac.tramite.bs.dto.DetalleDashboardDTO;
+import pe.com.amsac.tramite.bs.dto.ResumenReporteDashboardDTO;
 import pe.com.amsac.tramite.bs.repository.TramiteDerivacionJPARepository;
 import pe.com.amsac.tramite.bs.repository.TramiteJPARepository;
-import pe.com.amsac.tramite.bs.util.EstadoTramiteConstant;
-import pe.com.amsac.tramite.bs.util.EstadoTramiteDerivacionConstant;
-import pe.com.amsac.tramite.bs.util.FormaDerivacionConstant;
-import pe.com.amsac.tramite.bs.util.TipoAdjuntoConstant;
+import pe.com.amsac.tramite.bs.util.*;
 
 import java.io.*;
 import java.text.DateFormat;
@@ -2376,6 +2377,123 @@ public class TramiteDerivacionService {
 
 		return print;
 	}
+
+	public Map indicadoresReporteByParams(TramiteDashboardRequest tramiteDashboardRequest) throws Exception {
+
+		Map<String, Object> parametersOriginal = crearFiltrosDashboard(tramiteDashboardRequest);
+
+		//Obtenemos los indicadores de cantidad de tramites por dependencia
+		List<ResumenReporteDashboardDTO> resumenCantidadPorDependencia = tramiteDerivacionJPARepository.obtenerResumenDependenciaDashboard(Maps.newHashMap(parametersOriginal),"fechaInicio",null,tramiteDashboardRequest.getPageNumber(),tramiteDashboardRequest.getPageSize());
+
+		//obtener los indicadores de cantidad de tramites por meses
+		List<ResumenReporteDashboardDTO> resumenCantidadPorMeses = tramiteDerivacionJPARepository.obtenerResumenCantidadPorMesDashboard(Maps.newHashMap(parametersOriginal),"fechaInicio",null,tramiteDashboardRequest.getPageNumber(),tramiteDashboardRequest.getPageSize());
+
+		//Obtener la cantidad total de la consulta
+		Integer cantidadTotalDashboard = tramiteDerivacionJPARepository.obtenerResumenCantidadTotalDashboard(Maps.newHashMap(parametersOriginal),"fechaInicio",null,tramiteDashboardRequest.getPageNumber(),tramiteDashboardRequest.getPageSize());
+
+		//obtener los indicadores de cantidad de tramites por estado
+		List<ResumenReporteDashboardDTO> resumenCantidadPorEstado = tramiteDerivacionJPARepository.obtenerResumenPorEstadoDashboard(Maps.newHashMap(parametersOriginal),"fechaInicio",null,tramiteDashboardRequest.getPageNumber(),tramiteDashboardRequest.getPageSize());
+
+		//obtener los indicadores de cantidad de tramites por Usuario
+		List<ResumenReporteDashboardDTO> resumenCantidadPorUsuario = tramiteDerivacionJPARepository.obtenerResumenPorUsuarioDashboard(Maps.newHashMap(parametersOriginal),"fechaInicio",null,tramiteDashboardRequest.getPageNumber(),tramiteDashboardRequest.getPageSize());
+
+		Map<String, Object> mapaResult = new HashMap<>();
+		mapaResult.put("resumenCantidadPorDependencia", resumenCantidadPorDependencia);
+		mapaResult.put("resumenCantidadPorMeses", resumenCantidadPorMeses);
+		mapaResult.put("resumenCantidadPorEstado", resumenCantidadPorEstado);
+		mapaResult.put("resumenCantidadPorUsuario", resumenCantidadPorUsuario);
+		mapaResult.put("cantidadTramites", cantidadTotalDashboard);
+
+		return mapaResult;
+	}
+
+	public Map crearFiltrosDashboard(TramiteDashboardRequest tramiteDashboardRequest){
+
+		Map<String, Object> parameters = new HashMap<>();
+
+		parameters.put("todoAnio",tramiteDashboardRequest.getTodoAnio());
+		parameters.put("tipoTramite",tramiteDashboardRequest.getTipoTramite());
+
+		if(!StringUtils.isBlank(tramiteDashboardRequest.getEstado())){
+			if(tramiteDashboardRequest.getEstado().equals("PENDIENTE")){
+				parameters.put("estado","P");
+			}else{
+				parameters.put("estadoFin",tramiteDashboardRequest.getEstado());
+			}
+		}
+
+		if(!StringUtils.isBlank(tramiteDashboardRequest.getTipoTramiteId())){
+			parameters.put("tipoTramiteId",tramiteDashboardRequest.getTipoTramiteId());
+		}
+
+		if(tramiteDashboardRequest.getNumeroTramite()!=0){
+			parameters.put("numeroTramite",tramiteDashboardRequest.getNumeroTramite());
+		}
+
+		if(!StringUtils.isBlank(tramiteDashboardRequest.getAsunto())){
+			parameters.put("asunto",tramiteDashboardRequest.getAsunto());
+		}
+
+		if(!StringUtils.isBlank(tramiteDashboardRequest.getRazonSocial())){
+			parameters.put("razonSocial",tramiteDashboardRequest.getRazonSocial());
+		}
+
+		if(!StringUtils.isBlank(tramiteDashboardRequest.getEntidadPideId())){
+			parameters.put("entidadPideId",tramiteDashboardRequest.getEntidadPideId());
+		}
+
+		if(tramiteDashboardRequest.getFechaCreacionDesde()!=null){
+			parameters.put("fechaCreacionDesde",tramiteDashboardRequest.getFechaCreacionDesde());
+		}
+
+		if(tramiteDashboardRequest.getFechaCreacionHasta()!=null){
+			parameters.put("fechaCreacionHasta",tramiteDashboardRequest.getFechaCreacionHasta());
+		}
+
+		//Para Externo Tramite
+		if(tramiteDashboardRequest.getTipoTramite().equals(TipoTramiteConstant.EXTERNO_MESA_PARTES)){
+			parameters.put("dependenciaIdUsuarioFin",tramiteDashboardRequest.getDependenciaId());
+			parameters.put("usuarioFin",tramiteDashboardRequest.getUsuarioId());
+		}
+		if(tramiteDashboardRequest.getTipoTramite().equals(TipoTramiteConstant.EXTERNO_PIDE)){
+			parameters.put("dependenciaIdUsuarioFin",tramiteDashboardRequest.getDependenciaId());
+			parameters.put("usuarioFin",tramiteDashboardRequest.getUsuarioId());
+			parameters.put("entidadPideId",tramiteDashboardRequest.getEntidadPideId());
+		}
+		if(tramiteDashboardRequest.getTipoTramite().equals(TipoTramiteConstant.DESPACHO_PIDE)){
+			parameters.put("dependenciaIdUsuarioInicio",tramiteDashboardRequest.getDependenciaId());
+			parameters.put("usuarioInicio",tramiteDashboardRequest.getUsuarioId());
+			parameters.put("entidadPideId",tramiteDashboardRequest.getEntidadPideId());
+		}
+		if(tramiteDashboardRequest.getTipoTramite().equals(TipoTramiteConstant.INTERNO)){
+			parameters.put("dependenciaIdUsuarioFin",tramiteDashboardRequest.getDependenciaId());
+			parameters.put("usuarioFin",tramiteDashboardRequest.getUsuarioId());
+		}
+		if(tramiteDashboardRequest.getTipoTramite().equals(TipoTramiteConstant.INTERNO_REGUL)){
+			parameters.put("dependenciaIdUsuarioFin",tramiteDashboardRequest.getDependenciaId());
+			parameters.put("usuarioFin",tramiteDashboardRequest.getUsuarioId());
+		}
+
+		parameters.values().removeIf(Objects::isNull);
+
+		return parameters;
+
+	}
+
+	public List<DetalleDashboardDTO> detalleReporteByParams(TramiteDashboardRequest tramiteDashboardRequest) throws InternalErrorException {
+		Map<String, Object> parameters = crearFiltrosDashboard(tramiteDashboardRequest);
+
+		List<DetalleDashboardDTO> tramiteDerivacionList = tramiteDerivacionJPARepository.obtenerDetalleDashboard(parameters,"fechaInicio",null,tramiteDashboardRequest.getPageNumber(),tramiteDashboardRequest.getPageSize());
+
+		return tramiteDerivacionList;
+	}
+
+	public Integer detalleRecordCountByParams(TramiteDashboardRequest tramiteDashboardRequest) throws InternalErrorException {
+		Map<String, Object> parameters = crearFiltrosDashboard(tramiteDashboardRequest);
+
+		return tramiteDerivacionJPARepository.obtenerDetalleRecordCountDashboard(parameters,"fechaInicio",null,0,0);
+	}
+
 
 
 }

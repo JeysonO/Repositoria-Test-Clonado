@@ -352,7 +352,7 @@ public class TramiteController {
 			@RequestPart(value = "tramite", required = true) TramitePideBodyRequest tramitePideBodyRequest,
 			@RequestPart(value = "datosFirmaDocumento", required = false) DatosFirmaDocumentoRequest datosFirmaDocumentoRequest,
 			@RequestParam(value = "filePrincipal", required = true) MultipartFile filePrincipal,
-			@RequestParam(value = "fileAnexos", required = true) List<MultipartFile> fileAnexos) throws Exception{
+			@RequestParam(value = "fileAnexos", required = false) List<MultipartFile> fileAnexos) throws Exception{
 
 		CommonResponse commonResponse = null;
 
