@@ -226,7 +226,7 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
             whereClause = " where " + buildWhereDetalleDashboard(parameters);
             orderByClause = " ORDER BY t.created_date desc ";
         }else{
-            selectClause = "select td.id_tramite_derivacion, t.id_tramite, t.numero_tramite as numTramite, t.created_date as fechaCreacion, t.asunto, t.estado, di.nombre as dependenciaEmisor, CONCAT(ui.nombre,' ',ui.ape_paterno) as usuarioEmisior, df.nombre as dependenciaDestino, CONCAT(uf.nombre,' ',uf.ape_paterno) as usuarioDestino, do.descripcion, tp.descripcion as prioridad, DATEDIFF(DAY,td.fecha_inicio,ISNULL(td.fecha_fin,GETDATE())) as atencion, tt.tipo_tramite \n" +
+            selectClause = "select td.id_tramite_derivacion, t.id_tramite, t.numero_tramite as numTramite, t.created_date as fechaCreacion, t.asunto, td.estado_fin as estado, di.nombre as dependenciaEmisor, CONCAT(ui.nombre,' ',ui.ape_paterno) as usuarioEmisior, df.nombre as dependenciaDestino, CONCAT(uf.nombre,' ',uf.ape_paterno) as usuarioDestino, do.descripcion, tp.descripcion as prioridad, DATEDIFF(DAY,td.fecha_inicio,ISNULL(td.fecha_fin,GETDATE())) as atencion, tt.tipo_tramite \n" +
                     "from tramite_derivacion td \n" +
                     "inner join tramite t         on t.id_tramite = td.id_tramite\n" +
                     "inner join tipo_tramite tt   on tt.id_tipo_tramite = t.id_tipo_tramite\n" +
