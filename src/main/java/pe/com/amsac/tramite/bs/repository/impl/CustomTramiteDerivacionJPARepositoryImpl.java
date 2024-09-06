@@ -230,7 +230,7 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
             if(parameters.get("estado")!=null && parameters.get("estado").equals("P"))
                 campoEstado = "ISNULL(td.estado_fin,'PENDIENTE')";
             else
-                campoEstado = parameters.get("estadoFin")!=null && (parameters.get("estadoFin").equals("ATENDIDO") || parameters.get("estadoFin").equals("FUERA_PLAZO"))?"ISNULL(td.estado_fin,'PENDIENTE')":"td.estado_inicio";
+                campoEstado = parameters.get("estadoFin")!=null && (parameters.get("estadoFin").equals("ATENDIDO") || parameters.get("estadoFin").equals("FUERA_PLAZO"))?"ISNULL(td.estado_fin,'FUERA_PLAZO')":"td.estado_inicio";
 
             selectClause = "select td.id_tramite_derivacion, t.id_tramite, t.numero_tramite as numTramite, t.created_date as fechaCreacion, t.asunto, "+ campoEstado +" as estado, di.nombre as dependenciaEmisor, CONCAT(ui.nombre,' ',ui.ape_paterno) as usuarioEmisior, df.nombre as dependenciaDestino, CONCAT(uf.nombre,' ',uf.ape_paterno) as usuarioDestino, do.descripcion, tp.descripcion as prioridad, CAST(\n" +
                     "             CASE\n" +
