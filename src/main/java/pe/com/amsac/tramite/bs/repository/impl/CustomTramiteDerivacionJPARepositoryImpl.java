@@ -287,9 +287,17 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
             if (parameters.get("estadoFin") != null) {
                 whereClause = (!"".equals(whereClause) ? whereClause + " "
                         + JpaConstant.CONDITION_AND + " " : "");
-                whereClause = whereClause
-                        + "td.estado_fin = :estadoFin";
+
+                if(parameters.get("estadoFin").equals("ATENDIDO") ){
+                    whereClause = whereClause
+                            + "td.estado_fin = :estadoFin";
+                }else{
+                    whereClause = whereClause
+                            + "td.estado_inicio = :estadoFin";
+                }
+
             }
+
         }
 
         if (parameters.get("tipoTramiteId") != null) {
@@ -329,14 +337,40 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
         if (parameters.get("dependenciaIdUsuarioInicio") != null) {
             whereClause = (!"".equals(whereClause) ? whereClause + " "
                     + JpaConstant.CONDITION_AND + " " : "");
-            whereClause = whereClause
-                    + "t.id_dependencia_remitente = :dependenciaIdUsuarioInicio";
+            if(parameters.get("tipoTramite").equals(TipoTramiteConstant.DESPACHO_PIDE)){
+                whereClause = whereClause
+                        + "t.id_dependencia_remitente = :dependenciaIdUsuarioInicio";
+            }else{
+                if(parameters.get("estadoFin")!=null){
+                    if(parameters.get("estadoFin").equals("ATENDIDO") ){
+                        whereClause = whereClause
+                                + "td.id_dependencia_usuario_fin = :dependenciaIdUsuarioInicio";
+                    }else{
+                        whereClause = whereClause
+                                + "td.id_dependencia_usuario_inicio = :dependenciaIdUsuarioInicio";
+                    }
+                }
+            }
+
         }
         if (parameters.get("usuarioInicio") != null) {
             whereClause = (!"".equals(whereClause) ? whereClause + " "
                     + JpaConstant.CONDITION_AND + " " : "");
-            whereClause = whereClause
-                    + "t.id_usuario_remitente = :usuarioInicio";
+            if(parameters.get("tipoTramite").equals(TipoTramiteConstant.DESPACHO_PIDE)){
+                whereClause = whereClause
+                        + "t.id_usuario_remitente = :usuarioInicio";
+            }else{
+                if(parameters.get("estadoFin")!=null){
+                    if(parameters.get("estadoFin").equals("ATENDIDO") ){
+                        whereClause = whereClause
+                                + "td.id_usuario_fin = :dependenciaIdUsuarioInicio";
+                    }else{
+                        whereClause = whereClause
+                                + "td.id_usuario_inicio = :dependenciaIdUsuarioInicio";
+                    }
+                }
+            }
+
         }
         if (parameters.get("dependenciaIdUsuarioFin") != null) {
             whereClause = (!"".equals(whereClause) ? whereClause + " "

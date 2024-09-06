@@ -2450,14 +2450,27 @@ public class TramiteDerivacionService {
 			parameters.put("fechaCreacionHasta",tramiteDashboardRequest.getFechaCreacionHasta());
 		}
 
+		if(tramiteDashboardRequest.getDependenciaId()!=null){
+			parameters.put("dependenciaIdUsuarioInicio",tramiteDashboardRequest.getDependenciaId());
+		}
+
+		if(tramiteDashboardRequest.getUsuarioId()!=null){
+			parameters.put("usuarioInicio",tramiteDashboardRequest.getUsuarioId());
+		}
+
+		if(tramiteDashboardRequest.getEntidadPideId()!=null){
+			parameters.put("entidadPideId",tramiteDashboardRequest.getEntidadPideId());
+		}
+
+		/*
 		//Para Externo Tramite
 		if(tramiteDashboardRequest.getTipoTramite().equals(TipoTramiteConstant.EXTERNO_MESA_PARTES)){
-			parameters.put("dependenciaIdUsuarioFin",tramiteDashboardRequest.getDependenciaId());
-			parameters.put("usuarioFin",tramiteDashboardRequest.getUsuarioId());
+			parameters.put("dependenciaIdUsuarioInicio",tramiteDashboardRequest.getDependenciaId());
+			parameters.put("usuarioInicio",tramiteDashboardRequest.getUsuarioId());
 		}
 		if(tramiteDashboardRequest.getTipoTramite().equals(TipoTramiteConstant.EXTERNO_PIDE)){
-			parameters.put("dependenciaIdUsuarioFin",tramiteDashboardRequest.getDependenciaId());
-			parameters.put("usuarioFin",tramiteDashboardRequest.getUsuarioId());
+			parameters.put("dependenciaIdUsuarioInicio",tramiteDashboardRequest.getDependenciaId());
+			parameters.put("usuarioInicio",tramiteDashboardRequest.getUsuarioId());
 			parameters.put("entidadPideId",tramiteDashboardRequest.getEntidadPideId());
 		}
 		if(tramiteDashboardRequest.getTipoTramite().equals(TipoTramiteConstant.DESPACHO_PIDE)){
@@ -2466,13 +2479,14 @@ public class TramiteDerivacionService {
 			parameters.put("entidadPideId",tramiteDashboardRequest.getEntidadPideId());
 		}
 		if(tramiteDashboardRequest.getTipoTramite().equals(TipoTramiteConstant.INTERNO)){
-			parameters.put("dependenciaIdUsuarioFin",tramiteDashboardRequest.getDependenciaId());
-			parameters.put("usuarioFin",tramiteDashboardRequest.getUsuarioId());
+			parameters.put("dependenciaIdUsuarioInicio",tramiteDashboardRequest.getDependenciaId());
+			parameters.put("usuarioInicio",tramiteDashboardRequest.getUsuarioId());
 		}
 		if(tramiteDashboardRequest.getTipoTramite().equals(TipoTramiteConstant.INTERNO_REGUL)){
-			parameters.put("dependenciaIdUsuarioFin",tramiteDashboardRequest.getDependenciaId());
-			parameters.put("usuarioFin",tramiteDashboardRequest.getUsuarioId());
+			parameters.put("dependenciaIdUsuarioInicio",tramiteDashboardRequest.getDependenciaId());
+			parameters.put("usuarioInicio",tramiteDashboardRequest.getUsuarioId());
 		}
+		*/
 
 		parameters.values().removeIf(Objects::isNull);
 
