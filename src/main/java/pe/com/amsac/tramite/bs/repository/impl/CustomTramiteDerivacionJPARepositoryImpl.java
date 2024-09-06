@@ -237,7 +237,7 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
                     "                  WHEN DATEDIFF(DAY,td.fecha_maximo_atencion,ISNULL(td.fecha_fin,GETDATE())) < 0 or td.fecha_maximo_atencion is null\n" +
                     "                     THEN 0\n" +
                     "                  ELSE DATEDIFF(DAY,td.fecha_maximo_atencion,ISNULL(td.fecha_fin,GETDATE()))\n" +
-                    "             END AS bit) as atencion, tt.tipo_tramite \n" +
+                    "             END AS int) as atencion, tt.tipo_tramite \n" +
                     "from tramite_derivacion td \n" +
                     "inner join tramite t         on t.id_tramite = td.id_tramite\n" +
                     "inner join tipo_tramite tt   on tt.id_tipo_tramite = t.id_tipo_tramite\n" +
