@@ -234,6 +234,11 @@ public class TramiteDerivacionService {
 		if(!StringUtils.isBlank(dependenciaIdUserSession)){
 			tramiteDerivacionRequest.setDependenciaIdUsuarioFin(dependenciaIdUserSession);
 		}
+		//Se agrega para considerar el cargo, esto ya deberia haber estado.
+		String cargoIdUserSession = securityHelper.obtenerCargoIdUserSession();
+		if(!StringUtils.isBlank(cargoIdUserSession)){
+			tramiteDerivacionRequest.setCargoIdUsuarioFin(cargoIdUserSession);
+		}
 		/*
 		if(tramiteDerivacionRequest.getEstado().equals("A")){
 			tramiteDerivacionRequest.setNotEstadoFin("RECEPCIONADO");

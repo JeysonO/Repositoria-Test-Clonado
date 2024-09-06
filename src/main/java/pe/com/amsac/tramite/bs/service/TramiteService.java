@@ -1211,21 +1211,22 @@ public class TramiteService {
 	public Map obtenerIndicadoresDashboardByTokenUsuario(){
 		String usuarioId = securityHelper.obtenerUserIdSession();
 		String dependenciaId = securityHelper.obtenerDependenciaIdUserSession();
-		return obtenerIndicadoresDashboardByUsuarioIdAndDependencia(usuarioId, dependenciaId);
+		String cargoId = securityHelper.obtenerCargoIdUserSession();
+		return obtenerIndicadoresDashboardByUsuarioIdAndDependencia(usuarioId, dependenciaId, cargoId);
 	}
 
-	public Map obtenerIndicadoresDashboardByUsuarioIdAndDependencia(String usuarioId, String dependenciaId) {
+	public Map obtenerIndicadoresDashboardByUsuarioIdAndDependencia(String usuarioId, String dependenciaId, String cargoId) {
 
 		Map mapaRespuesta = new HashMap();
 		try{
 			//Obtenemos los tramites creados por el usuario
-			int cantidadTramitesGeneradosPorUsuarioYDependencia = cantidadTramitesGeneradosByUsuarioAndDependencia(usuarioId,dependenciaId);
+			int cantidadTramitesGeneradosPorUsuarioYDependencia = cantidadTramitesGeneradosByUsuarioAndDependencia(usuarioId,dependenciaId, cargoId);
 
 			//Obtener tramites pendientes por usuario y dependencia
-			int cantidadTramitesPendientesPorUsuarioYDependencia = cantidadTramitesPendientesByUsuarioAndDependencia(usuarioId,dependenciaId);
+			int cantidadTramitesPendientesPorUsuarioYDependencia = cantidadTramitesPendientesByUsuarioAndDependencia(usuarioId,dependenciaId, cargoId);
 
 			//Obtener tramites atendidos por usuario y dependencia
-			int cantidadTramitesAtendidosPorUsuarioYDependencia = cantidadTramitesAtendidosByUsuarioAndDependencia(usuarioId,dependenciaId);
+			int cantidadTramitesAtendidosPorUsuarioYDependencia = cantidadTramitesAtendidosByUsuarioAndDependencia(usuarioId,dependenciaId, cargoId);
 
 			mapaRespuesta.put("cantidadTramitesGeneradosPorUsuarioYDependencia",cantidadTramitesGeneradosPorUsuarioYDependencia);
 			mapaRespuesta.put("cantidadTramitesPendientesPorUsuarioYDependencia",cantidadTramitesPendientesPorUsuarioYDependencia);
@@ -1241,7 +1242,7 @@ public class TramiteService {
 		return mapaRespuesta;
 	}
 
-	public int cantidadTramitesGeneradosByUsuarioAndDependencia(String usuarioId, String dependenciaId) throws InternalErrorException {
+	public int cantidadTramitesGeneradosByUsuarioAndDependencia(String usuarioId, String dependenciaId, String cargoId) throws InternalErrorException {
 
 		/*
 		List<Criteria> andExpression =  new ArrayList<>();
@@ -1268,25 +1269,30 @@ public class TramiteService {
 		if(!StringUtils.isBlank(dependenciaId)){
 			param.put("dependenciaUsuarioCreacion",dependenciaId);
 		}
+		if(!StringUtils.isBlank(dependenciaId)){
+			param.put("cargoUsuarioCreacion",cargoId);
+		}
 		List<Tramite> tramiteList = tramiteJPARepository.findByParams(param,null,null,0,0);
 
 		return CollectionUtils.isEmpty(tramiteList)?0:tramiteList.size();
 	}
 
-	public int cantidadTramitesPendientesByUsuarioAndDependencia(String usuarioId, String dependenciaId) throws Exception {
+	public int cantidadTramitesPendientesByUsuarioAndDependencia(String usuarioId, String dependenciaId, String cargoId) throws Exception {
 
 		TramiteDerivacionRequest tramiteDerivacionRequest = new TramiteDerivacionRequest();
 		tramiteDerivacionRequest.setDependenciaIdUsuarioFin(dependenciaId);
+		tramiteDerivacionRequest.setCargoIdUsuarioFin(cargoId);
 		tramiteDerivacionRequest.setUsuarioFin(usuarioId);
 		tramiteDerivacionRequest.setEstado("P");
 
 		return tramiteDerivacionService.totalRegistros(tramiteDerivacionRequest);
 	}
 
-	public int cantidadTramitesAtendidosByUsuarioAndDependencia(String usuarioId, String dependenciaId) throws Exception {
+	public int cantidadTramitesAtendidosByUsuarioAndDependencia(String usuarioId, String dependenciaId, String cargoId) throws Exception {
 
 		TramiteDerivacionRequest tramiteDerivacionRequest = new TramiteDerivacionRequest();
 		tramiteDerivacionRequest.setDependenciaIdUsuarioFin(dependenciaId);
+		tramiteDerivacionRequest.setCargoIdUsuarioFin(cargoId);
 		tramiteDerivacionRequest.setUsuarioFin(usuarioId);
 		tramiteDerivacionRequest.setEstado("A");
 		//tramiteDerivacionRequest.setNotEstadoFin(EstadoTramiteConstant.RECEPCIONADO);
