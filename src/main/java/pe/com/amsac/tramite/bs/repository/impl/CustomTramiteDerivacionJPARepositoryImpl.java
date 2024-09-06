@@ -615,7 +615,14 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
             whereClause = " where " + buildWhereDetalleDashboard(parameters);
             groupByClause = " GROUP by t.estado ";
         }else{
-            selectClause = "select t.estado as estado, count(*) as cantidad\n" +
+            String campoEstado = null;
+            if(parameters.get("estado")!=null && parameters.get("estado").equals("P"))
+                campoEstado = "ISNULL(td.estado_fin,'PENDIENTE')";
+            else
+                campoEstado = parameters.get("estadoFin")!=null && (parameters.get("estadoFin").equals("ATENDIDO") || parameters.get("estadoFin").equals("FUERA_PLAZO"))?"ISNULL(td.estado_fin,'PENDIENTE')":"td.estado_inicio";
+
+            //selectClause = "select t.estado as estado, count(*) as cantidad\n" +
+            selectClause = "select "+campoEstado+" as estado, count(*) as cantidad\n" +
                     "from tramite_derivacion td \n" +
                     "inner join tramite t         on t.id_tramite = td.id_tramite\n" +
                     "inner join tipo_tramite tt   on tt.id_tipo_tramite = t.id_tipo_tramite\n" +
@@ -626,7 +633,7 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
                     "inner join tipo_documento_tramite do   on do.id_tipo_documento = t.id_tipo_documento\n" +
                     "inner join tramite_prioridad tp   on tp.id_tramite_prioridad = t.id_tramite_prioridad ";
             whereClause = " where " + buildWhereDetalleDashboard(parameters);
-            groupByClause = " GROUP by t.estado ";
+            groupByClause = " GROUP by "+campoEstado;
         }
 
 
