@@ -364,6 +364,10 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
                                 + "td.id_dependencia_usuario_inicio = :dependenciaIdUsuarioInicio";
                     }
                 }
+                if(parameters.get("estado")!=null && parameters.get("estado").equals("P")){
+                    whereClause = whereClause
+                            + "td.id_dependencia_usuario_fin = :dependenciaIdUsuarioInicio";
+                }
             }
 
         }
@@ -382,6 +386,10 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
                         whereClause = whereClause
                                 + "td.id_usuario_inicio = :dependenciaIdUsuarioInicio";
                     }
+                }
+                if(parameters.get("estado")!=null && parameters.get("estado").equals("P")){
+                    whereClause = whereClause
+                            + "td.id_usuario_fin = :dependenciaIdUsuarioInicio";
                 }
             }
 
