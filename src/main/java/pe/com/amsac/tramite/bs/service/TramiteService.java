@@ -432,6 +432,9 @@ public class TramiteService {
 
 		tramite.setTipoTramite(generarTipoTramite(tramiteBodyRequest));
 
+		if(tramite.getTramitePrioridad()==null)
+			tramite.setTramitePrioridad(tramitePrioridadService.findByAllTramitePrioridad().stream().filter(x -> x.getPrioridad().equals("2")).findFirst().get()); //Seteamos la prioridad Normal = 2
+
 		tramiteJPARepository.save(tramite);
 		if(tramiteBodyRequest.getOrigenDocumento().equals(OrigenDocumentoConstant.EXTERNO)){
 			registrarDerivacion(tramite);
