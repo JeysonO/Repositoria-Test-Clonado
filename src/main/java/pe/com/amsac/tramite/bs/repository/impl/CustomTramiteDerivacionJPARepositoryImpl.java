@@ -230,7 +230,7 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
             if(parameters.get("estado")!=null && parameters.get("estado").equals("P"))
                 campoEstado = "ISNULL(td.estado_fin,'PENDIENTE')";
             else
-                campoEstado = parameters.get("estadoFin")!=null && (parameters.get("estadoFin").equals("ATENDIDO") || parameters.get("estadoFin").equals("FUERA_PLAZO"))?"ISNULL(td.estado_fin,'FUERA_PLAZO')":"td.estado_inicio";
+                campoEstado = parameters.get("estadoFin")!=null && (parameters.get("estadoFin").equals("ATENDIDO") || parameters.get("estadoFin").equals("NOTIFICADO") || parameters.get("estadoFin").equals("RECHAZADO") || parameters.get("estadoFin").equals("FUERA_PLAZO"))?"ISNULL(td.estado_fin,'FUERA_PLAZO')":"td.estado_inicio";
 
             selectClause = "select td.id_tramite_derivacion, t.id_tramite, t.numero_tramite as numTramite, t.created_date as fechaCreacion, t.asunto, "+ campoEstado +" as estado, di.nombre as dependenciaEmisor, CONCAT(ui.nombre,' ',ui.ape_paterno) as usuarioEmisior, df.nombre as dependenciaDestino, CONCAT(uf.nombre,' ',uf.ape_paterno) as usuarioDestino, do.descripcion, tp.descripcion as prioridad, CAST(\n" +
                     "             CASE\n" +
@@ -300,7 +300,7 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
                 whereClause = (!"".equals(whereClause) ? whereClause + " "
                         + JpaConstant.CONDITION_AND + " " : "");
 
-                if(parameters.get("estadoFin").equals("ATENDIDO") ){
+                if(parameters.get("estadoFin").equals("ATENDIDO") || parameters.get("estadoFin").equals("NOTIFICADO") || parameters.get("estadoFin").equals("RECHAZADO") ){
                     whereClause = whereClause
                             + "td.estado_fin = :estadoFin";
                 }else{
@@ -358,7 +358,7 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
                         + "t.id_dependencia_remitente = :dependenciaIdUsuarioInicio";
             }else{
                 if(parameters.get("estadoFin")!=null){
-                    if(parameters.get("estadoFin").equals("ATENDIDO") || parameters.get("estadoFin").equals("FUERA_PLAZO") ){
+                    if(parameters.get("estadoFin").equals("ATENDIDO") || parameters.get("estadoFin").equals("NOTIFICADO") || parameters.get("estadoFin").equals("RECHAZADO") || parameters.get("estadoFin").equals("FUERA_PLAZO") ){
                         whereClause = whereClause
                                 + "td.id_dependencia_usuario_fin = :dependenciaIdUsuarioInicio";
                     }else{
@@ -381,17 +381,17 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
                         + "t.id_usuario_remitente = :usuarioInicio";
             }else{
                 if(parameters.get("estadoFin")!=null){
-                    if(parameters.get("estadoFin").equals("ATENDIDO") ){
+                    if(parameters.get("estadoFin").equals("ATENDIDO") || parameters.get("estadoFin").equals("NOTIFICADO") || parameters.get("estadoFin").equals("RECHAZADO") || parameters.get("estadoFin").equals("FUERA_PLAZO")  ){
                         whereClause = whereClause
-                                + "td.id_usuario_fin = :dependenciaIdUsuarioInicio";
+                                + "td.id_usuario_fin = :usuarioInicio";
                     }else{
                         whereClause = whereClause
-                                + "td.id_usuario_inicio = :dependenciaIdUsuarioInicio";
+                                + "td.id_usuario_inicio = :usuarioInicio";
                     }
                 }
                 if(parameters.get("estado")!=null && parameters.get("estado").equals("P")){
                     whereClause = whereClause
-                            + "td.id_usuario_fin = :dependenciaIdUsuarioInicio";
+                            + "td.id_usuario_fin = :usuarioInicio";
                 }
             }
 
@@ -619,7 +619,7 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
             if(parameters.get("estado")!=null && parameters.get("estado").equals("P"))
                 campoEstado = "ISNULL(td.estado_fin,'PENDIENTE')";
             else
-                campoEstado = parameters.get("estadoFin")!=null && (parameters.get("estadoFin").equals("ATENDIDO") || parameters.get("estadoFin").equals("FUERA_PLAZO"))?"ISNULL(td.estado_fin,'PENDIENTE')":"td.estado_inicio";
+                campoEstado = parameters.get("estadoFin")!=null && (parameters.get("estadoFin").equals("ATENDIDO") || parameters.get("estadoFin").equals("NOTIFICADO") || parameters.get("estadoFin").equals("RECHAZADO")|| parameters.get("estadoFin").equals("FUERA_PLAZO"))?"ISNULL(td.estado_fin,'FUERA_PLAZO')":"td.estado_inicio";
 
             //selectClause = "select t.estado as estado, count(*) as cantidad\n" +
             selectClause = "select "+campoEstado+" as estado, count(*) as cantidad\n" +
