@@ -226,7 +226,13 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
             whereClause = " where " + buildWhereDetalleDashboard(parameters);
             orderByClause = " ORDER BY t.created_date desc ";
         }else{
-            selectClause = "select td.id_tramite_derivacion, t.id_tramite, t.numero_tramite as numTramite, t.created_date as fechaCreacion, t.asunto, td.estado_fin as estado, di.nombre as dependenciaEmisor, CONCAT(ui.nombre,' ',ui.ape_paterno) as usuarioEmisior, df.nombre as dependenciaDestino, CONCAT(uf.nombre,' ',uf.ape_paterno) as usuarioDestino, do.descripcion, tp.descripcion as prioridad, DATEDIFF(DAY,td.fecha_inicio,ISNULL(td.fecha_fin,GETDATE())) as atencion, tt.tipo_tramite \n" +
+            String campoEstado = null;
+            if(parameters.get("estado")!=null && parameters.get("estado").equals("P"))
+                campoEstado = "ISNULL(td.estado_fin,'PENDIENTE')";
+            else
+                campoEstado = parameters.get("estadoFin")!=null && (parameters.get("estadoFin").equals("ATENDIDO") || parameters.get("estadoFin").equals("FUERA_PLAZO"))?"ISNULL(td.estado_fin,'PENDIENTE')":"td.estado_inicio";
+
+            selectClause = "select td.id_tramite_derivacion, t.id_tramite, t.numero_tramite as numTramite, t.created_date as fechaCreacion, t.asunto, "+ campoEstado +" as estado, di.nombre as dependenciaEmisor, CONCAT(ui.nombre,' ',ui.ape_paterno) as usuarioEmisior, df.nombre as dependenciaDestino, CONCAT(uf.nombre,' ',uf.ape_paterno) as usuarioDestino, do.descripcion, tp.descripcion as prioridad, DATEDIFF(HOUR,td.fecha_inicio,ISNULL(td.fecha_fin,GETDATE())) as atencion, tt.tipo_tramite \n" +
                     "from tramite_derivacion td \n" +
                     "inner join tramite t         on t.id_tramite = td.id_tramite\n" +
                     "inner join tipo_tramite tt   on tt.id_tipo_tramite = t.id_tipo_tramite\n" +
@@ -295,6 +301,13 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
                 }else{
                     whereClause = whereClause
                             + "td.estado_inicio = :estadoFin";
+                }
+                if(parameters.get("estadoFin").equals("FUERA_PLAZO") ){
+                    whereClause = (!"".equals(whereClause) ? whereClause + " "
+                            + JpaConstant.CONDITION_AND + " " : "");
+                    whereClause = whereClause
+                            + "DATEDIFF(HOUR,td.fecha_inicio,ISNULL(td.fecha_fin,GETDATE())) >= 8";
+
                 }
 
             }
