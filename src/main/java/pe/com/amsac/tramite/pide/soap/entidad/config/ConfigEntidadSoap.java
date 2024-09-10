@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import pe.com.amsac.tramite.pide.soap.endpoint.SOAPConnector;
+import pe.com.amsac.tramite.pide.soap.endpoint.SOAPEntidadConnector;
 
 @Configuration
 public class ConfigEntidadSoap {
@@ -21,8 +22,8 @@ public class ConfigEntidadSoap {
     }
 
     @Bean
-    public SOAPConnector soapConnector(Jaxb2Marshaller marshallerEntidad) {
-        SOAPConnector client = new SOAPConnector();
+    public SOAPEntidadConnector soapEntidadConnector(Jaxb2Marshaller marshallerEntidad) {
+        SOAPEntidadConnector client = new SOAPEntidadConnector();
         client.setDefaultUri(env.getProperty("app.url.entidadServer"));
         client.setMarshaller(marshallerEntidad);
         client.setUnmarshaller(marshallerEntidad);
