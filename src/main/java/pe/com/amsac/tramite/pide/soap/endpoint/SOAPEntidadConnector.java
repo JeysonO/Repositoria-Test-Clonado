@@ -4,8 +4,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.ws.client.core.support.WebServiceGatewaySupport;
 import org.springframework.ws.soap.client.core.SoapActionCallback;
+import org.springframework.ws.transport.http.ClientHttpRequestMessageSender;
 import pe.com.amsac.tramite.pide.soap.cuo.request.GetCUO;
 import pe.com.amsac.tramite.pide.soap.cuo.request.GetCUOEntidad;
 import pe.com.amsac.tramite.pide.soap.cuo.request.GetCUOEntidadResponse;
@@ -29,7 +31,11 @@ import java.io.StringWriter;
 public class SOAPEntidadConnector extends WebServiceGatewaySupport {
 
     public Object callWebService(JAXBElement jaxbElement){
-
+        /*
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setReadTimeout(3000);
+        setMessageSender(new ClientHttpRequestMessageSender(requestFactory));
+        */
         return getWebServiceTemplate().marshalSendAndReceive(jaxbElement);
 
     }

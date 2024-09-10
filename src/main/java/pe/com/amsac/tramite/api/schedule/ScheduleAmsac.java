@@ -83,17 +83,17 @@ public class ScheduleAmsac {
 
     @Scheduled(cron = "${cron.obtener-entidad-pide}", zone = "America/Lima")
     public void scheduleObtenerEntidadPideTask() throws Exception {
-        log.info("<========= INICIO ENVIAR TRAMITE PENDIENTE PIDE =========>");
+        log.info("<========= INICIO SINCRONIZAR ENTIDADES PIDE =========>");
 
         try{
             createAuthentication();
-            //tramiteService.entidadPideService();
+            entidadPideService.sincronizarEntidadesCatalogo();
 
         }catch (Exception e){
-            log.error("Error scheduleEnvioTramitePIDETask",e);
+            log.error("Error scheduleObtenerEntidadPideTask",e);
         }
 
-        log.info("<========= FIN ENVIAR TRAMITE PENDIENTE PIDE =========>");
+        log.info("<========= FIN SINCRONIZAR ENTIDADES PIDE =========>");
     }
 
     public void createAuthentication(){

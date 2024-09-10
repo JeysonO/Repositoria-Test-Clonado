@@ -337,7 +337,29 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 
+			<!-- para generar archivos de entidad pide -->
+			<plugin>
+				<groupId>org.jvnet.jaxb2.maven2</groupId>
+				<artifactId>maven-jaxb2-plugin</artifactId>
+				<version>0.15.3</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<generatePackage>pe.com.amsac.tramite.pide.soap.entidad.request</generatePackage>
+					<generateDirectory>${project.basedir}/src/main/java</generateDirectory>
+					<schemaDirectory>${project.basedir}/src/main/resources/wsdl</schemaDirectory>
+					<schemaIncludes>
+						<include>entidadpide.wsdl</include>
+					</schemaIncludes>
+				</configuration>
+			</plugin>
 			<!-- para generar archivo para transmision -->
+			<!--
 			<plugin>
 				<groupId>org.jvnet.jaxb2.maven2</groupId>
 				<artifactId>maven-jaxb2-plugin</artifactId>
@@ -358,6 +380,7 @@
 					</schemaIncludes>
 				</configuration>
 			</plugin>
+			-->
 			<!-- -->
 
 			<!-- tag::wsdl[] -->
