@@ -2419,11 +2419,24 @@ public class TramiteDerivacionService {
 		parameters.put("todoAnio",tramiteDashboardRequest.getTodoAnio());
 		parameters.put("tipoTramite",tramiteDashboardRequest.getTipoTramite());
 
+		//Antes
+		/*
 		if(!StringUtils.isBlank(tramiteDashboardRequest.getEstado())){
 			if(tramiteDashboardRequest.getEstado().equals("PENDIENTE")){
 				parameters.put("estado","P");
 			}else{
 				parameters.put("estadoFin",tramiteDashboardRequest.getEstado());
+			}
+		}
+		*/
+		//Si es estado Derivado_a o Derivado_desde, van a ser derivado, pero al momento de buscar el destino cambia si es usuario inicio o fin
+		//en este punto se coloca al atributo estado pero se puede mapear a estado_inicio o estado_fin dependiento del estado
+		if(!StringUtils.isBlank(tramiteDashboardRequest.getEstado())){
+			if(tramiteDashboardRequest.getEstado().equals(EstadoTramiteConstant.PENDIENTE)){
+				parameters.put("estado","P");
+			}else{
+				//parameters.put("estado",(tramiteDashboardRequest.getEstado().equals(EstadoTramiteConstant.DERIVADO_A) || tramiteDashboardRequest.getEstado().equals(EstadoTramiteConstant.DERIVADO_DESDE))?EstadoTramiteConstant.DERIVADO:tramiteDashboardRequest.getEstado());
+				parameters.put("estado",tramiteDashboardRequest.getEstado());
 			}
 		}
 
@@ -2455,12 +2468,23 @@ public class TramiteDerivacionService {
 			parameters.put("fechaCreacionHasta",tramiteDashboardRequest.getFechaCreacionHasta());
 		}
 
+		//Anterior
+		/*
 		if(tramiteDashboardRequest.getDependenciaId()!=null){
 			parameters.put("dependenciaIdUsuarioInicio",tramiteDashboardRequest.getDependenciaId());
 		}
 
 		if(tramiteDashboardRequest.getUsuarioId()!=null){
 			parameters.put("usuarioInicio",tramiteDashboardRequest.getUsuarioId());
+		}
+		*/
+		//Ahora lo guardamos en el key dependencia y usuario para darle mejor orden
+		if(tramiteDashboardRequest.getDependenciaId()!=null){
+			parameters.put("dependenciaIdUsuario",tramiteDashboardRequest.getDependenciaId());
+		}
+
+		if(tramiteDashboardRequest.getUsuarioId()!=null){
+			parameters.put("usuario",tramiteDashboardRequest.getUsuarioId());
 		}
 
 		if(tramiteDashboardRequest.getEntidadPideId()!=null){

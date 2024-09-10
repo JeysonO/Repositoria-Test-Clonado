@@ -109,9 +109,13 @@ public class TramiteCommandHandlerService {
 
 			resultadEnvio.put("tramiteId",tramite.getId());
 			resultadEnvio.put("resultado",estadoTramite);
+		}catch (ServiceException ex){
+			log.error("ERROR", ex);
+			throw ex;
 		}catch (Exception ex){
 			log.error("ERROR", ex);
 			tramiteService.eliminarTramite(tramitePide.getId());
+			throw new ServiceException("Ocurrio un error inesperado, volver a intentar en breve");
 		}
 
 		return resultadEnvio;

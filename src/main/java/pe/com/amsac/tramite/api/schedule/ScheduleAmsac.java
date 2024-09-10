@@ -18,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 import pe.com.amsac.tramite.api.config.DatosToken;
 import pe.com.amsac.tramite.api.request.bean.LoginRequest;
 import pe.com.amsac.tramite.api.response.bean.CommonResponse;
+import pe.com.amsac.tramite.bs.service.EntidadPideService;
 import pe.com.amsac.tramite.bs.service.TramiteDerivacionService;
 import pe.com.amsac.tramite.bs.service.TramiteService;
 
@@ -36,6 +37,9 @@ public class ScheduleAmsac {
 
     @Autowired
     private TramiteService tramiteService;
+
+    @Autowired
+    private EntidadPideService entidadPideService;
 
     @Autowired
     private RestTemplate restTemplate;
@@ -69,6 +73,21 @@ public class ScheduleAmsac {
         try{
             createAuthentication();
             tramiteService.enviarTramitePendientePide();
+
+        }catch (Exception e){
+            log.error("Error scheduleEnvioTramitePIDETask",e);
+        }
+
+        log.info("<========= FIN ENVIAR TRAMITE PENDIENTE PIDE =========>");
+    }
+
+    @Scheduled(cron = "${cron.obtener-entidad-pide}", zone = "America/Lima")
+    public void scheduleObtenerEntidadPideTask() throws Exception {
+        log.info("<========= INICIO ENVIAR TRAMITE PENDIENTE PIDE =========>");
+
+        try{
+            createAuthentication();
+            //tramiteService.entidadPideService();
 
         }catch (Exception e){
             log.error("Error scheduleEnvioTramitePIDETask",e);

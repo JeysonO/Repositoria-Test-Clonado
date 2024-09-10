@@ -1,10 +1,12 @@
 package pe.com.amsac.tramite.bs.repository.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import pe.com.amsac.tramite.api.util.*;
 import pe.com.amsac.tramite.bs.domain.TramiteDerivacion;
 import pe.com.amsac.tramite.bs.dto.DetalleDashboardDTO;
 import pe.com.amsac.tramite.bs.dto.ResumenReporteDashboardDTO;
 import pe.com.amsac.tramite.bs.repository.CustomTramiteDerivacionJPARepository;
+import pe.com.amsac.tramite.bs.util.EstadoTramiteConstant;
 import pe.com.amsac.tramite.bs.util.TipoTramiteConstant;
 
 import java.text.ParseException;
@@ -227,10 +229,14 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
             orderByClause = " ORDER BY t.created_date desc ";
         }else{
             String campoEstado = null;
-            if(parameters.get("estado")!=null && parameters.get("estado").equals("P"))
+            String valorCampoEstado = parameters.get("estado")==null?"":parameters.get("estado").toString();
+            if(valorCampoEstado.equals("P"))
                 campoEstado = "ISNULL(td.estado_fin,'PENDIENTE')";
-            else
-                campoEstado = parameters.get("estadoFin")!=null && (parameters.get("estadoFin").equals("ATENDIDO") || parameters.get("estadoFin").equals("NOTIFICADO") || parameters.get("estadoFin").equals("RECHAZADO") || parameters.get("estadoFin").equals("FUERA_PLAZO"))?"ISNULL(td.estado_fin,'FUERA_PLAZO')":"td.estado_inicio";
+            else{
+                //campoEstado = parameters.get("estadoFin")!=null && (parameters.get("estadoFin").equals("ATENDIDO") || parameters.get("estadoFin").equals("NOTIFICADO") || parameters.get("estadoFin").equals("RECHAZADO") || parameters.get("estadoFin").equals("FUERA_PLAZO"))?"ISNULL(td.estado_fin,'FUERA_PLAZO')":"td.estado_inicio";
+                campoEstado = (valorCampoEstado.equals(EstadoTramiteConstant.ATENDIDO) || valorCampoEstado.equals(EstadoTramiteConstant.NOTIFICADO) || valorCampoEstado.equals(EstadoTramiteConstant.RECHAZADO) || valorCampoEstado.equals(EstadoTramiteConstant.FUERA_PLAZO))?"ISNULL(td.estado_fin,'FUERA_PLAZO')":"td.estado_inicio";
+            }
+
 
             selectClause = "select td.id_tramite_derivacion, t.id_tramite, t.numero_tramite as numTramite, t.created_date as fechaCreacion, t.asunto, "+ campoEstado +" as estado, di.nombre as dependenciaEmisor, CONCAT(ui.nombre,' ',ui.ape_paterno) as usuarioEmisior, df.nombre as dependenciaDestino, CONCAT(uf.nombre,' ',uf.ape_paterno) as usuarioDestino, do.descripcion, tp.descripcion as prioridad, CAST(\n" +
                     "             CASE\n" +
@@ -282,6 +288,41 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
         String whereClause = "";
         //String columnaFecha = (parameters.get("tipoTramite").equals(TipoTramiteConstant.DESPACHO_PIDE))?"t.created_date":"td.fecha_inicio";
         String columnaFecha = "t.created_date";
+        String valorEstado = parameters.get("estado")==null?"":parameters.get("estado").toString();
+        if(parameters.get("tipoTramite").equals(TipoTramiteConstant.DESPACHO_PIDE)){
+            if (!StringUtils.isBlank(valorEstado)) {
+                whereClause = (!"".equals(whereClause) ? whereClause + " "
+                        + JpaConstant.CONDITION_AND + " " : "");
+                whereClause = whereClause
+                        + "t.estado = :estado";
+            }
+        }else{
+            if (valorEstado.equals("P")) {
+                whereClause = (!"".equals(whereClause) ? whereClause + " "
+                        + JpaConstant.CONDITION_AND + " " : "");
+                whereClause = whereClause
+                        + "td.estado = :estado";
+            }else {
+                whereClause = (!"".equals(whereClause) ? whereClause + " "
+                        + JpaConstant.CONDITION_AND + " " : "");
+
+                if(valorEstado.equals("ATENDIDO") || valorEstado.equals("NOTIFICADO") || valorEstado.equals("RECHAZADO") ){
+                    whereClause = whereClause
+                            + "td.estado_fin = :estado";
+                }else{
+                    if(!valorEstado.equals("FUERA_PLAZO") ){
+                        whereClause = whereClause
+                                + "td.estado_inicio = :estado";
+                    }else{
+                        whereClause = whereClause
+                                + "DATEDIFF(DAY,td.fecha_maximo_atencion,ISNULL(td.fecha_fin,GETDATE())) >= 0 and td.fecha_maximo_atencion is not null";
+                    }
+                }
+            }
+
+        }
+        //Anterior
+        /*
         if(parameters.get("tipoTramite").equals(TipoTramiteConstant.DESPACHO_PIDE)){
             if (parameters.get("estadoFin") != null) {
                 whereClause = (!"".equals(whereClause) ? whereClause + " "
@@ -315,6 +356,7 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
             }
 
         }
+        */
 
         if (parameters.get("tipoTramiteId") != null) {
             whereClause = (!"".equals(whereClause) ? whereClause + " "
@@ -350,6 +392,53 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
             whereClause = whereClause
                     + "t.id_entidad_pide = :entidadPideId";
         }
+
+        //Ahora, se selecciona el usuario dependiendo si es derivado_a o derivado_desde
+        if (parameters.get("dependenciaIdUsuario") != null) {
+            whereClause = (!"".equals(whereClause) ? whereClause + " "
+                    + JpaConstant.CONDITION_AND + " " : "");
+            if(parameters.get("tipoTramite").equals(TipoTramiteConstant.DESPACHO_PIDE)){
+                whereClause = whereClause
+                        + "t.id_dependencia_remitente = :dependenciaIdUsuario";
+            }else{
+                if(valorEstado.equals("P")){
+                    whereClause = whereClause
+                            + "td.id_dependencia_usuario_fin = :dependenciaIdUsuario";
+                }else{
+                    if(valorEstado.equals(EstadoTramiteConstant.ATENDIDO) || valorEstado.equals(EstadoTramiteConstant.NOTIFICADO) || valorEstado.equals(EstadoTramiteConstant.RECHAZADO) || valorEstado.equals(EstadoTramiteConstant.FUERA_PLAZO) || valorEstado.equals(EstadoTramiteConstant.DERIVADO_A) ){
+                        whereClause = whereClause
+                                + "td.id_dependencia_usuario_fin = :dependenciaIdUsuario";
+                    }else{
+                        whereClause = whereClause
+                                + "td.id_dependencia_usuario_inicio = :dependenciaIdUsuario";
+                    }
+                }
+            }
+
+        }
+        if (parameters.get("usuario") != null) {
+            whereClause = (!"".equals(whereClause) ? whereClause + " "
+                    + JpaConstant.CONDITION_AND + " " : "");
+            if(parameters.get("tipoTramite").equals(TipoTramiteConstant.DESPACHO_PIDE)){
+                whereClause = whereClause
+                        + "t.id_usuario_remitente = :usuario";
+            }else{
+                if(valorEstado.equals("P")){
+                    whereClause = whereClause
+                            + "td.id_usuario_fin = :usuario";
+                }else{
+                    if(valorEstado.equals(EstadoTramiteConstant.ATENDIDO) || valorEstado.equals(EstadoTramiteConstant.NOTIFICADO) || valorEstado.equals(EstadoTramiteConstant.RECHAZADO) || valorEstado.equals(EstadoTramiteConstant.FUERA_PLAZO) || valorEstado.equals(EstadoTramiteConstant.DERIVADO_A) ){
+                        whereClause = whereClause
+                                + "td.id_usuario_fin = :usuario";
+                    }else{
+                        whereClause = whereClause
+                                + "td.id_usuario_inicio = :usuario";
+                    }
+                }
+            }
+        }
+        //Antes
+        /*
         if (parameters.get("dependenciaIdUsuarioInicio") != null) {
             whereClause = (!"".equals(whereClause) ? whereClause + " "
                     + JpaConstant.CONDITION_AND + " " : "");
@@ -396,6 +485,7 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
             }
 
         }
+        */
         /*
         if (parameters.get("dependenciaIdUsuarioFin") != null) {
             whereClause = (!"".equals(whereClause) ? whereClause + " "
@@ -442,6 +532,10 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
                 + JpaConstant.CONDITION_AND + " " : "");
         whereClause = whereClause
                 + " t.estado != 'ELIMINADO' ";
+
+        //Finalmente actualizamos el estado de DERIVADO_A y DERIVADO_DESDE a solo DERIVADO para que haga match
+        if(valorEstado.equals(EstadoTramiteConstant.DERIVADO_A) || valorEstado.equals(EstadoTramiteConstant.DERIVADO_DESDE))
+            parameters.put("estado", EstadoTramiteConstant.DERIVADO);
 
         return whereClause;
     }
@@ -569,7 +663,7 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
             whereClause = " where " + buildWhereDetalleDashboard(parameters);
         }else{
             selectClause = "select count(*) as cantidad from ( \n" +
-                    "select distinct t.id_tramite \n" +
+                    "select t.id_tramite \n" +
                     "from tramite_derivacion td \n" +
                     "inner join tramite t         on t.id_tramite = td.id_tramite\n" +
                     "inner join tipo_tramite tt   on tt.id_tipo_tramite = t.id_tipo_tramite\n" +
@@ -579,7 +673,7 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
                     "inner join usuario uf        on uf.id_usuario = td.id_usuario_fin\n" +
                     "inner join tipo_documento_tramite do   on do.id_tipo_documento = t.id_tipo_documento\n" +
                     "inner join tramite_prioridad tp   on tp.id_tramite_prioridad = t.id_tramite_prioridad ";
-            whereClause = " where " + buildWhereDetalleDashboard(parameters) + ") a";
+            whereClause = " where " + buildWhereDetalleDashboard(parameters) + " group by t.id_tramite) a";
         }
 
         List<Object[]> resultado = super.executeNativeQuery(selectClause + whereClause, parameters, false, pageNumber, pageSize);
@@ -616,10 +710,13 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
             groupByClause = " GROUP by t.estado ";
         }else{
             String campoEstado = null;
-            if(parameters.get("estado")!=null && parameters.get("estado").equals("P"))
+            String valorCampoEstado = parameters.get("estado")==null?"":parameters.get("estado").toString();
+            if(valorCampoEstado.equals("P"))
                 campoEstado = "ISNULL(td.estado_fin,'PENDIENTE')";
-            else
-                campoEstado = parameters.get("estadoFin")!=null && (parameters.get("estadoFin").equals("ATENDIDO") || parameters.get("estadoFin").equals("NOTIFICADO") || parameters.get("estadoFin").equals("RECHAZADO")|| parameters.get("estadoFin").equals("FUERA_PLAZO"))?"ISNULL(td.estado_fin,'FUERA_PLAZO')":"td.estado_inicio";
+            else{
+                //campoEstado = parameters.get("estadoFin")!=null && (parameters.get("estadoFin").equals("ATENDIDO") || parameters.get("estadoFin").equals("NOTIFICADO") || parameters.get("estadoFin").equals("RECHAZADO") || parameters.get("estadoFin").equals("FUERA_PLAZO"))?"ISNULL(td.estado_fin,'FUERA_PLAZO')":"td.estado_inicio";
+                campoEstado = (valorCampoEstado.equals(EstadoTramiteConstant.ATENDIDO) || valorCampoEstado.equals(EstadoTramiteConstant.NOTIFICADO) || valorCampoEstado.equals(EstadoTramiteConstant.RECHAZADO) || valorCampoEstado.equals(EstadoTramiteConstant.FUERA_PLAZO))?"ISNULL(td.estado_fin,'FUERA_PLAZO')":"td.estado_inicio";
+            }
 
             //selectClause = "select t.estado as estado, count(*) as cantidad\n" +
             selectClause = "select "+campoEstado+" as estado, count(*) as cantidad\n" +
@@ -673,6 +770,28 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
             whereClause = " where " + buildWhereDetalleDashboard(parameters);
             groupByClause = " group by CONCAT(ui.nombre,' ', ui.ape_paterno) ";
         }else{
+
+            String campoUsuario = "CONCAT(uf.nombre,' ', uf.ape_paterno)";
+            String valorCampoEstado = parameters.get("estado")==null?"":parameters.get("estado").toString();
+            if(valorCampoEstado.equals(EstadoTramiteConstant.DERIVADO_DESDE))
+                campoUsuario = "CONCAT(ui.nombre,' ', ui.ape_paterno)";
+
+
+            selectClause = "select "+campoUsuario+" as usuario, count(*) as cantidad\n" +
+                    "from tramite_derivacion td \n" +
+                    "inner join tramite t         on t.id_tramite = td.id_tramite\n" +
+                    "inner join tipo_tramite tt   on tt.id_tipo_tramite = t.id_tipo_tramite\n" +
+                    "inner join dependencia di    on di.id_dependencia = td.id_dependencia_usuario_inicio\n" +
+                    "inner join dependencia df    on df.id_dependencia = td.id_dependencia_usuario_fin\n" +
+                    "inner join usuario ui        on ui.id_usuario = td.id_usuario_inicio\n" +
+                    "inner join usuario uf        on uf.id_usuario = td.id_usuario_fin\n" +
+                    "inner join tipo_documento_tramite do   on do.id_tipo_documento = t.id_tipo_documento\n" +
+                    "inner join tramite_prioridad tp   on tp.id_tramite_prioridad = t.id_tramite_prioridad ";
+            whereClause = " where " + buildWhereDetalleDashboard(parameters);
+            groupByClause = " group by "+campoUsuario;
+
+            //Anterior
+            /*
             selectClause = "select CONCAT(uf.nombre,' ', uf.ape_paterno) as usuario, count(*) as cantidad\n" +
                     "from tramite_derivacion td \n" +
                     "inner join tramite t         on t.id_tramite = td.id_tramite\n" +
@@ -685,6 +804,7 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
                     "inner join tramite_prioridad tp   on tp.id_tramite_prioridad = t.id_tramite_prioridad ";
             whereClause = " where " + buildWhereDetalleDashboard(parameters);
             groupByClause = " group by CONCAT(uf.nombre,' ', uf.ape_paterno) ";
+            */
         }
 
         List<Object[]> resultado = super.executeNativeQuery(selectClause + whereClause + groupByClause, parameters, false, pageNumber, pageSize);

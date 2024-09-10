@@ -22,7 +22,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import pe.com.amsac.tramite.api.config.SecurityHelper;
-import pe.com.amsac.tramite.api.config.exceptions.ResourceNotFoundException;
 import pe.com.amsac.tramite.api.config.exceptions.ServiceException;
 import pe.com.amsac.tramite.api.file.bean.FileStorageService;
 import pe.com.amsac.tramite.api.request.bean.*;
@@ -1896,7 +1895,7 @@ public class TramiteService {
 		tramite.setEntidadInterna(null);
 		tramite.setDependenciaDestino(null);
 		tramite.setRazonSocial(tramitePideBodyRequest.getNombreEntidadDestino());
-		tramite.setEstado(EstadoTramiteConstant.PENDIENTE_PIDE);
+		tramite.setEstado(EstadoTramiteConstant.PENDIENTE);
 		//Obtenemos la dependencia que llega en el header para registrar el tramite
 		String dependenciaIdUserSession = securityHelper.obtenerDependenciaIdUserSession();
 		if(!StringUtils.isBlank(dependenciaIdUserSession)){

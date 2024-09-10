@@ -131,11 +131,15 @@ public class CustomTramiteJPARepositoryImpl extends
                     + JpaConstant.CONDITION_AND + " " : "");
             whereClause = whereClause + " tt.id = :tipoTramiteId ";
         }
-
-        whereClause = (!"".equals(whereClause) ? whereClause + " "
-                + JpaConstant.CONDITION_AND + " " : "");
-        whereClause = whereClause + " t.estado <> 'ELIMINADO' ";
-
+        if(parameters.get("estado") != null){
+            whereClause = (!"".equals(whereClause) ? whereClause + " "
+                    + JpaConstant.CONDITION_AND + " " : "");
+            whereClause = whereClause + " t.estado = :estado ";
+        }else{
+            whereClause = (!"".equals(whereClause) ? whereClause + " "
+                    + JpaConstant.CONDITION_AND + " " : "");
+            whereClause = whereClause + " t.estado <> 'ELIMINADO' ";
+        }
 
         return whereClause;
     }

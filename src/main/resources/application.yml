@@ -131,6 +131,7 @@ app:
     pideServer: http://mpv-iotd.gobiernodigital.gob.pe/wsiopidetramite/IOTramite
     cuoServer: https://ws3.pide.gob.pe/services/PcmCuo
     descargaAnexoPideAmsac: https://std.amsac.pe/admin/descargar-anexo
+    entidadServer: http://mpv-iotd.gobiernodigital.gob.pe/wsentidad/Entidad
 
   field:
     asuntoDerivacion: "STD AMSAC - Expediente Asignado"
@@ -178,4 +179,5 @@ cron:
   #* "0 0 0 25 12 ?" = every Christmas Day at midnight
   evaluar-vencimiento-tramite-derivacion: 0 0 8 * * *
   enviar-tramite-pendiente-pide: 0 */2 * * * *
+  obtener-entidad-pide: 0 0 12 * * *
 
