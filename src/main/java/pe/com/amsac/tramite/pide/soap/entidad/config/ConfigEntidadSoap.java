@@ -14,18 +14,18 @@ public class ConfigEntidadSoap {
     private Environment env;
 
     @Bean
-    public Jaxb2Marshaller marshaller() {
+    public Jaxb2Marshaller marshallerEntidad() {
         Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
         marshaller.setContextPath("pe.com.amsac.tramite.pide.soap.entidad.request");
         return marshaller;
     }
 
     @Bean
-    public SOAPConnector soapConnector(Jaxb2Marshaller marshaller) {
+    public SOAPConnector soapConnector(Jaxb2Marshaller marshallerEntidad) {
         SOAPConnector client = new SOAPConnector();
         client.setDefaultUri(env.getProperty("app.url.entidadServer"));
-        client.setMarshaller(marshaller);
-        client.setUnmarshaller(marshaller);
+        client.setMarshaller(marshallerEntidad);
+        client.setUnmarshaller(marshallerEntidad);
         return client;
     }
 }
