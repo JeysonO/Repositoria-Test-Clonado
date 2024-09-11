@@ -275,7 +275,7 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
             detalleDashboardDTO.setUsuarioReceptor(objeto[9].toString());
             detalleDashboardDTO.setTipoDocumento(objeto[10].toString());
             detalleDashboardDTO.setPrioridad(objeto[11].toString());
-            detalleDashboardDTO.setDiasFueraPlazo(Integer.parseInt(objeto[12].toString()));
+            detalleDashboardDTO.setDiasFueraPlazo(objeto[12]!=null?Integer.parseInt(objeto[12].toString()):0);
             detalleDashboardDTO.setTipoTramite(objeto[13].toString());
             detalleDashboardDTOList.add(detalleDashboardDTO);
         }
