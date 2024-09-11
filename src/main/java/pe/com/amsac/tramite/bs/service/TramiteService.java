@@ -2262,10 +2262,11 @@ public class TramiteService {
 				.tipoAdjunto(TipoAdjuntoConstant.DOCUMENTO_TRAMITE)
 				.tramiteId(tramiteId)
 				.build();
+
 		List<DocumentoAdjunto> documentoAdjuntoList = null;
 		boolean seObtuvoDocumentoFirmado = false;
 		int cantidadIntentos = 0;
-		int cantidadIntentosMaximo = 5;
+		int cantidadIntentosMaximo = 10;
 		while(!seObtuvoDocumentoFirmado){
 			if(cantidadIntentos == cantidadIntentosMaximo)
 				throw new ServiceException("No se pudo firmar documento, volver a intentarlo en breve");

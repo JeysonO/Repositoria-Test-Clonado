@@ -80,6 +80,17 @@ public class TramiteCommandHandlerService {
 				tramiteService.enviarDocumentoParaFirma(datosFirmaDocumentoRequest, filePrincipal, tramitePide);
 				tramiteService.actualizarDatosDocumentoFirmadoDigitalmente(tramitePide.getId());
 			}
+		}catch (ServiceException ex){
+			log.error("ERROR", ex);
+			tramiteService.eliminarTramite(tramitePide.getId());
+			throw ex;
+		}catch (Exception ex){
+			log.error("ERROR", ex);
+			tramiteService.eliminarTramite(tramitePide.getId());
+			throw new ServiceException("Erroe al intentar firmar el documento, volver a intentar en breve");
+		}
+
+		try{
 
 			String estadoTramite = tramitePide.getEstado();
 
