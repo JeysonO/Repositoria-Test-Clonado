@@ -16,7 +16,7 @@ pipeline{
         stage("Build Docker Image"){
             steps{
                 script {
-                    sh "/var/jenkins_home/scripts/amsac-tramite-api/test/build_image.sh"
+                    sh "/var/jenkins_home/scripts/amsac-tramite-api/uat/build_image.sh"
                 }                
             }
         }
@@ -24,7 +24,7 @@ pipeline{
             steps{
                 script {
                     withCredentials([string(credentialsId: 'docker-hub-pwd', variable: 'dockerHubPassword')]) {
-                        sh "/var/jenkins_home/scripts/amsac-tramite-api/test/push_image.sh"
+                        sh "/var/jenkins_home/scripts/amsac-tramite-api/uat/push_image.sh"
                     }
                 }                
             }
@@ -34,7 +34,7 @@ pipeline{
                 script {
                     withCredentials([string(credentialsId: 'gitlab-password', variable: 'githubServerPwd')]) {
                         sshagent(['test-server-amsac']) {
-                            sh "/var/jenkins_home/scripts/amsac-tramite-api/test/create_container.sh"
+                            sh "/var/jenkins_home/scripts/amsac-tramite-api/uat/create_container.sh"
                         }
                     }
                 }                
