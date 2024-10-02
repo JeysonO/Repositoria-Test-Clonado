@@ -70,6 +70,8 @@ public class TramiteCommandHandlerService {
 		if(!tramiteService.probarConexionAPide())
 			throw new ServiceException("La conexión a PIDE no esta Disponible, intente nuevamente");
 		*/
+		/*Validacion firma documentopdf: si el objeto datosFirmaDocumentoRequest es null validar firma del PDF (filePrincipal), crear ebn el service validarFirmaDocumento().
+		Si hay error lanzar en service excepcion, agregar un mensaje que no tiene firma.*/
 
 		Tramite tramitePide =  tramiteService.registrarTramitePide(tramitePideBodyRequest, filePrincipal, fileAnexos, datosFirmaDocumentoRequest);
 
@@ -87,7 +89,7 @@ public class TramiteCommandHandlerService {
 		}catch (Exception ex){
 			log.error("ERROR", ex);
 			tramiteService.eliminarTramite(tramitePide.getId());
-			throw new ServiceException("Erroe al intentar firmar el documento, volver a intentar en breve");
+			throw new ServiceException("Error al intentar firmar el documento, volver a intentar en breve");
 		}
 
 		try{
@@ -103,7 +105,7 @@ public class TramiteCommandHandlerService {
 				estadoTramite = EstadoTramiteConstant.CON_ERROR_PIDE;
 			if(resultadEnvio.get("resultado").equals(EstadoResultadoEnvioPideConstant.ERROR_SERVICIO)){
 				estadoTramite = EstadoTramiteConstant.POR_ENVIAR_PIDE;
-				resultadEnvio.put("mensaje", Map.of("vcodres", "001", "vdesres", "Hubo un error en la transmisión, se volverá a intentar de forma automática en unos momentos y se informará por correo de los resultados"));
+				resultadEnvio.put("mensaje", Map.of("vcodres", "001", "vdesres", "Servicio de PIDE no disponible, se volverá a intentar de forma automática en unos momentos y se informará por correo de los resultados"));
 			}
 			/*
 			}catch (Exception ex){
@@ -116,6 +118,7 @@ public class TramiteCommandHandlerService {
 			Tramite tramite = tramiteService.findById(tramitePide.getId());
 			tramite.setEstado(estadoTramite);
 			tramite.setIntentosEnvio(tramite.getIntentosEnvio()==null?1:tramite.getIntentosEnvio()+1);
+			tramite.setResultadoTransmision(((Map) resultadEnvio.get("mensaje")).get("vdesres").toString());
 			tramiteService.save(tramite);
 
 			resultadEnvio.put("tramiteId",tramite.getId());

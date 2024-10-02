@@ -164,6 +164,9 @@ public class Tramite extends BaseAuditableEntity<String> {
 	@JoinColumn(name = "id_tipo_tramite", referencedColumnName = "id_tipo_tramite")
 	private TipoTramite tipoTramite;
 
+	@Column(name = "resultado_trans_pide")
+	private String resultadoTransmision;
+
 	@Transient
 	private Long cantidadMaximaIntentos;
 

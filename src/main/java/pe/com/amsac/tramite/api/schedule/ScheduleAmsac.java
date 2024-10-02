@@ -66,10 +66,10 @@ public class ScheduleAmsac {
         log.info("<========= FIN EVALUAR TRAMITES DERIVACION FUERA DE PLAZO =========>");
     }
 
-    @Scheduled(cron = "${cron.enviar-tramite-pendiente-pide}", zone = "America/Lima")
+    //@Scheduled(cron = "${cron.enviar-tramite-pendiente-pide}", zone = "America/Lima")
+    @Scheduled(fixedDelayString = "${fixedDelay.enviar-tramite-pendiente-pide.milliseconds}")
     public void scheduleEnvioTramitePIDETask() throws Exception {
         log.info("<========= INICIO ENVIAR TRAMITE PENDIENTE PIDE =========>");
-
         try{
             createAuthentication();
             tramiteService.enviarTramitePendientePide();

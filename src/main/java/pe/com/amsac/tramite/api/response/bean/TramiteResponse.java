@@ -108,6 +108,7 @@ public class TramiteResponse {
 	private String tramiteDependencia;
 
 	private String tipoTramiteNombre;
+	private String resultadoTransmision;
 
 	@Mapping("intentosEnvio")
 	public Integer getCantidadIntentos(){return cantidadIntentos;}

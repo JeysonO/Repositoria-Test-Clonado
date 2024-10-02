@@ -18,6 +18,7 @@ public class TramiteDashboardRequest extends BaseRequest {
 	private String categoriaEntidadPideId;
 	private String entidadPideId;
 	private String asunto;
+	private String nombreDependencia;
 
 	@DateTimeFormat(pattern = "dd/MM/yyyy")
 	private Date fechaCreacionDesde;

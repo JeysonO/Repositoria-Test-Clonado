@@ -639,6 +639,9 @@ public class TramiteService {
 
 	}
 
+	public boolean validarFirmaDocumentoPide(MultipartFile multipartFile){
+		return true;
+	}
 	public List<TramiteReporteResponse> generarReporteTramiteSeguimiento(TramiteRequest tramiteRequest) throws Exception{
 		//Persona y Tipo Persona de Creador de cada tramite
 		RestTemplate restTemplate = new RestTemplate();
@@ -1732,6 +1735,7 @@ public class TramiteService {
 			estadoTramite = EstadoTramiteConstant.POR_ENVIAR_PIDE;
 			resultadEnvio.put("mensaje", Map.of("vcodres", "001", "vdesres", "Hubo un error en la transmisión, se volverá a intentar de forma automática en unos momentos y se informará por correo de los resultados"));
 		}
+
 		/*
 		}catch (Exception ex){
 			estadoTramite = EstadoTramiteConstant.POR_ENVIAR_PIDE;
@@ -1743,6 +1747,9 @@ public class TramiteService {
 		Tramite tramite = findById(tramitePide.getId());
 		tramite.setEstado(estadoTramite);
 		tramite.setIntentosEnvio(tramite.getIntentosEnvio()==null?1:tramite.getIntentosEnvio()+1);
+		if(resultadEnvio.containsKey("mensaje")){
+			tramite.setResultadoTransmision(((Map)resultadEnvio.get("mensaje")).get("vdesres").toString());
+		}
 		save(tramite);
 
 		resultadEnvio.put("tramiteId",tramite.getId());
@@ -1828,6 +1835,9 @@ public class TramiteService {
 			resultadoEnvio.put("mensaje", new ObjectMapper()
 					.convertValue(recepcionarTramiteResponseResponse.getReturn(), new TypeReference<Map<String, Object>>() {})); //recepcionarTramiteResponseResponse.getReturn());
 			if(!recepcionarTramiteResponseResponse.getReturn().getVcodres().equals("0000")){
+				if(recepcionarTramiteResponseResponse.getReturn().getVcodres().equals("-1")){
+					throw new Exception(new ObjectMapper().writeValueAsString(recepcionarTramiteResponseResponse.getReturn()));
+				}
 				resultadoEnvio.put("resultado",EstadoResultadoEnvioPideConstant.ERROR);
 				estadoSeguimientoEnvio = EstadoTramiteConstant.CON_ERROR_PIDE;
 			}else{
@@ -1837,6 +1847,9 @@ public class TramiteService {
 			respuestaPide = new ObjectMapper().writeValueAsString(recepcionarTramiteResponseResponse.getReturn());
 
 		}catch(Exception ex){
+			//Map<String, Object> mapaMensaje = new HashMap<>();
+			//mapaMensaje.put("vcodres", "Servicio de PIDE no disponible, se intentará en breve.");
+			//resultadoEnvio.put("mensaje",mapaMensaje);
 			resultadoEnvio.put("resultado",EstadoResultadoEnvioPideConstant.ERROR_SERVICIO);
 			estadoSeguimientoEnvio = EstadoTramiteConstant.POR_ENVIAR_PIDE;
 			respuestaPide = ex.getMessage();
@@ -2124,6 +2137,9 @@ public class TramiteService {
 			resultadoEnvio.put("mensaje", new ObjectMapper()
 					.convertValue(recepcionarTramiteResponseResponse.getReturn(), new TypeReference<Map<String, Object>>() {})); //recepcionarTramiteResponseResponse.getReturn());
 			if(!recepcionarTramiteResponseResponse.getReturn().getVcodres().equals("0000")){
+				if(recepcionarTramiteResponseResponse.getReturn().getVcodres().equals("-1")){
+					throw new Exception(new ObjectMapper().writeValueAsString(recepcionarTramiteResponseResponse.getReturn()));
+				}
 				resultadoEnvio.put("resultado",EstadoResultadoEnvioPideConstant.ERROR);
 				estadoSeguimientoEnvio = EstadoTramiteConstant.CON_ERROR_PIDE;
 			}
@@ -2178,17 +2194,23 @@ public class TramiteService {
 
 	public void enviarTramitePendientePideAutomatico(Tramite tramite)  {
 		String estadoTramite = tramite.getEstado();
+		log.info("estado inicial tramite: " + estadoTramite);
 		Long cantidadIntentos = tramiteEnvioPideJPARepository.obtenerSecuencia(tramite.getId());
 		Long cantidadMaximaIntentos = Long.parseLong(env.getProperty("app.micelaneos.cantidad-maxima-intentos").toString());
 		try {
 			Map resultadEnvio = enviarTramiteAPide(tramite.getId());
 			//Vemos el indicados de resultado, si es ok entonces solocamos el estado enviado pide, sino con error pide.
 			estadoTramite = EstadoTramiteConstant.ENVIADO_PIDE;
-			if(resultadEnvio.get("resultado").equals(EstadoResultadoEnvioPideConstant.ERROR))
+			if(resultadEnvio.get("resultado").equals(EstadoResultadoEnvioPideConstant.ERROR)){
 				estadoTramite = EstadoTramiteConstant.CON_ERROR_PIDE;
+			}
 			if(resultadEnvio.get("resultado").equals(EstadoResultadoEnvioPideConstant.ERROR_SERVICIO)){
 				estadoTramite = EstadoTramiteConstant.POR_ENVIAR_PIDE;
+				tramite.setIntentosEnvio(tramite.getIntentosEnvio()==null?1:tramite.getIntentosEnvio()+1);
 				//resultadEnvio.put("mensaje", Map.of("vcodres", "001", "vdesres", "Hubo un error en la transmisión, se volverá a intentar de forma automática en unos momentos y se informará por correo de los resultados"));
+			}
+			if(resultadEnvio.containsKey("mensaje")){
+				tramite.setResultadoTransmision(((Map)resultadEnvio.get("mensaje")).get("vdesres").toString());
 			}
 		} catch (Exception e) {
 			log.error("ERROR", e);
@@ -2196,9 +2218,10 @@ public class TramiteService {
 
 
 		//Si el envio no ha sido exitoso y ya se ha commpletado la cantidad de envios, entonces se coloca en estado con error
-		if(cantidadMaximaIntentos.compareTo(cantidadIntentos)==0
-					&& estadoTramite.equals(EstadoTramiteConstant.POR_ENVIAR_PIDE))
+		if(cantidadMaximaIntentos.compareTo(cantidadIntentos)==0 && estadoTramite.equals(EstadoTramiteConstant.POR_ENVIAR_PIDE)){
 			estadoTramite = EstadoTramiteConstant.CON_ERROR_PIDE;
+			tramite.setResultadoTransmision("Se alcanzo el máximo de intentos (" + cantidadIntentos + "), se tendrá que enviar manualmente.");
+		}
 
 		tramite.setEstado(estadoTramite);
 		save(tramite);
@@ -2206,7 +2229,28 @@ public class TramiteService {
 		//TODO Enviamos correo si tiene estado con error PIDE
 		//if(estadoTramite.equals(EstadoTramiteConstant.CON_ERROR_PIDE))
 
+	}
 
+	public String renviarTramitePendientePide(String tramiteId) throws Exception {
+		Tramite tramite = tramiteJPARepository.findById(tramiteId).get();
+		String estadoTramite = tramite.getEstado();
+		try {
+			Map resultadEnvio = enviarTramiteAPide(tramite.getId());
+			//Vemos el indicados de resultado, si es ok entonces solocamos el estado enviado pide, sino con error pide.
+			estadoTramite = EstadoTramiteConstant.ENVIADO_PIDE;
+			if(resultadEnvio.get("resultado").equals(EstadoResultadoEnvioPideConstant.ERROR) || resultadEnvio.get("resultado").equals(EstadoResultadoEnvioPideConstant.ERROR_SERVICIO))
+				estadoTramite = EstadoTramiteConstant.CON_ERROR_PIDE;
+			if(resultadEnvio.containsKey("mensaje")){
+				tramite.setResultadoTransmision(((Map)resultadEnvio.get("mensaje")).get("vdesres").toString());
+			}
+			tramite.setEstado(estadoTramite);
+			save(tramite);
+		} catch (Exception e) {
+			log.error("ERROR", e);
+			throw e;
+		}
+
+		return estadoTramite;
 	}
 
 	public EntidadExterna registrarEntidadExterna(EntidadExterna entidadExterna){

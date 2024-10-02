@@ -707,4 +707,20 @@ public class TramiteDerivacionController {
 
 		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
 	}
+
+	@GetMapping("/detalle-by-params/exportar")
+	public ResponseEntity<Resource> downloadDetalleByParams(@Valid TramiteDashboardRequest tramiteDashboardRequest) throws Exception {
+
+		JasperPrint jasperPrint = tramiteDerivacionService.exportarReporteHistorial(tramiteDashboardRequest);
+
+		byte[] reporte = JasperExportManager.exportReportToPdf(jasperPrint);
+		Resource resource = new ByteArrayResource(reporte);
+
+		String contentType = "application/pdf";
+
+		return ResponseEntity.ok().contentType(MediaType.parseMediaType(contentType))
+				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=reporte-detalle.pdf")
+				.body(resource);
+
+	}
 }
