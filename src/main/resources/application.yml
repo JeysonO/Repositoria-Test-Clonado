@@ -166,6 +166,8 @@ file:
 fixedDelay:
   evaluar-tramite-derivacion:
     milliseconds: 100000
+  enviar-tramite-pendiente-pide:
+    milliseconds: 120000
 
 cron:
   ##second, minute, hour, day, month, weekday. Month and weekday names can be given as the first three letters of the English names
@@ -178,6 +180,6 @@ cron:
   #* "0 0 9-17 * * MON-FRI" = on the hour nine-to-five weekdays
   #* "0 0 0 25 12 ?" = every Christmas Day at midnight
   evaluar-vencimiento-tramite-derivacion: 0 0 8 * * *
-  enviar-tramite-pendiente-pide: 0 */2 * * * *
+  #enviar-tramite-pendiente-pide: 0 */2 * * * *
   obtener-entidad-pide: 0 0 12 * * *
 

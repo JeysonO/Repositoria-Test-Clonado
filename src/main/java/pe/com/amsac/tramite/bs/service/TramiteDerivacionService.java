@@ -83,6 +83,10 @@ public class TramiteDerivacionService {
 
 	@Autowired
 	private Environment env;
+	@Autowired
+	private EntidadPideService entidadPideService;
+	@Autowired
+	private CategoriaEntidadService categoriaEntidadService;
 
 	public List<TramiteDerivacion> obtenerTramiteDerivacionByTramiteId(String tramiteId) throws Exception {
 		/*
@@ -2358,10 +2362,6 @@ public class TramiteDerivacionService {
 
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 
-		//InputStream url1 = classloader.getResourceAsStream("reporteHistorialDerivacion.jrxml");
-		//JasperReport jasperReport = JasperCompileManager.compileReport(url1);
-
-
 		JasperReport jasperReport = JasperCompileManager.compileReport(new FileInputStream(new File(env.getProperty("app.resources.reporte-seguimiento-tramite"))));
 
 		JRBeanCollectionDataSource source = new JRBeanCollectionDataSource(listaTramiteDerivacion);
@@ -2377,6 +2377,74 @@ public class TramiteDerivacionService {
 		parameters.put("dependenciaEmpresa", dependenciaEmpresa );
 		parameters.put("tipoTramite", tramite.getTipoTramite() );
 
+
+		JasperPrint print = JasperFillManager.fillReport(jasperReport,parameters,source);
+
+		return print;
+	}
+
+	//EXPORTAR EN TRAMITE REPORTE
+	public JasperPrint exportarReporteHistorial(TramiteDashboardRequest tramiteDashboardRequest) throws Exception {
+
+		//Se obtiene el tramite
+		//List<DetalleDashboardDTO> detalleDashboardDTOList = detalleReporteByParams(tramiteDashboardRequest);
+		//Tramite tramite = tramiteService.findById(tramiteDerivacionRequest.getTramiteId());
+
+		//
+		//RestTemplate restTemplate = new RestTemplate();
+		//String uri = env.getProperty("app.url.seguridad") + "/usuarios/obtener-usuario-by-id/";
+		//HttpHeaders headers = new HttpHeaders();
+		//headers.add("Authorization", String.format("%s %s", "Bearer", securityHelper.getTokenCurrentSession()));
+		//HttpEntity entity = new HttpEntity<>(null, headers);
+		//ResponseEntity<CommonResponse> response = restTemplate.exchange(uriBusqueda, HttpMethod.GET,entity, new ParameterizedTypeReference<CommonResponse>() {});
+		//LinkedHashMap<Object, Object> usuario = (LinkedHashMap<Object, Object>) response.getBody().getData();
+
+		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+
+		List<DetalleDashboardDTO> listaTramites = detalleReporteByParams(tramiteDashboardRequest);
+		JRBeanCollectionDataSource source = new JRBeanCollectionDataSource(listaTramites);
+		JasperReport jasperReport = JasperCompileManager.compileReport(new FileInputStream(new File("C:/Users/usuario/Downloads/reporte.jrxml")));
+
+		String fecha = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date());
+		String fechaDesde = tramiteDashboardRequest.getFechaCreacionDesde() != null
+				? new SimpleDateFormat("dd/MM/yyyy").format(tramiteDashboardRequest.getFechaCreacionDesde())
+				: "";
+
+		String fechaHasta = tramiteDashboardRequest.getFechaCreacionHasta() != null
+				? new SimpleDateFormat("dd/MM/yyyy").format(tramiteDashboardRequest.getFechaCreacionHasta())
+				: "";
+		String entidadPide = "";
+		String categoriaPide = "";
+
+		List<CategoriaEntidad> categoriaEntidadList = categoriaEntidadService.obtenerCategoriaEntidadActivo();
+		List<EntidadPide> entidadPideList = entidadPideService.obtenerEntidadPideByCategoriaEntidad(tramiteDashboardRequest.getCategoriaEntidadPideId());
+
+		for (CategoriaEntidad temp : categoriaEntidadList) {
+			if(temp.getId().equals(tramiteDashboardRequest.getCategoriaEntidadPideId())){
+				categoriaPide = temp.getNombre();
+				break;
+			}
+		}
+		for (EntidadPide temp : entidadPideList) {
+			if(temp.getId().equals(tramiteDashboardRequest.getEntidadPideId())){
+				entidadPide = temp.getNombre();
+				break;
+			}
+		}
+
+		// Parameters for report
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("fecha", fecha);
+		parameters.put("asunto", tramiteDashboardRequest.getAsunto() );
+		parameters.put("tipoTramite", tramiteDashboardRequest.getTipoTramite() );
+		parameters.put("estado", tramiteDashboardRequest.getEstado() );
+		parameters.put("dependencia", tramiteDashboardRequest.getNombreDependencia() );
+		parameters.put("numeroTramite", tramiteDashboardRequest.getNumeroTramite() != 0 ? tramiteDashboardRequest.getNumeroTramite() : "" );
+		parameters.put("categoriaEntidad", categoriaPide );
+		parameters.put("entidadPide", entidadPide );
+		parameters.put("razonSocial", tramiteDashboardRequest.getRazonSocial() != null ? tramiteDashboardRequest.getRazonSocial() : "" );
+		parameters.put("fechaDesde", fechaDesde );
+		parameters.put("fechaHasta", fechaHasta );
 
 		JasperPrint print = JasperFillManager.fillReport(jasperReport,parameters,source);
 

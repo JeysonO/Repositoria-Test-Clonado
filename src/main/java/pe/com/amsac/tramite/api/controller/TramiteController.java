@@ -453,6 +453,37 @@ public class TramiteController {
 
 	}
 
+	@PostMapping("/reenviar-tramite-pide/{tramiteId}")
+	public ResponseEntity<CommonResponse> reenviarTramitePide(@PathVariable String tramiteId) throws Exception {
+		CommonResponse commonResponse = null;
+
+		HttpStatus httpStatus = HttpStatus.OK;
+
+		try {
+
+			log.info("reenviarTramitePide:"+tramiteId);
+
+			String estadoTramite = tramiteService.renviarTramitePendientePide(tramiteId);
+			if(estadoTramite.equals(EstadoTramiteConstant.CON_ERROR_PIDE)){
+				throw new ServiceException("No se pudo completar la transacción, volver a itnentar en breve.");
+			}
+
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_OK, null)).build();
+
+		} catch (ServiceException se) {
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, se.getMensajes(),se.getAtributos())).build();
+			httpStatus = HttpStatus.CONFLICT;
+
+		} catch (Exception se) {
+			log.error("Error",se);
+			commonResponse = CommonResponse.builder().meta(new Meta(EstadoRespuestaConstant.RESULTADO_ERROR, null,null)).build();
+			httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+		}
+
+		return new ResponseEntity<CommonResponse>(commonResponse, httpStatus);
+
+	}
+
 	@PostMapping("/generar-acuse-observacion-firmado")
 	public ResponseEntity<Resource> generarAcuseObservacionFirmado(@Valid @RequestBody AcuseReciboObservacionPideRequest acuseReciboObservacionPideRequest, HttpServletRequest request)
 			throws Exception {
