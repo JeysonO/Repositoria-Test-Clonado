@@ -3,14 +3,6 @@ spring:
     #name: entity-upload-file
     name: amsac-tramite-api
 
-#  datasource:
-#    url: jdbc:sqlserver://docker-host:1433;databaseName=scs
-#    username: USR_INTEGRADOR_VUCE
-#    password: xxx
-#
-#    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
-
-  #MongoDB settings
   datasource:
     url: jdbc:sqlserver://${app.connectionSqlServer.host}:${app.connectionSqlServer.port};encrypt=true;trustServerCertificate=true;databaseName=amsac_tramite
     username: ${app.connectionSqlServer.user}
@@ -90,14 +82,6 @@ app:
     #client-id: admin-cli
 
 
-  connectionMongo:
-    user: user-amsac-db
-    password: "%40ms%40c2022"
-    host: mongoservice
-    #host: 190.119.248.141
-    port: 57017
-    #port: 55881
-
   connectionSqlServer:
     user: sa
     password: Amsac..2024
@@ -153,8 +137,8 @@ app:
       password: ealvino
 
   security:
-    allow-resources: /documentos-adjuntos/pide,/firma-callback
-    allow-resources-filter: /documentos-adjuntos/pide/**,/firma-callback/**
+    allow-resources: /documentos-adjuntos/pide,/firma-callback,/actuator
+    allow-resources-filter: /documentos-adjuntos/pide/**,/firma-callback/**,/actuator/**
 
   resources:
     reporte-seguimiento-tramite: tramite/resource/reporte/reporteHistoricoDerivacion.jrxml
@@ -183,3 +167,9 @@ cron:
   #enviar-tramite-pendiente-pide: 0 */2 * * * *
   obtener-entidad-pide: 0 0 12 * * *
 
+##Monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
