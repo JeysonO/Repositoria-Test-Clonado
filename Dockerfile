@@ -21,9 +21,10 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y ttf-mscorefonts-installer 
 #    update-ms-fonts && \
 #    fc-cache -f
 
+ENTRYPOINT ["java", "-Xms256m", "-Xmx512m", "-Duser.timezone=America/Lima", "-Dfile.encoding=UTF-8", "-javaagent:/tramite/config/elk/apm-agent/elastic-apm-agent-1.30.0.jar", "-Delastic.apm.service_name=amsac-tramite-service", "-Delastic.apm.server_urls=http://185.202.239.173:58200", "-Delastic.apm.environment=produccion", "-Delastic.apm.application_packages=pe.com.amsac.tramite", "-jar", "/app/application.jar", "server"]
 
 #ENTRYPOINT ["java", "-Xms256m", "-Xmx512m", "-Duser.timezone=America/Lima", "-Dfile.encoding=UTF-8", "-jar", "-Dspring.profiles.active=${profile}", "-Dsiops.cloud.config.host=${siopscloudhost}", "-Dsiops.cloud.config.port=${siopscloudport}", "/app/application.jar", "server"]
 
-ENTRYPOINT ["java", "-Xms256m", "-Xmx2048m", "-Duser.timezone=America/Lima", "-Dfile.encoding=UTF-8", "-jar", "/app/application.jar", "server"]
+#ENTRYPOINT ["java", "-Xms256m", "-Xmx2048m", "-Duser.timezone=America/Lima", "-Dfile.encoding=UTF-8", "-jar", "/app/application.jar", "server"]
 
 

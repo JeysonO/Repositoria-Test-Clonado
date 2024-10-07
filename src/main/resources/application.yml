@@ -1,7 +1,7 @@
 spring:
   application:
     #name: entity-upload-file
-    name: amsac-tramite-api
+    name: amsac-tramite-service
 
   datasource:
     url: jdbc:sqlserver://${app.connectionSqlServer.host}:${app.connectionSqlServer.port};encrypt=true;trustServerCertificate=true;databaseName=amsac_tramite
@@ -168,8 +168,18 @@ cron:
   obtener-entidad-pide: 0 0 12 * * *
 
 ##Monitoring
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,prometheus
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+        ##include: health,prometheus
+#        include: health
+  #otlp:
+  #  metrics:
+  #    export:
+  #      url: http://localhost:4318/v1/metrics
+  #      step: 10s
+
+  #metrics:
+  #  tags:
+  #    application: ${spring.application.name}
