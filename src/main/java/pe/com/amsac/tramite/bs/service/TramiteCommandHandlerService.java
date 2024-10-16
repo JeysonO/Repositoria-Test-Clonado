@@ -64,14 +64,20 @@ public class TramiteCommandHandlerService {
 
 	private final FirmaDocumentoService firmaDocumentoService;
 
+	private final Environment environment;
+
 	public Map registrarTramitePideHandler(TramitePideBodyRequest tramitePideBodyRequest, MultipartFile filePrincipal, List<MultipartFile> fileAnexos, DatosFirmaDocumentoRequest datosFirmaDocumentoRequest) throws Exception {
 
 		/*
 		if(!tramiteService.probarConexionAPide())
 			throw new ServiceException("La conexión a PIDE no esta Disponible, intente nuevamente");
 		*/
-		/*Validacion firma documentopdf: si el objeto datosFirmaDocumentoRequest es null validar firma del PDF (filePrincipal), crear ebn el service validarFirmaDocumento().
-		Si hay error lanzar en service excepcion, agregar un mensaje que no tiene firma.*/
+
+		if(datosFirmaDocumentoRequest == null){
+			if(!tramiteService.documentoFirmadoPide(filePrincipal)){
+				throw new ServiceException("Documento principal sin firma, cargar un documento firmado o datos para la firma.");
+			}
+		}
 
 		Tramite tramitePide =  tramiteService.registrarTramitePide(tramitePideBodyRequest, filePrincipal, fileAnexos, datosFirmaDocumentoRequest);
 
@@ -79,7 +85,10 @@ public class TramiteCommandHandlerService {
 
 		try{
 			if(datosFirmaDocumentoRequest!=null){
-				tramiteService.enviarDocumentoParaFirma(datosFirmaDocumentoRequest, filePrincipal, tramitePide);
+				MultipartFile filePrincipalMarcaAgua = filePrincipal;
+				if(environment.getProperty("app.micelaneos.mostrar-marca-agua").toString().equals("S"))
+					filePrincipalMarcaAgua = tramiteService.agregarDependencia(filePrincipal, tramitePide.getTramiteDependencia().toString());
+				tramiteService.enviarDocumentoParaFirma(datosFirmaDocumentoRequest, filePrincipalMarcaAgua, tramitePide);
 				tramiteService.actualizarDatosDocumentoFirmadoDigitalmente(tramitePide.getId());
 			}
 		}catch (ServiceException ex){
@@ -93,7 +102,6 @@ public class TramiteCommandHandlerService {
 		}
 
 		try{
-
 			String estadoTramite = tramitePide.getEstado();
 
 			//try{

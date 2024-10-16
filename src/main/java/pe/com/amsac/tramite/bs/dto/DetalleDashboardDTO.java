@@ -21,4 +21,5 @@ public class DetalleDashboardDTO {
     private String idTramite;
     private String idTramiteDerivacion;
     private String tipoTramite;
+    private String tramiteDependencia;
 }

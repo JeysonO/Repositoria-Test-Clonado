@@ -26,5 +26,6 @@ public class TramiteDashboardRequest extends BaseRequest {
 	private Date fechaCreacionHasta;
 	private String razonSocial;
 	private String todoAnio;
+	private String numeroTramiteDoc;
 
 }

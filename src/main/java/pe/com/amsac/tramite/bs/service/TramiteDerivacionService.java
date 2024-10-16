@@ -2559,6 +2559,11 @@ public class TramiteDerivacionService {
 			parameters.put("entidadPideId",tramiteDashboardRequest.getEntidadPideId());
 		}
 
+		//PARA NUMERO DOCUMENTO TRAMITE
+		if(tramiteDashboardRequest.getNumeroTramiteDoc()!=null){
+			parameters.put("numeroTramiteDoc",tramiteDashboardRequest.getNumeroTramiteDoc());
+		}
+
 		/*
 		//Para Externo Tramite
 		if(tramiteDashboardRequest.getTipoTramite().equals(TipoTramiteConstant.EXTERNO_MESA_PARTES)){
