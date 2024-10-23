@@ -30,5 +30,6 @@ public class TramiteRequest extends BaseRequest {
 	private String cuo;
 	private String tipoTramite;
 	private String tipoTramiteId;
+	private String tramiteDependencia;
 
 }

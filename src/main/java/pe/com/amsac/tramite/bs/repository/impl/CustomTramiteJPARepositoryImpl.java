@@ -68,6 +68,14 @@ public class CustomTramiteJPARepositoryImpl extends
             parameters.put("asunto",
                     "%" + ((String) parameters.get("asunto")).toUpperCase() + "%");
         }
+        if (parameters.get("tramiteDependencia") != null) {
+            whereClause = (!"".equals(whereClause) ? whereClause + " "
+                    + JpaConstant.CONDITION_AND + " " : "");
+            whereClause = whereClause
+                    + "upper(t.tramiteDependencia) like :tramiteDependencia";
+            parameters.put("tramiteDependencia",
+                    "%" + ((String) parameters.get("tramiteDependencia")).toUpperCase() + "%");
+        }
         if (parameters.get("razonSocial") != null) {
             whereClause = (!"".equals(whereClause) ? whereClause + " "
                     + JpaConstant.CONDITION_AND + " " : "");

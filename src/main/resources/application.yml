@@ -130,6 +130,7 @@ app:
     ruta-anexos: http://amsac.pe
     environment: TEST #DEV, TEST, PROD
     servicio-cuo: 3011
+    mostrar-marca-agua: N
 
   credenciales:
     schedule:

@@ -5,8 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import net.sf.jasperreports.export.pdf.PdfDocument;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
@@ -38,9 +42,17 @@ import pe.com.amsac.tramite.pide.soap.endpoint.SOAPCUOConnector;
 import pe.com.amsac.tramite.pide.soap.endpoint.SOAPConnector;
 import pe.com.amsac.tramite.pide.soap.tramite.request.*;
 
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
+
+import java.io.ByteArrayOutputStream;
+import java.util.List;
+
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.DatatypeFactory;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -240,6 +252,9 @@ public class TramiteService {
 			fechaHastaCadena = fechaHastaCadena + " " + "23:59:59";
 			fechaHasta = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").parse(fechaHastaCadena);
 			parameters.put("fechaCreaciontoHasta",fechaHasta);
+		}
+		if(tramiteRequest.getTipoTramiteId()!=null){
+			parameters.put("tipoTramiteId",tramiteRequest.getTipoTramiteId());
 		}
 		if(!StringUtils.isBlank(tramiteRequest.getMisTramite())){
 			parameters.remove("misTramite");
@@ -639,8 +654,49 @@ public class TramiteService {
 
 	}
 
-	public boolean validarFirmaDocumentoPide(MultipartFile multipartFile){
-		return true;
+	public boolean documentoFirmadoPide(MultipartFile multipartFile) {
+		try (PDDocument document = PDDocument.load(multipartFile.getInputStream())) {
+			List<PDSignature> signatures = document.getSignatureDictionaries();
+			return signatures != null && !signatures.isEmpty();
+		} catch (IOException e) {
+			log.error("Error",e);
+			return false;
+		}
+	}
+
+	public MultipartFile agregarDependencia(MultipartFile file, String tramiteDependencia) throws IOException {
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		try (PDDocument document = PDDocument.load(file.getInputStream())) {
+			PDPage page = document.getPage(0);
+			float pageWidth = page.getMediaBox().getWidth();
+			float pageHeight = page.getMediaBox().getHeight();
+			float x = pageWidth / 3;
+			float y = pageHeight - 30;
+			float angle = 0;
+
+			try (PDPageContentStream contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true)) {
+				contentStream.saveGraphicsState();
+				contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
+				contentStream.setNonStrokingColor(205, 205, 205); // Color gris
+				contentStream.beginText();
+				contentStream.setTextMatrix(
+						(float) Math.cos(angle),
+						(float) Math.sin(angle),
+						(float) -Math.sin(angle),
+						(float) Math.cos(angle),
+						x,
+						y
+				);
+				contentStream.showText("N° Doc. Dependencia: " + tramiteDependencia);
+				contentStream.endText();
+				contentStream.restoreGraphicsState();
+			}
+
+			document.save(outputStream); // Guardar en el outputStream
+		}
+
+		MultipartFile filePrincipalMarcaAgua= new CustomMultipartFile(outputStream.toByteArray(), "watermarked.pdf","application/pdf");
+		return filePrincipalMarcaAgua;
 	}
 	public List<TramiteReporteResponse> generarReporteTramiteSeguimiento(TramiteRequest tramiteRequest) throws Exception{
 		//Persona y Tipo Persona de Creador de cada tramite
@@ -1948,10 +2004,13 @@ public class TramiteService {
 
 		if(datosFirmaDocumentoRequest==null){
 			//Registramos el documento principal
+			MultipartFile filePrincipalMarcaAgua = filePrincipal;
+			if(env.getProperty("app.micelaneos.mostrar-marca-agua").toString().equals("S"))
+				filePrincipalMarcaAgua = agregarDependencia(filePrincipal,tramite.getTramiteDependencia().toString());
 			DocumentoAdjuntoBodyRequest documentoAdjuntoRequest = new DocumentoAdjuntoBodyRequest();
 			documentoAdjuntoRequest.setTramiteId(tramite.getId());
 			documentoAdjuntoRequest.setDescripcion("DOCUMENTO PRINCIPAL");
-			documentoAdjuntoRequest.setFile(filePrincipal);
+			documentoAdjuntoRequest.setFile(filePrincipalMarcaAgua);
 			documentoAdjuntoRequest.setSeccionAdjunto(SeccionAdjuntoConstant.PRINCIPAL);
 			documentoAdjuntoRequest.setTipoAdjunto(TipoAdjuntoConstant.DOCUMENTO_TRAMITE);
 			documentoAdjuntoRequest.setOmitirValidacionAdjunto(true);

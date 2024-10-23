@@ -140,6 +140,15 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
             whereClause = whereClause
                     + "td.estado = :estado";
         }
+
+        if (parameters.get("estadoFin") != null) {
+            whereClause = (!"".equals(whereClause) ? whereClause + " "
+                    + JpaConstant.CONDITION_AND + " " : "");
+            whereClause = whereClause
+                    + "td.estadoFin = :estadoFin";
+        }
+
+
         if (parameters.get("notEstadoFin") != null) {
             whereClause = (!"".equals(whereClause) ? whereClause + " "
                     + JpaConstant.CONDITION_AND + " " : "");
@@ -216,7 +225,7 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
         String orderByClause = null;
 
         if(parameters.get("tipoTramite").equals(TipoTramiteConstant.DESPACHO_PIDE)){
-            selectClause = "select '0' as id_tramite_derivacion, t.id_tramite, t.numero_tramite as numTramite, t.created_date as fechaCreacion, t.asunto, t.estado, di.nombre as dependenciaEmisor, CONCAT(ui.nombre,' ',ui.ape_paterno) as usuarioEmisior, ep.nombre as dependenciaDestino, ee.nombre as usuarioDestino, do.descripcion, tp.descripcion as prioridad, DATEDIFF(DAY,t.fecha_envio,ISNULL(t.fecha_recepcion,GETDATE())) as atencion, tt.tipo_tramite \n" +
+            selectClause = "select '0' as id_tramite_derivacion, t.id_tramite, t.numero_tramite as numTramite, t.created_date as fechaCreacion, t.asunto, t.estado, di.nombre as dependenciaEmisor, CONCAT(ui.nombre,' ',ui.ape_paterno) as usuarioEmisior, ep.nombre as dependenciaDestino, ee.nombre as usuarioDestino, do.descripcion, tp.descripcion as prioridad, DATEDIFF(DAY,t.fecha_envio,ISNULL(t.fecha_recepcion,GETDATE())) as atencion, tt.tipo_tramite, t.tramite_dependencia \n" +
                     "from tramite t \n" +
                     "inner join tipo_tramite tt   on tt.id_tipo_tramite = t.id_tipo_tramite\n" +
                     "inner join dependencia di    on di.id_dependencia = t.id_dependencia_remitente\n" +
@@ -243,7 +252,7 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
                     "                  WHEN DATEDIFF(DAY,td.fecha_maximo_atencion,ISNULL(td.fecha_fin,GETDATE())) < 0 or td.fecha_maximo_atencion is null\n" +
                     "                     THEN 0\n" +
                     "                  ELSE DATEDIFF(DAY,td.fecha_maximo_atencion,ISNULL(td.fecha_fin,GETDATE()))\n" +
-                    "             END AS int) as atencion, tt.tipo_tramite \n" +
+                    "             END AS int) as atencion, tt.tipo_tramite, t.tramite_dependencia\n" +
                     "from tramite_derivacion td \n" +
                     "inner join tramite t         on t.id_tramite = td.id_tramite\n" +
                     "inner join tipo_tramite tt   on tt.id_tipo_tramite = t.id_tipo_tramite\n" +
@@ -277,6 +286,7 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
             detalleDashboardDTO.setPrioridad(objeto[11].toString());
             detalleDashboardDTO.setDiasFueraPlazo(objeto[12]!=null?Integer.parseInt(objeto[12].toString()):0);
             detalleDashboardDTO.setTipoTramite(objeto[13].toString());
+            detalleDashboardDTO.setTramiteDependencia(objeto[14].toString());
             detalleDashboardDTOList.add(detalleDashboardDTO);
         }
 
@@ -526,6 +536,16 @@ public class CustomTramiteDerivacionJPARepositoryImpl extends
             whereClause = whereClause + " DATEDIFF(YEAR,:fechaAnioCadena,"+columnaFecha+") = 0 ";
             parameters.put("fechaAnioCadena",fechaAnioCadena);
             parameters.remove("todoAnio");
+        }
+
+        //NUMERO TRAMITE DEPENDENCIA
+        if (parameters.get("numeroTramiteDoc") != null) {
+            whereClause = (!"".equals(whereClause) ? whereClause + " "
+                    + JpaConstant.CONDITION_AND + " " : "");
+            whereClause = whereClause
+                    + "t.tramite_dependencia like :numeroTramiteDoc";
+            parameters.put("numeroTramiteDoc",
+                    "%" + ((String) parameters.get("numeroTramiteDoc")).toUpperCase() + "%");
         }
 
         whereClause = (!"".equals(whereClause) ? whereClause + " "
