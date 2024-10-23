@@ -355,6 +355,25 @@
 		</dependency>
 		-->
 
+		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.5.10</version>
+		</dependency>
+
+		<!-- para verificar firma en el documento principal pide -->
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox</artifactId>
+			<version>2.0.24</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox-app</artifactId>
+			<version>2.0.24</version>
+		</dependency>
+
 
 	</dependencies>
 
@@ -439,7 +458,7 @@
 		</plugins>
 	</build>
 
-	<profiles>
+	<!--<profiles>
 		<profile>
 			<id>kafka</id>
 			<properties>
@@ -471,6 +490,6 @@
 				</dependency>
 			</dependencies>
 		</profile>
-	</profiles>
+	</profiles>-->
 
 </project>
